@@ -1,8 +1,20 @@
-title: Waltyou.GitHub.io
-description: jekyll blog
-google_analytics: 
-show_downloads: true
-theme: jekyll-theme-slate
-
-gems:
-  - jekyll-mentions
+# Site settings
+title: Walt You / 四月蓝天 - 编程
+name: 四月蓝天的博客 - Walt You personal blog
+url: "http://waltyou.github.io"
+email: waltyou@163.com
+description: 四月蓝天的博客 Walt You's Personal Site - 编程
+baseurl: "http://waltyou.github.io/archive/" # the subpath of your site, e.g. /blog/
+github_username:  waltyou # Github ID
+baidushare_id: 111 #  百度分享 ID
+baidutongji_id:  d601aa59a7cce69b0847dcc1deb3eb53 # 百度统计 ID
+rss_url: "/feed.xml"  # RSS 订阅 URL
+logo_image: "/images/logo.png"  # LOGO 图片地址
+# Build settings
+gems: [jekyll-paginate]
+markdown: rdiscount
+highlighter: pygments
+permalink: /:title/
+paginate: 8
+paginate_path: page/:num
+ 
