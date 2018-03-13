@@ -4,7 +4,7 @@ name: 四月蓝天的博客 - Walt You personal blog
 url: "http://waltyou.github.io"
 email: waltyou@163.com
 description: 四月蓝天的博客 Walt You's Personal Site - 编程
-baseurl: "http://waltyou.github.io/archive/" # the subpath of your site, e.g. /blog/
+baseurl: "" # the subpath of your site, e.g. /blog/
 github_username:  waltyou # Github ID
 baidushare_id: 111 #  百度分享 ID
 baidutongji_id:  d601aa59a7cce69b0847dcc1deb3eb53 # 百度统计 ID
