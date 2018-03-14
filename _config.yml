@@ -13,7 +13,7 @@ logo_image: "/images/logo.png"  # LOGO 图片地址
 # Build settings
 gems: [jekyll-paginate]
 markdown: rdiscount
-highlighter: pygments
+highlighter: rouge
 permalink: /:title/
 paginate: 8
 paginate_path: page/:num
