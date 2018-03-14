@@ -12,7 +12,6 @@ rss_url: "/feed.xml"  # RSS 订阅 URL
 logo_image: "/images/logo.png"  # LOGO 图片地址
 # Build settings
 gems: [jekyll-paginate]
-markdown: rdiscount
 highlighter: rouge
 permalink: /:title/
 paginate: 8
