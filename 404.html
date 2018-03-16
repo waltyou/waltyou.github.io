@@ -1,5 +1,6 @@
 ---
 layout: page
+permalink: /404.html
 ---
 
 <h2> Sorry this page does not exist =( </h2>
@@ -14,7 +15,7 @@ layout: page
   function testTime() {
     view.innerHTML = t + " 秒后跳转至首页...";
     if(t == 0) {
-      location="{{ site.url }}";
+      location="/";
     }
     t--;
   }

@@ -5,7 +5,7 @@ permalink: /archive/
 ---
 
 <div>
-{% for post in site.posts reverse %}
+{% for post in site.posts reversed %}
 {% capture y %}{{post.date | date:"%Y"}}{% endcapture %}
 {% if year != y %}{% assign year = y %}<h1 class="year">{{ post.date | date: "%Y" }}</h1>{% endif %}
 <div class="timing">
