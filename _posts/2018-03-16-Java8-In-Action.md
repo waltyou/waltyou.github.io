@@ -12,10 +12,13 @@ tags: [Java,Java8]
 {:.no_toc}
 Java 8 早已发布过去四年，但是发现自己对其新特性还不清楚，所以决定学习一下，顺便做个日志记录一下自己学习过程。
 
-学习资料主要参考： 《Java 8 In Action》、《Java 8实战》，以及其源码：[Java8InAction](https://github.com/java8/Java8InAction)
+学习资料主要参考： 《Java 8 In Action》、《Java 8实战》，以及其源码：[Java8 In Action](https://github.com/java8/Java8InAction)
 
 <!-- more -->
 ---
+# 目录
+{:.no_toc}
+
 * 目录
 {:toc}
 ---
@@ -59,16 +62,16 @@ Example 1：
 
 用一个Comparator排序Apple，使用Java 8中List默认的sort方法。
 ```
-// java.util.Comparator 
-public interface Comparator<T> { 
-    public int compare(T o1, T o2); 
-} 
+// java.util.Comparator
+public interface Comparator<T> {
+    public int compare(T o1, T o2);
+}
 
 // 匿名类写法
 inventory.sort(new Comparator<Apple>() {
     public int compare(Apple a1, Apple a2){
-        return a1.getWeight().compareTo(a2.getWeight()); 
-    } 
+        return a1.getWeight().compareTo(a2.getWeight());
+    }
 });
 // lambda写法
 inventory.sort(
@@ -79,16 +82,16 @@ Example 2：
 
 用Runnable执行代码块。
 ```
-// java.lang.Runnable 
-public interface Runnable{ 
-    public void run(); 
+// java.lang.Runnable
+public interface Runnable{
+    public void run();
 }
 
 // 匿名类写法
-Thread t = new Thread(new Runnable() { 
-    public void run(){ 
-        System.out.println("Hello world"); 
-    } 
+Thread t = new Thread(new Runnable() {
+    public void run(){
+        System.out.println("Hello world");
+    }
 });
 // lambda写法
 Thread t = new Thread(() -> System.out.println("Hello world"));
@@ -97,12 +100,12 @@ Example 3：
 
 GUI事件处理。
 ```
-Button button = new Button("Send"); 
+Button button = new Button("Send");
 // 匿名类写法
-button.setOnAction(new EventHandler<ActionEvent>() { 
-    public void handle(ActionEvent event) { 
-        label.setText("Sent!!"); 
-    } 
+button.setOnAction(new EventHandler<ActionEvent>() {
+    public void handle(ActionEvent event) {
+        label.setText("Sent!!");
+    }
 });
 // lambda写法
 button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
@@ -154,55 +157,88 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 1. Predicate.test: (T) -> boolean
 2. Consumer.accept： (T) -> void
 3. Function.apply： (T) -> R
- 
+
 #### Detail:
 1. 类型检查：上下文中Lambda表达式需要的类型称为目标类型
     1. 同样的Lambda，不同的函数式接口
     2. 特殊的void兼容规则：如果一个Lambda的主体是一个语句表达式 它就和一个返回void的函数描述符兼容。
 2. 类型推断：编译器可以了解Lambda表达式的参数类型，这样就可
-以在Lambda语法中省去标注参数类型。
-```
-int portNumber = 1337; 
-Runnable r = () -> System.out.println(portNumber); 
-```
+    以在Lambda语法中省去标注参数类型。
+    ```
+    int portNumber = 1337;
+    Runnable r = () -> System.out.println(portNumber);
+    ```
 3. 使用局部变量：
-```
-int portNumber = 1337; 
-Runnable r = () -> System.out.println(portNumber); 
-```
-注意：
-Lambda可以没有限制地捕获（也就是在其主体中引用）实例变量和静态变量。但局部变量必须显式声明为final，或事实上是final。
+    ```
+    int portNumber = 1337;
+    Runnable r = () -> System.out.println(portNumber);
+    ```
+    注意：
+    Lambda可以没有限制地捕获（也就是在其主体中引用）实例变量和静态变量。但局部变量必须显式声明为final，或事实上是final。
 
-原因：1）局部变量保存在栈上，并且隐式表示它们仅限于其所在线程，如果允许捕获可改变的局部变量，就会引发造成线程
-不安全新的可能性；2）不鼓励你使用改变外部变量的典型命令式编程模式
+    原因：1）局部变量保存在栈上，并且隐式表示它们仅限于其所在线程，如果允许捕获可改变的局部变量，就会引发造成线程不安全新的可能性；2）不鼓励你使用改变外部变量的典型命令式编程模式
 4. 方法引用（method reference）
 
-目标引用放在分隔符 :: 前, 方法的名称放在后面。
-```
-inventory.sort(comparing(Apple::getWeight));
-```
-方法引用主要有三类:
-1. 指向静态方法的方法引用: Integer::parseInt
-2. 指向任意类型实例方法的方法引用: String::length
-3. 指向现有对象的实例方法的方法引用: expensiveTransaction::getValue
+    目标引用放在分隔符 :: 前, 方法的名称放在后面。
+    ```
+    inventory.sort(comparing(Apple::getWeight));
+    ```
+    方法引用主要有三类:
+    1. 指向静态方法的方法引用: Integer::parseInt
+    2. 指向任意类型实例方法的方法引用: String::length
+    3. 指向现有对象的实例方法的方法引用: expensiveTransaction::getValue
 
-改写：
-```
-Function<String, Integer> stringToInteger = (String s) -> Integer.parseInt(s);
-
-Function<String, Integer> stringToInteger = Integer::parseInt;
-```
-```
-BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
-
-BiPredicate<List<String>, String> contains = List::contains;
-```
-构造函数引用： 
-```f
-Supplier<Apple> c1 = Apple::new;
-Apple a1 = c1.get();
-```
-```
-Function<Integer, Apple> c2 = Apple::new;
-Apple a2 = c2.apply(110);
-```
+    ```
+    //改写
+    Function<String, Integer> stringToInteger = (String s) -> Integer.parseInt(s);
+    Function<String, Integer> stringToInteger = Integer::parseInt;
+    ```
+    ```
+    BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
+    BiPredicate<List<String>, String> contains = List::contains;
+    ```
+    构造函数引用：
+    ```
+    Supplier<Apple> c1 = Apple::new;
+    Apple a1 = c1.get();
+    ```
+    ```
+    Function<Integer, Apple> c2 = Apple::new;
+    Apple a2 = c2.apply(110);
+    ```
+5. 复合Lambda表达式 (因为引入了默认方法)
+    1. 比较器复合
+    ```
+    Comparator<Apple> c = Comparator.comparing(Apple::getWeight);
+    // 逆序
+    inventory.sort(comparing(Apple::getWeight).reversed());
+    // 比较器链
+    inventory.sort(comparing(Apple::getWeight)
+        .reversed()
+        .thenComparing(Apple::getCountry))
+    ```
+    2. 谓词复合：negate、and和or
+    ```
+    //取非
+    Predicate<Apple> notRedApple = redApple.negate();
+    //and操作
+    Predicate<Apple> redAndHeavyApple =
+        redApple.and(a -> a.getWeight() > 150);
+    //and + or操作
+    Predicate<Apple> redAndHeavyAppleOrGreen =
+        redApple.and(a -> a.getWeight() > 150)
+        .or(a -> "green".equals(a.getColor()));
+    ```
+    *注意：从左向右确定优先级，如a.or(b).and(c)可以看做 (a || b) && c*
+    3. 函数复合:Function提供了andThen(), compose()。
+    ```
+    Function<Integer, Integer> f = x -> x + 1;
+    Function<Integer, Integer> g = x -> x * 2;
+    // expect: (2 + 1) * 2 = 4
+    // f(g(x))
+    System.out.println(f.andThen(g).apply(1));
+    // expect: 1 * 2 + 1 = 3
+    // g(f(x))
+    System.out.println(f.compose(g).apply(1));
+    ```
+    *复合Lambda表达式可以用来创建各种转型流水线。*
