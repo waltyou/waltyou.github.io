@@ -593,6 +593,7 @@ int totalCalories = menu.stream().collect(reducing(
         递归过程。框架不断对Spliterator调用trySplit直到它返回null,表明它处理的数据结构不能再分割。
         
         **Spliterator 的特性**
+
         特性 | 含义
         ---|---
         ORDERED | 元素有既定的顺序(例如 List ),因此 Spliterator 在遍历和划分时也会遵循这一顺序
