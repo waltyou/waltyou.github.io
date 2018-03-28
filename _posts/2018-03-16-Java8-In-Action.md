@@ -32,6 +32,7 @@ Java 8 早已发布过去四年，但是发现自己对其新特性还不清楚�
 # 第二步：梳理脉络
 
 通过脑图可以看出，全书分为四个部分：
+
 1. 基础知识，重点是**为何关心java8，行为参数化**和**lambda**
 2. 函数式编程，重点是全面系统的介绍**Stream**
 3. Java8的其他改善点：**重构/测试/调试，默认方法（Default Function），Optional替代null，CompletableFuture 组合式异步编程，日期时间API**
@@ -42,19 +43,21 @@ Java 8 早已发布过去四年，但是发现自己对其新特性还不清楚�
 
 ## 1. 基础知识
 ### 1）为何关心java8
+
 1. 新概念和新功能，有助于写出高效简约的代码
 2. 现有的Java编程实践并不能很好地利用多核处理器
 3. 借鉴函数式语言的其他优点: 处理null和模式匹配
 
 ### 2）行为参数化
 #### Why：
+
 应对不断变化的需求，避免啰嗦，而且不打破DRY（Don’t Repeat Yourself）规则。
+
 #### What：
 
 简单讲：把方法（你的代码）作为参数传递给另一个方法。
 
-复杂讲： 让方法接受多种行为（或战
-略）作为参数，并在内部使用，来完成不同的行为。
+复杂讲： 让方法接受多种行为（或战略）作为参数，并在内部使用，来完成不同的行为。
 
 #### How：
 
@@ -78,6 +81,7 @@ inventory.sort(
     (Apple a1, Apple a2) ->
     a1.getWeight().compareTo(a2.getWeight()));
 ```
+
 Example 2：
 
 用Runnable执行代码块。
@@ -96,9 +100,11 @@ Thread t = new Thread(new Runnable() {
 // lambda写法
 Thread t = new Thread(() -> System.out.println("Hello world"));
 ```
+
 Example 3：
 
 GUI事件处理。
+
 ```
 Button button = new Button("Send"); 
 // 匿名类写法
@@ -107,14 +113,19 @@ button.setOnAction(new EventHandler<ActionEvent>() {
         label.setText("Sent!!"); 
     } 
 });
+
 // lambda写法
 button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 ```
 
 ### 3） 匿名函数 lambda
+
 #### Why：
+
 匿名类太啰嗦
+
 #### What：
+
 简单讲：匿名函数。
 
 复杂讲：简洁地表示可传递的匿名函数的一种方式：它没有名称，但它有参数列表、函数主体、返回类型，可能还有一个可以抛出的异常列表。
@@ -126,6 +137,7 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 
 关键词：
 参数列表 + 箭头 + 主体
+
 ```
 (parameters) -> expression
 ```
@@ -176,14 +188,19 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
     注意：
     Lambda可以没有限制地捕获（也就是在其主体中引用）实例变量和静态变量。但局部变量必须显式声明为final，或事实上是final。
     
-    原因：1）局部变量保存在栈上，并且隐式表示它们仅限于其所在线程，如果允许捕获可改变的局部变量，就会引发造成线程不安全新的可能性；2）不鼓励你使用改变外部变量的典型命令式编程模式
+    原因：
+    1）局部变量保存在栈上，并且隐式表示它们仅限于其所在线程，如果允许捕获可改变的局部变量，就会引发造成线程不安全新的可能性；
+    2）不鼓励你使用改变外部变量的典型命令式编程模式
+
 4. 方法引用（method reference）
 
     目标引用放在分隔符 :: 前, 方法的名称放在后面。
     ```
     inventory.sort(comparing(Apple::getWeight));
     ```
+
     方法引用主要有三类:
+
     1. 指向静态方法的方法引用: Integer::parseInt
     2. 指向任意类型实例方法的方法引用: String::length
     3. 指向现有对象的实例方法的方法引用: expensiveTransaction::getValue
@@ -206,8 +223,11 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
     Function<Integer, Apple> c2 = Apple::new;
     Apple a2 = c2.apply(110);
     ```
+
 5. 复合Lambda表达式 (因为引入了默认方法)
+
     1. 比较器复合
+
     ```
     Comparator<Apple> c = Comparator.comparing(Apple::getWeight);
     // 逆序
@@ -217,7 +237,9 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
         .reversed()
         .thenComparing(Apple::getCountry))
     ```
+
     2. 谓词复合：negate、and和or
+
     ```
     //取非
     Predicate<Apple> notRedApple = redApple.negate();
@@ -229,8 +251,11 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
         redApple.and(a -> a.getWeight() > 150)
         .or(a -> "green".equals(a.getColor()));
     ```
+
     *注意：从左向右确定优先级，如a.or(b).and(c)可以看做 (a || b) && c*
-    3. 函数复合:Function提供了andThen(), compose()。
+
+    3. 函数复合:Function提供了andThen(), compose()
+
     ```
     Function<Integer, Integer> f = x -> x + 1; 
     Function<Integer, Integer> g = x -> x * 2; 
@@ -244,37 +269,49 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
     *复合Lambda表达式可以用来创建各种转型流水线。*
     
 ## 2. 函数式编程
+
 ### 1）介绍stream
+
 #### Why:
+
 以声明性方式处理数据集合, 遍历数据集的高级迭代器
+
 特点：
+
 1. 声明性：更简洁,更易读
 2. 可复合：更灵活
 3. 可并行（parallelStream）：性能更好
 
 #### What:
+
 定义：从（支持**数据处理操作**的**源**）生成的（**元素序列**）
+
 - 元素序列：流提供了一个接口,可以访问特定元素类型的一组有序值。
 - 源：集合、数组或输入/输出资源
 - 数据处理操作：filter 、 map 、 reduce 、 find 、 match 、 sort等，可顺序，可并行。
 
 两个重要特点：
+
 - 流水线：多个操作可以链接起来
 - 内部迭代：流的迭代操作是在背后进行的，优点：透明地并行处理;优化处理顺序
 
 注意：链中的方法调用都在排队等待,直到调用 collect 。
 
 #### collection vs stream
+
 粗略地说区别在于什么时候进行计算。
 stream： 按需生成，需求驱动；只能遍历一次; 内部迭代
 collection：急切创建；外部迭代
 
 #### How
+
 两大类操作
+
 1. 中间操作：会返回另一个流，map，filter等
 2. 终端操作：从流的流水线生成结果，collect，foreach， count等
 
 使用三要素
+
 - 一个数据源(如集合)来执行一个查询;
 - 一个中间操作链,形成一条流的流水线;
 - 一个终端操作,执行流水线,并能生成结果。
@@ -287,20 +324,28 @@ dishes.stream()
     .collect(toList());
 ```
 ### 2）使用stream
+
 1. 筛选和切片 Filtering and slicing
     
     filter()，distinct()，limit(n), skip(n)
+
 2. 映射 Mapping
+
     1. map: 对流中每一个元素应用函数
     2. flatmap: 把一个流中的每个值都换成另一个流,然后把所有的流连接起来成为一个流。
+
 3. 查找和匹配 Finding and matching
+
     1. anyMatch: 流中是否有一个元素能匹配给定的谓词, 方法返回一个 boolean
     2. allMatch: 流中的元素是否都能匹配给定的谓词, 方法返回一个 boolean
     3. noneMatch: 流中没有任何元素与给定的谓词匹配
     4. findAny: 返回当前流中的任意元素(Optional<T>)
     5. findFirst: 找到第一个元素
+
 4. 归约 Reducing
+
     将流中所有元素反复结合起来。
+
     1. 元素求和
     ```
     int sum = numbers.stream().reduce(0, Integer::sum);
@@ -311,9 +356,11 @@ dishes.stream()
     Optional<Integer> max = numbers.stream().reduce(Integer::max);
     Optional<Integer> min = numbers.stream().reduce(Integer::min);
     ```
+
 5. 数值流 Numeric Streams
     
     为了避免装箱带来的复杂性
+
     1. 映射到数值流: mapToInt、mapToDouble 和 mapToLong
     2. 转换回对象流
     ```
@@ -324,6 +371,7 @@ dishes.stream()
     4. 数值范围 IntStream.rangeClosed(1, 100)
     
 6. 构建流 Building streams
+
     1. 由值创建流： 
     ```
     Stream<String> stream = Stream.of("Java 8 ", "Lambdas ", "In ", "Action");
@@ -355,32 +403,34 @@ dishes.stream()
         .limit(5)
         .forEach(System.out::println);
     ```
+
 ### 3）用stream收集数据
 
 1. 常用
-- Collectors.groupingBy
-- Collectors.counting()
-- Collectors.maxBy
-- Collectors.minBy
-- Collectors.summingInt，Collectors.summingLong，Collectors.summingDouble
-- Collectors.averagingInt，Collectors.averagingLong，Collectors.averagingDouble
-- Collectors.summarizingInt
-- Collectors.joining
+
+    - Collectors.groupingBy
+    - Collectors.counting()
+    - Collectors.maxBy
+    - Collectors.minBy
+    - Collectors.summingInt，Collectors.summingLong，Collectors.summingDouble
+    - Collectors.averagingInt，Collectors.averagingLong，Collectors.averagingDouble
+    - Collectors.summarizingInt
+    - Collectors.joining
 
 2. 广义的归约汇总 Collectors.reducing
 
-- 第一个参数是归约操作的起始值
-- 第二个参数获取或操作对象的属性数值(转换函数)
-- 第三个参数BinaryOperator，如加法
-```
-int totalCalories = menu.stream().collect(reducing(
-    0, 
-    Dish::getCalories, 
-    (i, j) -> i + j));
-```
-思考：Stream 接口的 collect和 reduce 方法有何不同？
-- 语义问题: reduce 方法旨在把两个值结合起来生成一个新值,它是一个不可变的归约。与此相反, collect 方法的设计就是要改变容器,从而累积要输出的结果。
-- 实际问题: 以错误的语义使用 reduce 方法不能并行工作
+    需要三个参数：
+
+    ```
+    int totalCalories = menu.stream().collect(reducing(
+        0,                      // 归约操作的起始值
+        Dish::getCalories,      // 获取或操作对象的属性数值(转换函数)
+        (i, j) -> i + j));      // BinaryOperator，如加法
+    ```
+
+    思考：Stream 接口的 collect和 reduce 方法有何不同？
+    - 语义问题: reduce 方法旨在把两个值结合起来生成一个新值,它是一个不可变的归约。与此相反, collect 方法的设计就是要改变容器,从而累积要输出的结果。
+    - 实际问题: 以错误的语义使用 reduce 方法不能并行工作
 
 3. 分组
 
@@ -418,8 +468,10 @@ int totalCalories = menu.stream().collect(reducing(
     Map<Dish.Type, Long> typesCount = menu.stream().collect(
         groupingBy(Dish::getType, counting()));
     
-    ```    
+    ```
+
     Collectors.collectingAndThen： 把收集器返回的结果转换为另一种类型
+
     ```
     Map<Dish.Type, Dish> mostCaloricByType =
         menu.stream()
@@ -428,7 +480,9 @@ int totalCalories = menu.stream().collect(reducing(
                     maxBy(comparingInt(Dish::getCalories)),
                 Optional::get)));
     ```
+
     与 groupingBy 联合使用的其他收集器的例子
+
     ```
     // summingInt
     Map<Dish.Type, Integer> totalCaloriesByType =
@@ -462,7 +516,9 @@ int totalCalories = menu.stream().collect(reducing(
     menu.stream().collect(partitioningBy(Dish::isVegetarian,
         counting()));
     ```
+
 5. Collector 接口
+
     ```
     public interface Collector<T, A, R> {
         Supplier<A> supplier();
@@ -473,11 +529,13 @@ int totalCalories = menu.stream().collect(reducing(
     }
     ```
     <T, A, R> 意义：
+
     - T 是流中要收集的项目的泛型
     - A 是累加器的类型,累加器是在收集过程中用于累积部分结果的对象。
     - R 是收集操作得到的对象(通常但并不一定是集合)的类型。
     
     方法分析：
+
     1. 建立新的结果容器: supplier 方法
     2. 将元素添加到结果容器: accumulator 方法
     3. 对结果容器应用最终转换: finisher 方法
@@ -530,6 +588,7 @@ int totalCalories = menu.stream().collect(reducing(
     · 可以获取更好的性能
 
 ### 4）并行数据处理与性能
+
 1. 并行流处理数据
 
     What：parallelStream
@@ -544,10 +603,12 @@ int totalCalories = menu.stream().collect(reducing(
         .reduce(); 
     ```
     注意点：
+
     - 保证在内核中并行执行工作的时间比在内核之间传输数据的时间长。
     - 避免改变了某些共享状态
     
     如何高效使用：
+
     - 测量
     - 留意装箱
     - 依赖于元素顺序的操作，本身在并行流上的性能就比顺序流差
@@ -566,6 +627,7 @@ int totalCalories = menu.stream().collect(reducing(
     **使用**：实现compute()方法，提交至ForkJoinPool.invoke
     
     **好的做法**：
+
     - join方法会阻塞，所以先确保两个子任务全部启动，再调用join
     - RecursiveTask内部不应该调用ForkJoinPool.invoke，应该直接调用compute、fork，只有顺序代码才应该用 invoke 来启动并行计算
     - 一边子任务fork，一边子任务compute，避免在线程池中多分配一个任务造成的开销
@@ -579,7 +641,8 @@ int totalCalories = menu.stream().collect(reducing(
 
 3. Spliterator分割流
 
-    描述：一种自动机制来拆分流。新的接口“可分迭代器”（splitable iterator）。
+    描述：一种自动机制来拆分流。新的接口“可分迭代器”（splitable iterator）
+
     ```
     public interface Spliterator<T> { 
         boolean tryAdvance(Consumer<? super T> action); 
@@ -588,6 +651,7 @@ int totalCalories = menu.stream().collect(reducing(
         int characteristics(); 
     }
     ```
+
     1. 拆分过程
     
         递归过程。框架不断对Spliterator调用trySplit直到它返回null,表明它处理的数据结构不能再分割。
