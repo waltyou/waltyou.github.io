@@ -19,7 +19,7 @@ paginate: 8
 paginate_path: page/:num
 # 目录深度
 kramdown:
-  toc_levels: 1..3
+  toc_levels: 1..2
 # seo
 plugins:
   - jekyll-seo-tag
