@@ -23,4 +23,5 @@ kramdown:
 # seo
 plugins:
   - jekyll-seo-tag
+  - jekyll-sitemap
  
