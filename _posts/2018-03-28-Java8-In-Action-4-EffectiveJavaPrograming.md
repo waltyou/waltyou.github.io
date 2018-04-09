@@ -9,6 +9,7 @@ tags: [Java,Java8]
 ---
 
 
+这一部分主要介绍了Java 8的一些其他新特性，如默认方法，Optional，CompletableFuture，新的时间日期API等。并且介绍了由于引入了lambda和stream后，我们该如何重构、测试和调试代码。
 
 <!-- more -->
 
