@@ -400,11 +400,69 @@ stream.parallel()
 
 ### 定义
 
-它是ExecutorService接口的一个实现，它把子任务分配给线程池（称为ForkJoinPool）中的工作线程。
+RecursiveTask是ExecutorService接口的一个实现，它把子任务分配给线程池（称为ForkJoinPool）中的工作线程。
 
 ### 使用
 
 实现compute()方法，提交至ForkJoinPool.invoke
+
+实际例子：
+```java
+public class ForkJoinSumCalculator extends java.util.concurrent.RecursiveTask<Long> {
+
+    // 拆分任务的标准大小
+    public static final long THRESHOLD = 10_000;
+
+    private final long[] numbers;
+    private final int start;
+    private final int end;
+
+    public ForkJoinSumCalculator(long[] numbers) {
+        this(numbers, 0, numbers.length);
+    }
+
+    private ForkJoinSumCalculator(long[] numbers, int start, int end) {
+        this.numbers = numbers;
+        this.start = start;
+        this.end = end;
+    }
+
+    // 实现compute方法
+    @Override
+    protected Long compute() {
+        int length = end - start; // 获取当前剩余任务的大小
+        if (length <= THRESHOLD) {
+            return computeSequentially();
+        }
+        // 创建另外一个子任务 leftTask
+        ForkJoinSumCalculator leftTask = new ForkJoinSumCalculator(numbers, start, start + length/2);
+        // 异步执行 leftTask
+        leftTask.fork();
+        // 创建剩余一半任务的子任务 rightTask
+        ForkJoinSumCalculator rightTask = new ForkJoinSumCalculator(numbers, start + length/2, end);
+        // 递归调用获取结果
+        Long rightResult = rightTask.compute();
+        // 获取 leftTask 结果
+        Long leftResult = leftTask.join();
+        return leftResult + rightResult;
+    }
+
+    private long computeSequentially() {
+        long sum = 0;
+        for (int i = start; i < end; i++) {
+            sum += numbers[i];
+        }
+        return sum;
+    }
+
+    // 如何调用fork/join框架
+    public static long forkJoinSum(long n) {
+        long[] numbers = LongStream.rangeClosed(1, n).toArray();
+        ForkJoinTask<Long> task = new ForkJoinSumCalculator(numbers);
+        return new ForkJoinPool().invoke(task);
+    }
+}
+```
 
 ### 好的做法
 
