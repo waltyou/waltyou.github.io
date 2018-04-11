@@ -8,7 +8,6 @@ categories: [Java]
 tags: [Java,Java8]
 ---
 
-
 这一部分主要介绍了Java 8的一些其他新特性，如默认方法，Optional，CompletableFuture，新的时间日期API等。并且介绍了由于引入了lambda和stream后，我们该如何重构、测试和调试代码。
 
 <!-- more -->
@@ -784,4 +783,553 @@ public int readDuration(Properties props, String name){
 }
 ```
 
-## 未完待续......
+---
+# CompletableFuture：组合式异步编程
+
+
+在进行软件设计时，有两大趋势：
+1. 与硬件条件结合，即提高并行能力
+2. 与其他应用交互，即提高并发能力
+
+
+对于第一点，Java 7引入了fork/join框架，可以将任务拆分为子任务，Java 8中引入并行流。
+
+对于第二点，问题的本质其实就是该如何处理线程阻塞情况。因为阻塞时，CPU资源是完全浪费的。那在java中是怎么处理呢？
+
+
+## 1. Future接口
+
+
+### 是什么？怎么用？
+
+Java 5中引入了Futrue接口。
+
+它是什么呢？
+
+简单说，它建模了一种异步计算,返回一个执行运算结果的引用,当运算结束后,这个引用被返回给调用方。
+
+用代码语言讲就是，将耗时的操作封装在一个Callable对象中,再将它提交给 ExecutorService，然后就无需干涉了。
+
+```java
+ExecutorService executor = Executors.newCachedThreadPool(); 
+// submit callable 到ExecutorService中，获得future引用
+Future<Double> future = executor.submit(new Callable<Double>() { 
+    public Double call() { 
+        return doSomeLongComputation(); 
+    }});
+// 在执行callable时，可以做其他事情
+doSomethingElse();
+// 获取异步操作的结果，如果阻塞，最长等待1s
+try { 
+    Double result = future.get(1, TimeUnit.SECONDS); 
+} catch (ExecutionException ee) { 
+    // 计算抛出一个异常
+} catch (InterruptedException ie) { 
+    // 当前线程在等待过程中被中断
+} catch (TimeoutException te) { 
+    // 在Future对象完成之前超过已过期
+}
+```
+
+### 局限性
+
+#### 两个方面
+1. 不够简洁
+2. 很难表述清楚各个future之间的依赖关系
+
+#### 一些难以解决的场景
+- 将两个异步计算合并为一个，这两个异步计算之间相互独立，同时第二个又依赖于第一个的结果。
+- 等待Future集合中的所有任务都完成
+- 仅等待Future集合中最快结束的任务完成（有可能因为它们试图通过不同的方式计算同一个值），并返回它的结果。
+- 通过编程方式完成一个Future任务的执行（即以手工设定异步操作结果的方式）
+- 应对Future的完成事件（即当Future的完成事件发生时会收到通知，并能使用Future计算的结果进行下一步的操作，不只是简单地阻塞等待操作的结果）。
+
+然而，Java 8中CompletableFuture的引入可以使以上皆变为可能。
+
+## 2. 使用CompletableFuture构建异步应用
+
+### 同步API与异步API
+
+同步API：
+> 你调用了某个方法，调用方在被调用方运行的过程中会等待，被调用方运行结束返回，调用方取得被调用方的返回值并继续运行，即阻塞式调用
+
+异步API：
+> 直接返回，或者至少在被调用方计算完成之前，将它剩余的计算任务交给另一个线程去做，该线程和调用方是异步的，即非阻塞式调用
+
+### 例子
+
+一起来构建"最佳价格查询器”（best-price-finder）的应用。它会查询多个在线商店，依据给定的产品或服务找出最低的价格。
+
+1. 定义API
+    ```java
+    public class Shop { 
+        public double getPrice(String product) { 
+            // 待实现
+        } 
+    }
+    ```
+2. 添加模拟延迟
+    ```java
+    public static void delay() { 
+        try { 
+            Thread.sleep(1000L); 
+        } catch (InterruptedException e) { 
+            throw new RuntimeException(e); 
+        } 
+    } 
+    ```
+3. getPrice方法会调用delay方法，并返回一个随机计算的值
+    ```java
+    public double getPrice(String product) { 
+        return calculatePrice(product); 
+    } 
+    private double calculatePrice(String product) { 
+        delay(); 
+        return random.nextDouble() * product.charAt(0) + product.charAt(1); 
+    }
+    ```
+    显然这一步的实现，就是一个同步式API的实现，所有的操作都会为等待同步事件完成而等待1秒钟，这是无法接受的。
+4. 将同步方法转换为异步方法
+    ```java
+    public Future<Double> getPriceAsync(String product) {
+        CompletableFuture<Double> futurePrice = new CompletableFuture<>();
+        new Thread( () -> { 
+            double price = calculatePrice(product); futurePrice.complete(price);
+        }).start(); 
+        return futurePrice; 
+    }
+    ```
+    这段代码，创建了一个代表异步计算的CompletableFuture对象实例，它在计算完成时会包含计算的结果。
+    
+    代码创建了另一个线程去执行实际的价格计算工作，不等该耗时计算任务结束，直接返回一个Future实例。
+    
+    当请求的产品价格最终计算得出时，你可以使用它的complete方法，结束completableFuture对象的运行，并设置变量的值。
+5. 使用异步API
+    ```java
+    Shop shop = new Shop("BestShop"); 
+    long start = System.nanoTime(); 
+    Future<Double> futurePrice = shop.getPriceAsync("my favorite product"); 
+    long invocationTime = ((System.nanoTime() - start) / 1_000_000); 
+    System.out.println("Invocation returned after " + invocationTime + " msecs"); 
+    // 执行更多任务，比如查询其他商店
+    doSomethingElse(); 
+    // 在计算商品价格的同时
+    try { 
+        double price = futurePrice.get(); 
+        System.out.printf("Price is %.2f%n", price); 
+    } catch (Exception e) { 
+        throw new RuntimeException(e); 
+    } 
+    long retrievalTime = ((System.nanoTime() - start) / 1_000_000); 
+    System.out.println("Price returned after " + retrievalTime + " msecs");
+    ```
+
+### 错误处理
+
+如果计算价格时，内部产生了错误，而这些异常呢，会被限制在当前线程范围，最终会导致杀死该线程。于是get方法将永远阻塞。
+
+那该怎么办呢？
+
+简单想法是使用get方法的重载版，设置超时参数，这样子就可以解决永远阻塞的问题。
+
+但是内部到底发生了什么问题呢？还是无从查起。
+
+所以引入了新的方法：completeExceptionally，它可以将导致CompletableFuture内发生问题的异常抛出。
+
+```java
+public Future<Double> getPriceAsync(String product) { 
+    CompletableFuture<Double> futurePrice = new CompletableFuture<>(); 
+    new Thread( () -> { 
+        try { 
+            double price = calculatePrice(product); 
+            futurePrice.complete(price); 
+        } catch (Exception ex) { 
+            futurePrice.completeExceptionally(ex); 
+        } 
+    }).start(); 
+    return futurePrice; 
+}
+```
+
+### 更进一步：使用工厂方法supplyAsync创建CompletableFuture
+
+```java
+public Future<Double> getPriceAsync(String product) { 
+    return CompletableFuture.supplyAsync(() -> calculatePrice(product)); 
+}
+```
+supplyAsync方法接受一个生产者（Supplier）作为参数，返回一个CompletableFuture对象，该对象完成异步执行后会读取调用生产者方法的返回值。
+
+
+## 3. 让代码免受阻塞之苦
+
+
+### 准备与尝试
+
+1. 定义一个商家列表
+    ```java
+    List<Shop> shops = Arrays.asList(new Shop("BestPrice"),
+        new Shop("LetsSaveBig"),
+        new Shop("MyFavoriteShop"),
+        new Shop("BuyItAll"));
+    ```
+    
+2. 顺序通过产品名称获取价格
+    ```java
+    public List<String> findPrices(String product) {
+        return shops.stream()
+            .map(shop -> String.format("%s price is %.2f",
+                    shop.getName(), shop.getPrice(product)))
+            .collect(toList());
+    }
+    ```
+    
+3. 验证 findPrices 的正确性和执行性能
+ 
+    ```java
+    long start = System.nanoTime();
+    System.out.println(findPrices("myPhone27S"));
+    long duration = (System.nanoTime() - start) / 1_000_000;
+    System.out.println("Done in " + duration + " msecs");
+    ```
+    
+    输出：
+    > [BestPrice price is 123.26, LetsSaveBig price is 169.47, MyFavoriteShop price
+        is 214.13, BuyItAll price is 184.74]
+    >
+    > Done in 4032 msecs
+
+    可以发现，执行时间为4s多一些，因为shop.getPrice(product)方法是顺序执行的，每个方法都sleep了1s。
+    
+
+那么该如何改善呢？
+
+### 使用并行流对请求进行并行操作
+回忆stream中，有一个现成的并行操作：parallelStream。试试看。
+
+```java
+public List<String> findPrices(String product) {
+    return shops.parallelStream()
+        .map(shop -> String.format("%s price is %.2f",
+        shop.getName(), shop.getPrice(product)))
+        .collect(toList());
+}
+```
+输出：
+> [BestPrice price is 123.26, LetsSaveBig price is 169.47, MyFavoriteShop price
+is 214.13, BuyItAll price is 184.74]
+>
+> Done in 1180 msecs
+
+效果很不错，只花了1s多一点。能不能更好呢？
+
+
+### 使用 CompletableFuture 发起异步请求
+
+```java
+public List<String> findPrices(String product) {
+    // 使用工厂方法 supplyAsync 创建 CompletableFuture 对象
+    List<CompletableFuture<String>> priceFutures =
+        shops.stream()
+        .map(shop -> CompletableFuture.supplyAsync(
+                () -> shop.getName() + " price is " +
+                    shop.getPrice(product)))
+        .collect(Collectors.toList());
+    
+    // 等待所有异步操作结束
+    return priceFutures.stream()
+        .map(CompletableFuture::join)
+        .collect(toList());
+}
+```
+以上的操作使用了两个不同的stream流水线，而不是把两个map合在一起。这是为什么呢？
+
+因为流操作之间是有延时特性的。如果两个map连接在一起，新的 CompletableFuture对象只有在前一个操作完全结束之后,才能创建。这个方法就变成了顺序执行了。
+
+
+输出：
+> [BestPrice price is 123.26, LetsSaveBig price is 169.47, MyFavoriteShop price
+is 214.13, BuyItAll price is 184.74]
+> 
+> Done in 2005 msecs
+
+结果还没有并行流好！
+
+继续改进
+
+### 寻找更好的方案
+
+并行流的版本工作得非常好,那是因为它能并行地执行四个任务,所以它几乎能为每个商家分配一个线程。
+
+所以如果是五个商家呢？
+
+顺序流处理时间为：5s+，并行流处理时间为2s+，CompletableFuture版本时间为：2s+。
+
+
+随着商店数目增加，并行流和CompletableFuture之间的性能差别不大。
+
+究其原因，是因为：它们内部采用的是同样的通用线程池,默认都使用固定数目的线程,具体线程数取决于 Runtime.getRuntime().availableProcessors() 的返回值。
+
+
+然而，CompletableFuture更有优势，因为它可以定制化执行器( Executor )。
+
+### 定制执行器
+
+
+> **线程池大小与处理器的利用率之比**
+>
+> 线程池大小 = 处理器的核的数目 * 期望的CPU利用率(该值应该介于0和1之间) * ( 1 + 等待时间与计算时间的比率 )
+
+
+为“最优价格查询器”应用定制的执行器
+```java
+private final Executor executor =
+    Executors.newFixedThreadPool(Math.min(shops.size(), 100),
+        new ThreadFactory() {
+            public Thread newThread(Runnable r) {
+                Thread t = new Thread(r);
+                // 使用守护线程,不会阻止程序的关停
+                t.setDaemon(true);
+                return t;
+            }
+});
+```
+该怎么使用这个executor呢？只需要把它当做第二个参数传入supplayAsync中即可。
+```java
+CompletableFuture.supplyAsync(() -> shop.getName() + " price is " + shop.getPrice(product), executor); 
+```
+
+**使用流还是 CompletableFutures ?**
+1. 计算密集型，推荐stream，实现简单,同时效率也可能是最高的。
+2. 涉及I/O操作，使用CompletableFuture 灵活性更好,可以依据等待/计算,或者
+W/C的比率设定需要使用的线程数。这种情况不使用并行流的另一个原因是,处理流的流水线中如果发生I/O等待,流的延迟特性会让我们很难判断到底什么时候触发了等待。
+
+
+## 4. 对多个异步任务进行流水线操作
+
+
+### 准备工作
+
+如果所有商店都使用一个折扣服务，
+
+```java
+public class Discount {
+    public enum Code {
+        NONE(0), SILVER(5), GOLD(10), PLATINUM(15), DIAMOND(20);
+        
+        private final int percentage;
+        
+        Code(int percentage) {
+            this.percentage = percentage;
+        }
+    }
+    
+    // Discount类的其他实现
+}
+```
+修改getPrice方法，现在以 Shop-Name:price:DiscountCode 的格式返回一个 String 类型的值。
+```java
+public String getPrice(String product) {
+    double price = calculatePrice(product);
+    Discount.Code code = Discount.Code.values()[
+        random.nextInt(Discount.Code.values().length)];
+    return String.format("%s:%.2f:%s", name, price, code);
+}
+
+private double calculatePrice(String product) {
+    delay();
+    return random.nextDouble() * product.charAt(0) + product.charAt(1);
+}
+```
+
+### 实现折扣服务
+
+1. 创建Quote 类，对商店返回字符串的解析操作进行封装。
+    ```java
+    public class Quote {
+        private final String shopName;
+        private final double price;
+        private final Discount.Code discountCode;
+        
+        public Quote(String shopName, double price, Discount.Code code) {
+            this.shopName = shopName;
+            this.price = price;
+            this.discountCode = code;
+        }
+        
+        public static Quote parse(String s) {
+            String[] split = s.split(":");
+            String shopName = split[0];
+            double price = Double.parseDouble(split[1]);
+            Discount.Code discountCode = Discount.Code.valueOf(split[2]);
+            return new Quote(shopName, price, discountCode);
+        }
+        
+        public String getShopName() { return shopName; }
+        public double getPrice() { return price; }
+        public Discount.Code getDiscountCode() { return discountCode; }
+    }
+    ```
+2. 在Discount中实现applyDiscount 方法，它接收一个 Quote 对象,返回一个字符串,表示生成该 Quote 的 shop 中的折扣价格。
+
+    ```java
+    public class Discount {
+        public enum Code {
+            // 省略......
+        }
+        
+        public static String applyDiscount(Quote quote) {
+            return quote.getShopName() + " price is " +
+                Discount.apply(quote.getPrice(),
+                quote.getDiscountCode());
+        }
+        
+        private static double apply(double price, Code code) {
+            delay();
+            return format(price * (100 - code.percentage) / 100);
+        }
+    }
+    ```
+
+3. 使用 Discount 服务
+
+    ```java
+    public List<String> findPrices(String product) {
+        return shops.stream()
+            .map(shop -> shop.getPrice(product))
+            .map(Quote::parse)
+            .map(Discount::applyDiscount)
+            .collect(toList());
+    }
+    ```
+
+4. 构造同步和异步操作
+
+    使用 CompletableFuture 实现 findPrices 方法
+    ```java
+    public List<String> findPrices(String product) {
+        List<CompletableFuture<String>> priceFutures =
+            shops.stream().map(shop -> CompletableFuture.supplyAsync(
+                () -> shop.getPrice(product), executor))
+            .map(future -> future.thenApply(Quote::parse))
+            .map(future -> future.thenCompose(quote -> 
+                    CompletableFuture.supplyAsync(
+                        () -> Discount.applyDiscount(quote), executor)))
+            .collect(toList());
+        
+        return priceFutures.stream()
+            .map(CompletableFuture::join)
+            .collect(toList());
+    }
+    ```
+    为了构建priceFutures，分了三步走。
+    
+    第一步异步调用getPrice方法；
+    
+    第二步同步调用Quote的parse方法，因为它本身不会产生I/O操作，所以它可以同步操作。用CompletableFuture对象的thenApply直接调用。
+    
+    第三步异步调用applyDiscount方法。为了以级联的方式串接起两个异步操作进行工作，Java 8的CompletableFuture API中的thenCompose的方法就是为了这个目的而生。
+    
+    同时API也提供了**thenComposeAsync**方法，它的意思是将后续的任务在新的线程上运行。
+
+5. 将两个CompletableFuture对象整合起来，无论它们是否存在依赖
+
+    上一步中使用了**thenCompose**方法，使用它的场景简单来说，是当第二个CompletableFuture需要上个CompletableFuture结果时。
+    
+    但是有时候，我们也需要将两个完全不相干的CompletableFuture对象的结果整合起来，而且你也不希望等到第一个任务完全结束才开始第二项任务。
+    
+    这个时候应该使用**thenCombine**方法。
+    
+    我们再添加一个异步操作，让它去查询汇率。
+    
+    ```java
+    Future<Double> futurePriceInUSD = 
+        CompletableFuture.supplyAsync(() -> shop.getPrice(product)) 
+        .thenCombine( 
+            CompletableFuture.supplyAsync( 
+            () -> exchangeService.getRate(Money.EUR, Money.USD)), 
+            (price, rate) -> price * rate 
+    );
+    ```
+    它接收名为BiFunction的第二参数，这个参数定义了当两个CompletableFuture对象完成计算后，结果如何合并。
+    
+    API也提供了Async版本，它会导致BiFunction中定义的合并操作被提交到线程池中，由另一个任务以异步的方式执行。
+    
+## 5. 响应CompletableFuture的completion事件
+
+现实世界中，请求的延时都是不固定的，写代码来模拟一个。
+
+```java
+private static final Random random = new Random(); 
+public static void randomDelay() { 
+    // 0.5s ~ 2.5s
+    int delay = 500 + random.nextInt(2000); 
+    try { 
+        Thread.sleep(delay); 
+    } catch (InterruptedException e) { 
+        throw new RuntimeException(e); 
+    } 
+}
+```
+
+现有代码的实现是当所有商店返回结果时，才显示价格。但是如果希望的效果是：只要有商店返回商品价格就在第一时间显示返回值，不管其他商店。
+
+### 尝试
+
+重构findPrices方法返回一个由Future构成的流
+```java
+public Stream<CompletableFuture<String>> findPricesStream(String product) { 
+    return shops.stream() 
+        .map(shop -> CompletableFuture.supplyAsync( 
+                () -> shop.getPrice(product), executor)) 
+        .map(future -> future.thenApply(Quote::parse)) 
+        .map(future -> future.thenCompose(quote -> 
+            CompletableFuture.supplyAsync( 
+            () -> Discount.applyDiscount(quote), executor))); 
+}
+```
+Java 8的CompletableFuture通过**thenAccept**方法提供了：在每个CompletableFuture上注册一个操作，该操作会在CompletableFuture完成执行后使用它的返回值。
+
+如下，我们想打印一下返回值。
+```java
+findPricesStream("myPhone").map(f -> f.thenAccept(System.out::println));
+```
+
+类似thenCombine，thenAccept 也存在异步版： **thenAcceptAsync**，可以异步对结果进行消费。
+
+**thenAccept**方法会返回一个CompletableFuture<Void>，所以在map操作后，会得到一个Stream<CompletableFuture<Void>>。
+
+```java
+CompletableFuture[] futures = findPricesStream("myPhone") 
+    .map(f -> f.thenAccept(System.out::println)) 
+    .toArray(size -> new CompletableFuture[size]); 
+
+CompletableFuture.allOf(futures).join();
+```
+
+allOf工厂方法接收一个由CompletableFuture构成的数组，数组中的所有CompletableFuture对象执行完成之后，它返回一个CompletableFuture<Void>对象。这意味着，如果你需要等待最初Stream中的所有CompletableFuture对象执行完毕，对allOf方法返回的CompletableFuture执行join操作是个不错的主意。
+
+
+如果希望只要CompletableFuture对象数组中有任何一个执行完毕就不再等待，可以使用一个类似的工厂方法anyOf。
+
+### 付诸实践
+
+```java
+long start = System.nanoTime(); 
+CompletableFuture[] futures = findPricesStream("myPhone27S") 
+    .map(f -> f.thenAccept( 
+        s -> System.out.println(s + " (done in " + 
+        ((System.nanoTime() - start) / 1_000_000) + " msecs)"))) 
+    .toArray(size -> new CompletableFuture[size]); 
+    
+CompletableFuture.allOf(futures).join(); 
+
+System.out.println("All shops have now responded in " 
+    + ((System.nanoTime() - start) / 1_000_000) + " msecs");
+```
+
+
+
+
+# 未完待续......
+
