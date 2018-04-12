@@ -26,7 +26,7 @@ tags: [Java,Java8]
 
 ## 1. 为改善可读性和灵活性重构代码
 
-### 可读性
+### 1）可读性
 
 1. 从匿名类到Lambda表达式的转换
 
@@ -94,7 +94,7 @@ tags: [Java,Java8]
     ```
     注意点：需要考虑控制流语句，比如break、continue、return，并选择使用恰当的流操作。
     
-### 灵活性
+### 2）灵活性
 
 要使用lambda，必然要采用函数接口。
 
@@ -130,7 +130,7 @@ tags: [Java,Java8]
 
 ## 2. 使用Lambda重构面向对象的设计模式
 
-### 策略模式
+### 1）策略模式
 
 策略模式代表了解决一类算法的通用解决方案,你可以在运行时选择使用哪种方案。
 
@@ -193,7 +193,7 @@ Validator lowerCaseValidator =
     new Validator((String s) -> s.matches("\\d+"));
 boolean b2 = lowerCaseValidator.validate("bbbb");
 ```
-### 模板方法
+### 2）模板方法
 如果你需要采用某个算法的框架,同时又希望有一定的灵活度,能对它的某些部分进行改进,那么采用模板方法设计模式是比较通用的方案。
 
 1.改写前
@@ -221,7 +221,7 @@ public void processCustomer(int id, Consumer<Customer> makeCustomerHappy){
 new OnlineBankingLambda().processCustomer(1337, (Customer c) ->
     System.out.println("Hello " + c.getName());
 ```
-### 观察者模式
+### 3）观察者模式
 某些事件发生时(比如状态转变),如果一个对象(通常我们称之为主题Subject)需要自动地通知其他多个对象(称为观察者Observer)。
 
 1. 准备
@@ -299,7 +299,7 @@ f.registerObserver((String tweet) -> {
 类。在这些情形下,还是应该继续使用类的方式。
 
 
-### 责任链模式
+### 4）责任链模式
 
 责任链模式是一种创建处理对象序列(比如操作序列)的通用方案。
 
@@ -356,7 +356,7 @@ Function<String, String> pipeline =
 String result = pipeline.apply("Aren't labdas really sexy?!!")
 ```
 
-### 工厂模式
+### 5）工厂模式
 
 使用工厂模式,你无需向客户暴露实例化的逻辑就能完成对象的创建。
 
@@ -399,7 +399,7 @@ public class ProductFactory {
 
 ## 4. 调试
 
-### 查看栈跟踪
+### 1）查看栈跟踪
 
 由于Lambda表达式没有名字, 编译器只能为它们指定一个名字，比如lambda$main$0。
 
@@ -409,7 +409,7 @@ public class ProductFactory {
 
 涉及Lambda表达式的栈跟踪可能非常难理解。这是Java编译器未来版本可以改进的一个方面。
 
-### 输出日志
+### 2）输出日志
 
 流提供的 peek 方法在分析Stream流水线时,能将中间变量的值输出到日志中,是非常有用的工具。
 
@@ -465,11 +465,11 @@ after limit: 22
 
 ## 3. 使用
 
-### 可选方法
+### 1）可选方法
 
 类继承了接口，但是对某些接口方法的实现留白，所以代码中会存在很多无用的代码。那么有了默认方法后，就可以对这些方法提供一个默认实现，这样子实体类就无需写上一个空方法。
 
-### 行为的多继承
+### 2）行为的多继承
 
 我们都知道一个类是可以实现多接口的，那么在引入默认方法后，在不同接口中都可以存在一些默认方法。这样子，我们通过组合接口，就可以最大程度地实现代码复用和行为组合。
 
@@ -496,14 +496,14 @@ public class C implements B, A {
 }
 ```
 
-### 解决问题的三条规则
+### 1）解决问题的三条规则
 
 1. 类中的方法优先级最高
 2. 如果无法依据第一条进行判断，那么子接口的优先级更高：函数签名相同时，优先选择拥有最具体实现的默认方法的接口，即如果B继承了A，那么B就比A更加具体。
 3. 最后，如果还是无法判断，继承了多个接口的类必须通过**显式覆盖**和**调用期望**的方法，显式地选择使用哪一个默认方法的实现。
 
 
-### 应用前两条规则
+### 2）应用前两条规则
 那么回过头来，上面那段代码输出结果应该是什么呢？
 
 答案是： Hello from B。
@@ -525,7 +525,7 @@ public class C extends D implements B, A {
 
 依据规则(1)，类中声明的方法具有更高的优先级。D并未覆盖hello方法，可是它实现了接口A。所以它就拥有了接口A的默认方法。规则(2)说如果类或者父类没有对应的方法，那么就应该选择提供了最具体实现的接口中的方法。因此，编译器会在接口A和接口B的hello方法之间做选择。由于B更加具体，所以程序会再次打印输出“Hello from B”。
 
-### 冲突及如何显式地消除歧义
+### 3）冲突及如何显式地消除歧义
 
 ```java
 public interface A { 
@@ -553,7 +553,7 @@ public class C implements B, A {
 }
 ```
 
-### 菱形继承问题
+### 4）菱形继承问题
 ```java
 public interface A{ 
     default void hello(){ 
@@ -619,7 +619,7 @@ public class Insurance {
 
 ## 3. 应用Optional的几种模式
 
-### 创建Optional对象
+### 1）创建Optional对象
 
 ```java
 // 声明一个空的Optional
@@ -629,7 +629,7 @@ Optional<Car> optCar = Optional.of(car);
 // 可接受null的Optional
 Optional<Car> optCar = Optional.ofNullable(car);
 ```
-### 使用map从Optional对象中提取和转换值
+### 2）使用map从Optional对象中提取和转换值
 
 ```java
 // before
@@ -641,7 +641,7 @@ if(insurance != null){
 Optional<Insurance> optInsurance = Optional.ofNullable(insurance); 
 Optional<String> name = optInsurance.map(Insurance::getName); 
 ```
-### 使用flatMap链接Optional对象
+### 3）使用flatMap链接Optional对象
 
 ```java
 // before
@@ -658,7 +658,7 @@ public String getCarInsuranceName(Optional<Person> person) {
 ```
 **注意**： 由于Optional类设计时就没特别考虑将其作为类的字段使用，所以它也并未实现Serializable接口，所以它们无法序列化。
 
-### 默认行为及解引用Optional对象
+### 4）默认行为及解引用Optional对象
 
 以下是Optional中的一些方法：
 
@@ -668,7 +668,7 @@ public String getCarInsuranceName(Optional<Person> person) {
 4. orElseThrow(Supplier<? extends X> exceptionSupplier)和get方法非常类似，它们遭遇Optional对象为空时都会抛出一个异常，但是使用orElseThrow你可以定制希望抛出的异常类型。
 5. ifPresent(Consumer<? super T>)让你能在变量值存在时执行一个作为参数传入的方法，否则就不进行任何操作。
 
-### 两个Optional对象的组合
+### 5）两个Optional对象的组合
 
 比如现在有一个方法，找出最便宜的保险公司。
 ```java
@@ -701,7 +701,7 @@ public Optional<Insurance> nullSafeFindCheapestInsurance(
 }
 ```
 
-### 使用filter剔除特定的值
+### 6）使用filter剔除特定的值
 
 ```java
 // before
@@ -717,7 +717,7 @@ optInsurance.filter(insurance ->
 
 ## 4. 使用Optional的实战示例
 
-### 用Optional封装可能为null的值
+### 1）用Optional封装可能为null的值
 
 举个例子，当从map中获取某个key对应的value时，如果map中找不到这个key，就会返回一个null。如果为此，我们加上if/else，无疑会使代码变得臃肿。Optional此时就是一个好的选择。
 ```java
@@ -728,7 +728,7 @@ Object value = map.get("key");
 Optional value = Optional.ofNullable(map.get("key"));
 ```
 
-### 异常与Optional的对比
+### 2）异常与Optional的对比
 
 有时候，Java API会以一个异常来代替返回null，这个时候我们就不得不在调用后，加上一个try/catch，这无疑增加了代码复杂度。然而为了向后兼容，Java API难以更改，所以可以自己构造一个方法，在异常时，返回Optional。
 
@@ -745,7 +745,7 @@ public static Optional<Integer> stringToInt(String s) {
 
 **注意**：基础类型的Optional对象，应该避免使用它们，因为它们无法使用map、flatmap和filter方法。
 
-### 结合以上
+### 3）结合以上
 
 1. 创建一个类
 ```java
@@ -800,7 +800,7 @@ public int readDuration(Properties props, String name){
 ## 1. Future接口
 
 
-### 是什么？怎么用？
+### 1）是什么？怎么用？
 
 Java 5中引入了Futrue接口。
 
@@ -831,7 +831,7 @@ try {
 }
 ```
 
-### 局限性
+### 2）局限性
 
 #### 两个方面
 1. 不够简洁
@@ -848,7 +848,7 @@ try {
 
 ## 2. 使用CompletableFuture构建异步应用
 
-### 同步API与异步API
+### 1）同步API与异步API
 
 同步API：
 > 你调用了某个方法，调用方在被调用方运行的过程中会等待，被调用方运行结束返回，调用方取得被调用方的返回值并继续运行，即阻塞式调用
@@ -856,7 +856,7 @@ try {
 异步API：
 > 直接返回，或者至少在被调用方计算完成之前，将它剩余的计算任务交给另一个线程去做，该线程和调用方是异步的，即非阻塞式调用
 
-### 例子
+### 2）例子
 
 一起来构建"最佳价格查询器”（best-price-finder）的应用。它会查询多个在线商店，依据给定的产品或服务找出最低的价格。
 
@@ -924,7 +924,7 @@ try {
     System.out.println("Price returned after " + retrievalTime + " msecs");
     ```
 
-### 错误处理
+### 3）错误处理
 
 如果计算价格时，内部产生了错误，而这些异常呢，会被限制在当前线程范围，最终会导致杀死该线程。于是get方法将永远阻塞。
 
@@ -951,7 +951,7 @@ public Future<Double> getPriceAsync(String product) {
 }
 ```
 
-### 更进一步：使用工厂方法supplyAsync创建CompletableFuture
+### 4）更进一步：使用工厂方法supplyAsync创建CompletableFuture
 
 ```java
 public Future<Double> getPriceAsync(String product) { 
@@ -964,7 +964,7 @@ supplyAsync方法接受一个生产者（Supplier）作为参数，返回一个C
 ## 3. 让代码免受阻塞之苦
 
 
-### 准备与尝试
+### 1）准备与尝试
 
 1. 定义一个商家列表
     ```java
@@ -1004,7 +1004,7 @@ supplyAsync方法接受一个生产者（Supplier）作为参数，返回一个C
 
 那么该如何改善呢？
 
-### 使用并行流对请求进行并行操作
+### 2）使用并行流对请求进行并行操作
 回忆stream中，有一个现成的并行操作：parallelStream。试试看。
 
 ```java
@@ -1024,7 +1024,7 @@ is 214.13, BuyItAll price is 184.74]
 效果很不错，只花了1s多一点。能不能更好呢？
 
 
-### 使用 CompletableFuture 发起异步请求
+### 3）使用 CompletableFuture 发起异步请求
 
 ```java
 public List<String> findPrices(String product) {
@@ -1057,7 +1057,7 @@ is 214.13, BuyItAll price is 184.74]
 
 继续改进
 
-### 寻找更好的方案
+### 4）寻找更好的方案
 
 并行流的版本工作得非常好,那是因为它能并行地执行四个任务,所以它几乎能为每个商家分配一个线程。
 
@@ -1073,7 +1073,7 @@ is 214.13, BuyItAll price is 184.74]
 
 然而，CompletableFuture更有优势，因为它可以定制化执行器( Executor )。
 
-### 定制执行器
+### 5）定制执行器
 
 
 > **线程池大小与处理器的利用率之比**
@@ -1108,7 +1108,7 @@ W/C的比率设定需要使用的线程数。这种情况不使用并行流的�
 ## 4. 对多个异步任务进行流水线操作
 
 
-### 准备工作
+### 1）准备工作
 
 如果所有商店都使用一个折扣服务，
 
@@ -1142,7 +1142,7 @@ private double calculatePrice(String product) {
 }
 ```
 
-### 实现折扣服务
+### 2）实现折扣服务
 
 1. 创建Quote 类，对商店返回字符串的解析操作进行封装。
     ```java
@@ -1274,7 +1274,7 @@ public static void randomDelay() {
 
 现有代码的实现是当所有商店返回结果时，才显示价格。但是如果希望的效果是：只要有商店返回商品价格就在第一时间显示返回值，不管其他商店。
 
-### 尝试
+### 1）尝试
 
 重构findPrices方法返回一个由Future构成的流
 ```java
@@ -1312,7 +1312,7 @@ allOf工厂方法接收一个由CompletableFuture构成的数组，数组中的�
 
 如果希望只要CompletableFuture对象数组中有任何一个执行完毕就不再等待，可以使用一个类似的工厂方法anyOf。
 
-### 付诸实践
+### 2）付诸实践
 
 ```java
 long start = System.nanoTime(); 
@@ -1328,8 +1328,374 @@ System.out.println("All shops have now responded in "
     + ((System.nanoTime() - start) / 1_000_000) + " msecs");
 ```
 
+---
+# 新的日期和时间API
+
+## 0. 为什么需要新的
+
+之前Java 中时间API的有什么呢？
+
+两个：java.util.Date类与java.util.Calendar类
+
+- 易用性很差
+- 两个类同时存在，很使人困惑
+- 有的特性只在某一个类有提供
+- 这两个类都是可以变的
 
 
+## 1. LocalDate、LocalTime、Instant、Duration以及Period
 
-# 未完待续......
+### 1）使用LocalDate和LocalTime
+
+#### 表示日期的LocalDate
+```java
+LocalDate date = LocalDate.of(2014, 3, 18); // 2014-03-18
+int year = date.getYear();  // 2014
+Month month = date.getMonth();  // MARCH
+int day = date.getDayOfMonth();  // 18
+DayOfWeek dow = date.getDayOfWeek();  // TUESDAY
+int len = date.lengthOfMonth(); // 31
+boolean leap = date.isLeapYear(); // false
+
+//使用工厂方法从系统时钟中获取当前的日期
+LocalDate today = LocalDate.now();
+```
+如要过去年份月份等信息，也可以通过get方法，只需传入一个TemporalField参数即可。ChronoField枚举实现了TemporalField接口，所以可以参考下列代码来调用。
+
+```java
+int year = date.get(ChronoField.YEAR); 
+int month = date.get(ChronoField.MONTH_OF_YEAR); 
+int day = date.get(ChronoField.DAY_OF_MONTH); 
+```
+#### 表示时间的LocalTime
+
+```java
+LocalTime time = LocalTime.of(13, 45, 20);  // 13:45:20
+int hour = time.getHour(); // 13
+int minute = time.getMinute(); // 45
+int second = time.getSecond(); // 20
+
+```
+
+#### parse方法
+
+LocalDate和LocalTime都可以通过解析代表它们的字符串创建
+
+```java
+LocalDate date = LocalDate.parse("2014-03-18"); 
+LocalTime time = LocalTime.parse("13:45:20");
+```
+如果需要可以传入自定义的时间格式，只需再传入一个**DateTimeFormatter**即可。
+
+一旦传递的字符串参数无法被解析为合法的LocalDate或LocalTime对象，这两个parse方法都会抛出一个继承自RuntimeException的**DateTimeParseException**异常。
+
+### 2）合并日期和时间
+
+这个复合类名叫LocalDateTime，是LocalDate和LocalTime的合体。
+
+它同时表示了日期和时间，但**不带有时区信息**，你可以直接创建，也可以通过合并日期和时间对象构造。
+
+```java
+// 2014-03-18T13:45:20 
+LocalDateTime dt1 = LocalDateTime.of(2014, Month.MARCH, 18, 13, 45, 20); 
+LocalDateTime dt2 = LocalDateTime.of(date, time); 
+LocalDateTime dt3 = date.atTime(13, 45, 20); 
+LocalDateTime dt4 = date.atTime(time); 
+LocalDateTime dt5 = time.atDate(date);
+```
+反向获取
+```java
+LocalDate date1 = dt1.toLocalDate(); 
+LocalTime time1 = dt1.toLocalTime(); 
+```
+
+### 3）机器的日期和时间格式
+
+使用新的java.time.Instant类，它使用一个单一大整型数来表示一个持续时间段上某个点，也就是一个包含秒及纳秒所构成的数字。
+
+```java
+Instant.ofEpochSecond(3); 
+Instant.ofEpochSecond(3, 0); 
+Instant.ofEpochSecond(2, 1_000_000_000); // 为2s加上100w纳秒（1s）
+Instant.ofEpochSecond(4, -1_000_000_000); // 为4s减去100w纳秒（1s）
+int day = Instant.now()； // 当前时刻的时间戳
+```
+**注意**：这个类无法处理那些我们非常容易理解的时间单位
+
+### 4）定义Duration或Period
+
+上面所提到的类，都实现了**Temporal**接口。这个接口定义了如何读取和操纵为时间建模的对象的值。
+
+当我们需要获取两个Temporal对象之间的距离时，该怎么做呢？
+
+1. Duration.between
+    
+    对与两个LocalTimes对象、两个LocalDateTimes对象，或者两个Instant对象之间的duration，可调用**Duration.between**方法。
+    ```java
+    Duration d1 = Duration.between(time1, time2); 
+    Duration d1 = Duration.between(dateTime1, dateTime2); 
+    Duration d2 = Duration.between(instant1, instant2); 
+    ```
+    注意：between函数传入的两个参数，类型应该一样。
+
+2. Period.between
+
+    那么对两个LocalDate对象呢？
+    
+    可以调用**Period.between**。
+    
+    ```java
+    Period tenDays = Period.between(LocalDate.of(2014, 3, 8),
+                                    LocalDate.of(2014, 3, 18));
+    ```
+3. Duration和Period类其他的工厂类
+    
+    ```java
+    Duration threeMinutes = Duration.ofMinutes(3); 
+    Duration threeMinutes = Duration.of(3, ChronoUnit.MINUTES); 
+    Period tenDays = Period.ofDays(10); 
+    Period threeWeeks = Period.ofWeeks(3); 
+    Period twoYearsSixMonthsOneDay = Period.of(2, 6, 1);
+    ```
+
+## 2. 操纵、格式化以及解析日期
+
+以上所提到的这些日期时间对象都是不可修改的，这是为了更好地支持函数式编
+程，确保线程安全，保持领域模式一致性而做出的重大设计决定。
+
+那当我们想要修改日期时，怎么办呢？
+
+### 1）直观操作
+
+使用withAttribute方法
+```
+LocalDate date1 = LocalDate.of(2014, 3, 18); 
+LocalDate date2 = date1.withYear(2011); 
+LocalDate date3 = date2.withDayOfMonth(25); 
+LocalDate date4 = date3.with(ChronoField.MONTH_OF_YEAR, 9);
+```
+以相对方式修改LocalDate对象的属性
+```java
+LocalDate date1 = LocalDate.of(2014, 3, 18); 
+LocalDate date2 = date1.plusWeeks(1); 
+LocalDate date3 = date2.minusYears(3); 
+LocalDate date4 = date3.plus(6, ChronoUnit.MONTHS);
+```
+### 2）使用TemporalAdjuster
+
+有时候我们需要对时间进行一些复杂的操作，这个时候可以使用重载版本的with方法，向其传递一个提供了更多定制化选择的TemporalAdjuster对象。
+
+```java
+import static java.time.temporal.TemporalAdjusters.*; 
+
+//2014-03-18
+LocalDate date1 = LocalDate.of(2014, 3, 18); 
+//2014-03-23
+LocalDate date2 = date1.with(nextOrSame(DayOfWeek.SUNDAY)); 
+//2014-03-31
+LocalDate date3 = date2.with(lastDayOfMonth());
+```
+
+TemporalAdjuster类中的工厂方法
+
+方 法 名 | 描 述
+---|---
+dayOfWeekInMonth | 创建一个新的日期，它的值为同一个月中每一周的第几天
+firstDayOfMonth | 创建一个新的日期，它的值为当月的第一天
+firstDayOfNextMonth | 创建一个新的日期，它的值为下月的第一天
+firstDayOfNextYear | 创建一个新的日期，它的值为明年的第一天
+firstDayOfYear | 创建一个新的日期，它的值为当年的第一天
+firstInMonth | 创建一个新的日期，它的值为同一个月中，第一个符合星期几要求的值
+lastDayOfMonth | 创建一个新的日期，它的值为当月的最后一天
+lastDayOfNextMonth | 创建一个新的日期，它的值为下月的最后一天
+lastDayOfNextYear | 创建一个新的日期，它的值为明年的最后一天
+lastDayOfYear | 创建一个新的日期，它的值为今年的最后一天
+lastInMonth | 创建一个新的日期，它的值为同一个月中，最后一个符合星期几要求的值
+next/previous | 创建一个新的日期，并将其值设定为日期调整后或者调整前，第一个符合指定星期几要求的日期
+nextOrSame/previousOrSame | 创建一个新的日期，并将其值设定为日期调整后或者调整前，第一个符合指定星
+期几要求的日期，如果该日期已经符合要求，直接返回该对象
+
+#### TemporalAdjuster接口
+
+```java
+@FunctionalInterface 
+public interface TemporalAdjuster { 
+    Temporal adjustInto(Temporal temporal); 
+}
+```
+
+试着自定义一个TemporalAdjuster接口。
+
+就叫做NextWorkingDay类吧，该类能够计算明天的日期，同时过滤掉周六和周日这些节假日。
+
+```java
+public class NextWorkingDay implements TemporalAdjuster { 
+    @Override 
+    public Temporal adjustInto(Temporal temporal) { 
+        DayOfWeek dow = 
+            DayOfWeek.of(temporal.get(ChronoField.DAY_OF_WEEK)); 
+        int dayToAdd = 1; 
+        if (dow == DayOfWeek.FRIDAY) dayToAdd = 3; 
+        else if (dow == DayOfWeek.SATURDAY) dayToAdd = 2; 
+        return temporal.plus(dayToAdd, ChronoUnit.DAYS); 
+    } 
+}
+//调用
+date = date.with(new NextWorkingDay());
+```
+换成用lambda实现一下
+```java
+date = date.with(temporal -> { 
+    DayOfWeek dow = 
+        DayOfWeek.of(temporal.get(ChronoField.DAY_OF_WEEK)); 
+    int dayToAdd = 1; 
+    if (dow == DayOfWeek.FRIDAY) dayToAdd = 3; 
+    else if (dow == DayOfWeek.SATURDAY) dayToAdd = 2; 
+    return temporal.plus(dayToAdd, ChronoUnit.DAYS); 
+}); 
+```
+同时TemporalAdjusters.ofDateAdjuster可以接受一个UnaryOperator<LocalDate>类型的参数，同时返回一个TemporalAdjusters。
+```java
+TemporalAdjuster nextWorkingDay = TemporalAdjusters.ofDateAdjuster( 
+    temporal -> { 
+        DayOfWeek dow = 
+            DayOfWeek.of(temporal.get(ChronoField.DAY_OF_WEEK)); 
+        int dayToAdd = 1; 
+        if (dow == DayOfWeek.FRIDAY) dayToAdd = 3; 
+        if (dow == DayOfWeek.SATURDAY) dayToAdd = 2; 
+        return temporal.plus(dayToAdd, ChronoUnit.DAYS); 
+    }); 
+date = date.with(nextWorkingDay);
+```
+
+### 3）打印输出及解析日期、时间对象
+
+java.time.format包提供了格式化以及解析日期、时间对象的功能。
+
+1. 使用 **BASIC_ISO_DATE** 和 **ISO_LOCAL_DATE**
+    ```java
+    LocalDate date = LocalDate.of(2014, 3, 18); 
+    // 20140318
+    String s1 = date.format(DateTimeFormatter.BASIC_ISO_DATE); 
+    // 2014-03-18
+    String s2 = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+    ```
+2. 使用工厂方法parse
+    
+    通过解析代表日期或时间的字符串重新创建该日期对象。
+    ```java
+    LocalDate date1 = LocalDate.parse("20140318", 
+                                    DateTimeFormatter.BASIC_ISO_DATE); 
+    LocalDate date2 = LocalDate.parse("2014-03-18", 
+                                    DateTimeFormatter.ISO_LOCAL_DATE); 
+    ```
+    和老的java.util.DateFormat相比较，所有的DateTimeFormatter实例都是**线程安全**的。
+
+3. 按照某个模式创建DateTimeFormatter
+
+    DateTimeFormatter类还支持一个静态工厂方法**ofPattern**，它可以按照某个特定的模式创建格式器.
+    
+    ```java
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy"); 
+    LocalDate date1 = LocalDate.of(2014, 3, 18); 
+    String formattedDate = date1.format(formatter); 
+    LocalDate date2 = LocalDate.parse(formattedDate, formatter);
+    ```
+4. 创建一个本地化的DateTimeFormatter
+    
+    ofPattern方法也提供了一个重载的版本，使用它你可以创建某个Locale的格式器
+    ```
+    DateTimeFormatter italianFormatter = 
+        DateTimeFormatter.ofPattern("d. MMMM yyyy", Locale.ITALIAN); 
+    LocalDate date1 = LocalDate.of(2014, 3, 18); 
+    String formattedDate = date.format(italianFormatter); // 18. marzo 2014 
+    LocalDate date2 = LocalDate.parse(formattedDate, italianFormatter);
+    ```
+5. 构造一个DateTimeFormatter
+
+    DateTimeFormatterBuilder类还提供了更复杂的格式器，以及其他非常强大的解析功能，比如区分大小写的解析、柔性解析（允许解析器使用启发式的机制去解析输入，不精确地匹配指定的模式）、填充，以及在格式器中指定可选节。
+    ```java
+    DateTimeFormatter italianFormatter = new DateTimeFormatterBuilder() 
+        .appendText(ChronoField.DAY_OF_MONTH) 
+        .appendLiteral(". ") 
+        .appendText(ChronoField.MONTH_OF_YEAR) 
+        .appendLiteral(" ") 
+        .appendText(ChronoField.YEAR) 
+        .parseCaseInsensitive() 
+        .toFormatter(Locale.ITALIAN); 
+    ```
+
+## 3. 处理不同的时区和历法
+
+### 1）基本介绍
+
+之前看到的日期和时间的种类都不包含时区信息。
+
+新的java.time.ZoneId类是老版java.util.TimeZone的替代品。
+
+它的设计目标就是要让你无需为时区处理的复杂和繁琐而操心。
+
+ZoneId类也是无法修改的。
+
+#### 如何创建
+```java
+// 创建一个ZoneId
+ZoneId romeZone = ZoneId.of("Europe/Rome"); 
+// 将一个老的时区对象转换为ZoneId
+ZoneId zoneId = TimeZone.getDefault().toZoneId(); 
+```
+
+#### 为时间点添加时区信息
+```java
+LocalDate date = LocalDate.of(2014, Month.MARCH, 18); 
+ZonedDateTime zdt1 = date.atStartOfDay(romeZone); 
+LocalDateTime dateTime = LocalDateTime.of(2014, Month.MARCH, 18, 13, 45); 
+ZonedDateTime zdt2 = dateTime.atZone(romeZone); 
+Instant instant = Instant.now(); 
+ZonedDateTime zdt3 = instant.atZone(romeZone);
+```
+#### 通过ZoneId，你还可以将LocalDateTime转换为Instant
+```java
+LocalDateTime dateTime = LocalDateTime.of(2014, Month.MARCH, 18, 13, 45);
+Instant instantFromDateTime = dateTime.toInstant(romeZone);
+```
+#### 反向得到LocalDateTime对象
+```java
+Instant instant = Instant.now(); 
+LocalDateTime timeFromInstant = LocalDateTime.ofInstant(instant, romeZone); 
+```
+
+### 2）利用和UTC/格林尼治时间的固定偏差计算时区
+
+可以使用ZoneOffset类，它是ZoneId的一个子类，表示的是当前时间和伦敦格林尼治子午线时间的差异。
+```java
+ZoneOffset newYorkOffset = ZoneOffset.of("-05:00"); 
+```
+**注意**，使用这种方式定义的ZoneOffset并未考虑任何日光时的影响，所以在大多数情况下，不推荐使用。
+
+使用它创建这样的OffsetDateTime：使用ISO-8601的历法系统，以相对于UTC/格林尼治时间的偏差方式表示日期时间。
+```java
+LocalDateTime dateTime = LocalDateTime.of(2014, Month.MARCH, 18, 13, 45);
+OffsetDateTime dateTimeInNewYork = OffsetDateTime.of(date, newYorkOffset); 
+```
+
+### 3）使用别的日历系统
+
+新版的日期和时间API还提供了另一个高级特性，即对非ISO历法系统（non-ISO calendaring）的支持。
+
+Java 8中另外还提供了4种其他的日历系统：ThaiBuddhistDate、MinguoDate、JapaneseDate以及HijrahDate。
+
+#### 创建这些类的实例
+```java
+LocalDate date = LocalDate.of(2014, Month.MARCH, 18); 
+JapaneseDate japaneseDate = JapaneseDate.from(date);
+```
+
+#### 为某个Locale显式地创建日历系统，接着创建该Locale对应的日期的实例
+```java
+Chronology japaneseChronology = Chronology.ofLocale(Locale.JAPAN); 
+ChronoLocalDate now = japaneseChronology.dateNow();
+```
+
+
 
