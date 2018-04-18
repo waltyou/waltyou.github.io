@@ -580,6 +580,216 @@ static <T> void printAll(MyList<T> list){
 
 当你需要创建一个在开始阶段需要大量计算的数据结构时，可以考虑使用延迟操作，它会将这些操作在运行时在进行。
 
+## 4. 模式匹配
+
+Java语言中暂时并未提供这一特性。
+
+### 1）访问者设计模式
+
+Java语言中还有另一种方式可以解包数据类型，那就是使用访问者（Visitor）设计模式。
+
+
+使用这种方法你需要创建一个单独的类，称为访问者类，它接受某种数据类型的实例作为输入。它可以访问该实例的所有成员。
+
+
+```java
+class BinOp extends Expr{ 
+    ... 
+    public Expr accept(SimplifyExprVisitor v){ 
+        return v.visit(this); 
+    } 
+}
+```
+
+SimplifyExprVisitor现在就可以访问BinOp对象并解包其中的内容了：
+
+```java
+public class SimplifyExprVisitor { 
+    ... 
+    public Expr visit(BinOp e){ 
+        if("+".equals(e.opname) && e.right instanceof Number && …){ 
+            return e.left; 
+        }
+        return e; 
+    } 
+}
+```
+
+### 2）用模式匹配力挽狂澜
+
+```java
+interface TriFunction<S, T, U, R>{ 
+    R apply(S s, T t, U u); 
+}
+
+static <T> T patternMatchExpr( 
+            Expr e, 
+            TriFunction<String, Expr, Expr, T> binopcase, 
+            Function<Integer, T> numcase, 
+            Supplier<T> defaultcase) { 
+    return 
+        (e instanceof BinOp) ? 
+            binopcase.apply(((BinOp)e).opname, ((BinOp)e).left, 
+                                             ((BinOp)e).right) : 
+        (e instanceof Number) ? 
+            numcase.apply(((Number)e).val) : 
+                            defaultcase.get(); 
+}
+
+public static Expr simplify(Expr e) { 
+    TriFunction<String, Expr, Expr, Expr> binopcase = 
+        (opname, left, right) -> { 
+            if ("+".equals(opname)) { 
+                if (left instanceof Number && ((Number) left).val == 0) { 
+                    return right; 
+                }
+                if (right instanceof Number && ((Number) right).val == 0) { 
+                    return left; 
+                } 
+            } 
+            if ("*".equals(opname)) { 
+                if (left instanceof Number && ((Number) left).val == 1) { 
+                    return right; 
+                } 
+                if (right instanceof Number && ((Number) right).val == 1) { 
+                    return left; 
+                } 
+            } 
+            return new BinOp(opname, left, right); 
+    }; 
+    
+    Function<Integer, Expr> numcase = val -> new Number(val); 
+    Supplier<Expr> defaultcase = () -> new Number(0); 
+    return patternMatchExpr(e, binopcase, numcase, defaultcase); 
+}
+//调用
+Expr e = new BinOp("+", new Number(5), new Number(0)); 
+Expr match = simplify(e); 
+System.out.println(match);
+```
+## 5. 杂项
+
+### 1）缓存或记忆表
+
+当我们需要重复调用某个方法来获取某个数据结构的特征值时，而且这个方法本身的代价很高，我们可以考虑将结果，也就是特征值，缓存起来，使用记忆表。
+
+最简单就是加个Map。
+
+然而严格地说，这种方式并非纯粹的函数式解决方案，因为它会修改由多个调用者共享的数据结构。
+
+既然是共享的数据结构，那么就存在多线程竞争和多核计算损失性能的问题。
+
+### 2）“返回同样的对象”意味着什么
+
+函数式编程通常不使用==（引用相等），而是使用equal对数据结构值进行比较。
+
+### 3）结合器
+例子:
+
+接受一个参数，并使用函数f连续地对它进行操作（比如n次），类似循环的效果。
+
+```java
+static <A,B,C> Function<A,C> compose(Function<B,C> g, Function<A,B> f) { 
+    return x -> g.apply(f.apply(x)); 
+}
+
+static <A> Function<A,A> repeat(int n, Function<A,A> f) { 
+    return n==0 ? x -> x 
+        : compose(f, repeat(n-1, f)); 
+}
+
+// 输出结果为80 = 2*(2*(2* 10))
+System.out.println(repeat(3, (Integer x) -> 2*x).apply(10)); 
+```
+
+# Java 8和Scala语言的特性比较
+
+## 1. Scala简介
+
+### 1）例子：你好，啤酒
+#### 命令式Scala
+```scala
+object Beer { 
+    def main(args: Array[String]){ 
+        var n : Int = 2 
+        while( n <= 6 ){ 
+            println(s"Hello ${n} bottles of beer") 
+            n += 1 
+        } 
+    } 
+}
+```
+#### 函数式Scala
+java
+```java
+public class Foo { 
+    public static void main(String[] args) { 
+        IntStream.rangeClosed(2, 6) 
+            .forEach(n -> System.out.println("Hello " + n + 
+                                            " bottles of beer")); 
+    } 
+}
+```
+Scala
+```scala
+object Beer { 
+    def main(args: Array[String]){ 
+        2 to 6 foreach { n => println(s"Hello ${n} bottles of beer") } 
+    } 
+}
+```
+### 2）基础数据结构：List、Set、Map、Tuple、Stream以及Option
+####  1、创建集合
+```scala
+val authorsToAge = Map("Raoul" -> 23, "Mario" -> 40, "Alan" -> 53)
+val authors = List("Raoul", "Mario", "Alan") 
+val numbers = Set(1, 1, 2, 3, 5, 8) 
+```
+#### 2、不可变与可变的比较
+之前创建的集合在默认情况下都是只读的。这意味着它们从创建开始就不能修改。
+
+那么，你怎样才能更新Scala语言中不可变的集合呢？
+```scala
+val numbers = Set(2, 5, 3); 
+val newNumbers = numbers + 8 
+println(newNumbers) 
+println(numbers)
+```
+#### 3、使用集合
+```scala
+val fileLines = Source.fromFile("data.txt").getLines.toList() 
+// 实现1
+val linesLongUpper 
+    = fileLines.filter(l => l.length() > 10) 
+        .map(l => l.toUpperCase())
+// 实现2
+// 下划线是一种占位符，它按照位置匹配对应的参数。
+val linesLongUpper 
+    = fileLines filter (_.length() > 10) map(_.toUpperCase()) 
+// 使用并行流
+val linesLongUpper 
+    = fileLines.par filter (_.length() > 10) map(_.toUpperCase()) 
+```
+#### 4、元组
+```scala
+val raoul = ("Raoul", "+ 44 887007007") 
+val alan = ("Alan", "+44 883133700")
+val book = (2014, "Java 8 in Action", "Manning") 
+val numbers = (42, 1337, 0, 3, 14)
+//访问
+println(book._1) 
+println(numbers._4) 
+```
+#### 5、Stream
+Scala中的Stream可以记录它曾经计算出的值，所以之前的元素可以随时进行访问。除此之外，Stream还进行了索引，所以Stream中的元素可以像List那样通过索引访问。
+#### 6、Option
+```scala
+def getCarInsuranceName(person: Option[Person], minAge: Int) = 
+    person.filter(_.getAge() >= minAge) 
+        .flatMap(_.getCar) 
+        .flatMap(_.getInsurance) 
+        .map(_.getName).getOrElse("Unknown")
+```
 
 
 # 未完待续。。。。。。
