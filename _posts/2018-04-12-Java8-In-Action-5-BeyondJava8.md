@@ -8,7 +8,7 @@ categories: [Java]
 tags: [Java,Java8]
 ---
 
-
+书中最后一部分，介绍了对函数式编程的一些思考，以及函数式编程的使用技巧。也把java 与 scala进行比较。最后回顾了Java 8的新特性，以及对Java以后的展望。
 <!-- more -->
 
 学习资料主要参考： 《Java 8 In Action》、《Java 8实战》，以及其源码：[Java8 In Action](https://github.com/java8/Java8InAction)
@@ -20,7 +20,6 @@ tags: [Java,Java8]
 * 目录
 {:toc}
 ---
-
 
 # 函数式编程的思考
 
@@ -702,6 +701,8 @@ static <A> Function<A,A> repeat(int n, Function<A,A> f) {
 System.out.println(repeat(3, (Integer x) -> 2*x).apply(10)); 
 ```
 
+---
+
 # Java 8和Scala语言的特性比较
 
 ## 1. Scala简介
@@ -790,6 +791,392 @@ def getCarInsuranceName(person: Option[Person], minAge: Int) =
         .flatMap(_.getInsurance) 
         .map(_.getName).getOrElse("Unknown")
 ```
+## 2. 函数
 
+### 1）Scala中的一等函数
 
-# 未完待续。。。。。。
+函数在Scala语言中是一等值。
+
+使用谓词（返回一个布尔型结果的函数）定义这两个筛选条件
+```scala
+def isJavaMentioned(tweet: String) : Boolean = tweet.contains("Java") 
+def isShortTweet(tweet: String) : Boolean = tweet.length() < 20 
+```
+使用它们
+
+```scala
+val tweets = List( 
+    "I love the new features in Java 8", 
+    "How's it going?", 
+    "An SQL query walks into a bar, sees two tables and says 'Can I join you?'" 
+) 
+tweets.filter(isJavaMentioned).foreach(println) 
+tweets.filter(isShortTweet).foreach(println) 
+```
+
+内嵌方法filter的函数签名：
+
+```scala
+def filter[T](p: (T) => Boolean): List[T]
+```
+这其实是一种新的语法，Java中暂时还不支持。它描述的是一个函数类型。这里它表示的是这样一个函数，它接受类型为T的对象，返回一个布尔类型的值。
+
+### 2）匿名函数和闭包
+
+#### 匿名函数
+```scala
+val isLongTweet : String => Boolean 
+    = (tweet : String) => tweet.length() > 60
+
+// 使用
+isLongTweet.apply("A very short tweet")
+```
+
+为了使用Lambda表达式，Java提供了几种内置的函数式接口，比如Predicate、Function、Consumer。Scala提供了trait（你可以暂时将trait想象成接口，我们会在接下来的一节介绍它们）来实现同样的功能：从Function0（一个函数不接受任何参数，并返回一个结果）到Function22（一个函数接受22个参数），它们都定义了apply方法。
+Scala还提供了另一个非常酷炫的特性，你可以使用语法糖调用apply方法，效果就像一次函数调用：
+
+```scala
+isLongTweet("A very short tweet")
+```
+
+#### 闭包
+
+什么是闭包呢？闭包是一个函数实例，它可以不受限制地访问该函数的非本地变量。
+
+Java 8中的Lambda表达式自身带有一定的限制：它们不能修改定义Lambda表达式的函数中的本地变量值。这些变量必须隐式地声明为final。这些背景知识有助于我们理解“Lambda避免了对变量值的修改，而不是对变量的访问”。
+
+与此相反，Scala中的匿名函数可以取得自身的变量，但并非变量当前指向的变量值。
+
+```scala
+def main(args: Array[String]) { 
+    var count = 0 
+    val inc = () => count+=1 
+    inc() 
+    println(count) // print 1
+    inc() 
+    println(count) // print 2
+}
+```
+
+### 3）科里化
+
+#### java实现
+
+定义了一个简单的函数，对两个正整数做乘法运算：
+```java
+static int multiply(int x, int y) { 
+    return x * y; 
+} 
+int r = multiply(2, 10); 
+```
+人工地对multiple方法进行切分，让其返回另一个函数：
+```java
+static Function<Integer, Integer> multiplyCurry(int x) { 
+    return (Integer y) -> x * y; 
+}
+```
+使用这个函数，下列代码会对每个元素依次乘以2：
+```java
+Stream.of(1, 3, 5, 7) 
+    .map(multiplyCurry(2)) 
+    .forEach(System.out::println);
+```
+
+#### scala实现
+
+```scala
+def multiply(x : Int, y: Int) = x * y 
+val r = multiply(2, 10);
+```
+科里化
+```scala
+def multiplyCurry(x :Int)(y : Int) = x * y
+val r = multiplyCurry(2)(10)
+```
+这个函数是部分应用的，因为它并未提供所有的参数。
+
+这意味着你可以将对multiplyCurry的第一次调用保存到一个变量中，进行复用：
+
+```scala
+val multiplyByTwo : Int => Int = multiplyCurry(2) 
+val r = multiplyByTwo(10) 
+```
+
+## 3. 类和trait
+
+### 1）更加简洁的Scala类
+
+由于Scala也是一门完全的面向对象语言，你可以创建类，并将其实例化生成对象。最基础的形态上，声明和实例化类的语法与Java非常类似。
+
+```scala
+class Hello { 
+    def sayThankYou(){ 
+        println("Thanks for reading our book") 
+    } 
+} 
+val h = new Hello() 
+h.sayThankYou()
+```
+#### getter方法和setter方法
+
+一旦定义的Java类具有了字段，我们就不得不需要声明一长串的getter方法、setter方法，以及恰当的构造器。非常麻烦！
+
+Scala语言中构造器、getter方法以及setter方法都能隐式地生成，从而大大降低你代码中的冗余：
+```scala
+class Student(var name: String, var id: Int) 
+val s = new Student("Raoul", 1) 
+println(s.name) 
+s.id = 1337 
+println(s.id)
+```
+
+### 2）Scala的trait与Java 8的接口对比
+
+Scala还提供了另一个非常有助于抽象对象的特性，名称叫trait。
+
+它是Scala为实现Java中的接口而设计的替代品。
+
+trait中既可以**定义抽象方法**，也可以定义**带有默认实现的方法**。trait同时还支持Java中接口那样的**多继承**。
+
+现在，Java 8通过默认方法又引入了对**行为的多继承**，不过它依旧不支持对**状态的多继承**，而这恰恰是trait支持的。
+
+来创建一个实例：
+```scala
+trait Sized{ 
+    var size : Int = 0 
+    def isEmpty() = size == 0 
+} 
+```
+使用一个类在声明时构造它：
+```scala
+class Empty extends Sized 
+println(new Empty().isEmpty())
+```
+
+有一件事非常有趣，trait和Java的接口类似，也是在对象实例化时被创建（不过这依旧是一个编译时的操作）。比如，你可以创建一个Box类，动态地决定到底选择哪一个实例支持由trait Sized定义的操作：
+```scala
+class Box 
+val b1 = new Box() with Sized 
+println(b1.isEmpty()) // print true
+val b2 = new Box() 
+b2.isEmpty() // 编译错误，因为Box类的声明并未继承Sized 
+```
+
+---
+
+# 回顾与展望
+## 1. 回归Java 8的特性
+
+### 1）行为参数化（Lambda以及方法引用）
+- 传递一个Lambda表达式，即一段精简的代码片段，比如
+
+```java
+apple -> apple.getWeight() > 150
+```
+
+- 传递一个方法引用，该方法引用指向了一个现有的方法，比如这样的代码：
+
+```java
+Apple::isHeavy
+```
+### 2）流
+
+为什么要引入了一套全新的Stream API？
+
+对于大型数据集，集合处理会随着处理逻辑的复杂，会对数据进行多次读取，而stream只是读一次，会更高效。
+
+而且Stream它的parallel方法能帮助将一个Stream标记为适合进行并行处理。
+
+### 3）CompletableFuture
+
+一个非常有用，不过不那么精确的格言这么说：“Completable-Future对于Future的意义就像Stream之于Collection。”让我们比较一下这二者：
+
+- 通过Stream你可以对一系列的操作进行流水线，通过map、filter或者其他类似的方法提供行为参数化，它可有效避免使用迭代器时总是出现模板代码。
+- 类似地，CompletableFuture提供了像thenCompose、thenCombine、allOf这样的
+操作，对Future涉及的通用设计模式提供了函数式编程的细粒度控制，有助于避免使用命令式编程的模板代码。
+
+### 4）Optional
+
+Java 8的库提供了Optional<T>类，这个类允许你在代码中指定哪一个变量的值既可能是类型T的值，也可能是由静态方法Optional.empty表示的缺失值。
+
+Optional类提供了map、filter和ifPresent方法。这些方法能以函数式的结构串接计算，由于库自身提供了缺失值的检测机制，不再需要用户代码的干预。
+
+### 5）默认方法
+
+接口中新引入的默认方法对类库的设计者而言简直是如鱼得水。
+
+它提供的能力能帮助类库的设计者们定义新的操作，增强接口的能力，类库的用户们（即那些实现该接口的程序员们）不需要花费额外的精力重新实现该方法。
+
+因此，默认方法与库的用户也有关系，它们屏蔽了将来的变化对用户的影响。
+
+## 2. Java的未来
+
+### 1）集合
+
+集合（通过Collection接口）提供了一种更优秀也更一致的解决方案。不过它们的初始化被忽略了。
+
+现在：
+```java
+Map<String, Integer> map = new HashMap<>(); 
+map.put("raoul", 23); 
+map.put("mario", 40); 
+map.put("alan", 53);
+```
+期望：
+```java
+Map<String, Integer> map = #{"Raoul" -> 23, "Mario" -> 40, "Alan" -> 53};
+```
+
+### 2）类型系统的改进
+
+#### 1. 声明位置变量
+Java加入了对通配符的支持，来更灵活地支持泛型的子类型（subtyping）, 或者我们可以更通俗地称之为“用户定义变量”（use-site variance）。
+
+这也是下面这段代码合法的原因：
+```java
+List<? extends Number> numbers = new ArrayList<Integer>(); 
+```
+不过下面的这段赋值（省略了? extends）会产生一个编译错误：
+```java
+List<Number> numbers = new ArrayList<Integer>();
+```
+
+#### 2. 更多的类型推断
+
+最初在Java中，无论何时我们使用一个变量或方法，都需要同时给出它的类型。
+
+随着时间的推移，这种限制被逐渐放开了。首先，你可以在一个表达式中忽略泛型参数的类型，通过上下文决定其类型。比如：
+```java
+// before
+Map<String, List<String>> myMap = new HashMap<String, List<String>>();
+// after
+Map<String, List<String>> myMap = new HashMap<>();
+
+// before
+Function<Integer, Boolean> p = (Integer x) -> booleanExpression;
+// after
+Function<Integer, Boolean> p = x -> booleanExpression;
+```
+
+Scala和C#中都允许使用关键词var替换本地变量的初始化声明，编译器会依据右边的变量填充恰当的类型。这种思想被称为**本地变量类型推断**。
+
+### 3）模式匹配
+
+函数式语言通常都会提供某种形式的模式匹配——作为switch的一种改良形式。
+
+### 4）更加丰富的泛型形式
+
+本节会讨论Java泛型的两个局限性，并探讨可能的解决方案。
+
+#### 1.具化泛型
+
+Java 5中初次引入泛型时，需要它们尽量保持与现存JVM的后向兼容性。为了达到这一目的，ArrayList<String>和ArrayList<Integer>的运行时表示是相同的。这 被称作**泛型多态（generic polymorphism）的消除模式（erasure model）**。
+
+所以Java不支持ArrayList<int>这种类型的泛型。
+
+因为这样一来ArrayList容器就无法了解它所容纳的到底是一个对象类型的值，然后JVM就无法判断ArrayList中的元素到底是一个Integer的引用（可以被垃圾收集器标记为“in use”并进行跟踪），还是int类型的简单数据（几乎可以说是无法跟踪的）。
+
+C#语言中，ArrayList<String>、ArrayList<Integer>以及ArrayList<int>的运行时
+表示在原则上就是不同的。即使它们的值是相同的，也伴随着足够的运行时类型信息，这些信息可以帮助垃圾收集器判断一个字段值到底是引用，还是简单数据。这被称为**泛型多态的具化模式，或具化泛型**。“具化”这个词意味着“将某些默认隐式的东西变为显式的”。
+
+#### 2.泛型中特别为函数类型增加的语法灵活性
+
+BiFunction<T, U, R>，这里的T表示第一个参数的类型，U表示第二个参数的类型，而R是计算的结果。
+
+同理，你不能用Function<T, R>引用表示某个不接受任何参数，返回值为R类型的函数；只能通过Supplier<R>达到这一目的。
+
+在很多的函数式编程语言中，你可以用(Integer, Double) 
+=> String这样的类型实现Java 8中BiFunction<Integer, Double, String>调用得到同样的效果。
+
+#### 3.原型特化和泛型
+
+比如，有人可能会问为什么Java 8中我们需要编写Predicate<Apple>，而不是直接采用Function<Apple, Boolean>的方式？
+
+事实上，Predicate<Apple>类型的对象在执行test方法调用时，其返回值依旧是简单类型boolean。
+
+所以使用
+Predicate<Apple>更加高效，因为它无需将boolean装箱为Boolean。
+
+另一个例子和void之间的区别有关，void只能修饰不带任何值的方法，而Void对象实际包含了一个值，它有且仅有一个null值。
+
+对于Function的特殊情况，比如Supplier<T>，你可以用前面建议的新操作符将其改写为() => T。
+
+### 5）对不变性的更深层支持
+
+Java 8只支持三种类型的值，分别为：
+- 简单类型值
+- 指向对象的引用
+- 指向函数的引用
+
+如果我们想在Java中真正实现函数式编程，那么语言层面的支持就必不可少了，比如“不可变值”。正如我们在第13章中所了解的那样，关键字final并未在真正意义上是要达到这一目标，它仅仅避免了对它所修饰字段的更新。
+
+```java
+final int[] arr = {1, 2, 3}; 
+final List<T> list = new ArrayList<>();
+```
+
+前者禁止了直接的赋值操作arr = ...，不过它并未阻止以arr[1]=2这样的方式对数组进行修改；
+
+而后者禁止了对列表的赋值操作，但并未禁止以其他方法修改列表中的元素！
+
+关键字final对于**简单数据类型**的值操作效果很好，不过对于对象引用，它通常只是一种错误的安全感。
+
+由于函数式编程对不能修改现存数据结构有非常严格的要求，所以它提供了一个更强大的关键字，比如**transitively_final**，该关键字用于修饰引用类型的字段，确保无论是直接对该字段本身的修改，还是对通过该字段能直接或间接访问到的对象的修改都不会发生。
+
+### 6）值类型
+
+#### 1. 为什么编译器不能对Integer和int一视同仁
+
+用于建模复数的Complex包含了两个部分，分别是实数（real）和虚数（imaginary），一种很直观的定义如下：
+```java
+class Complex { 
+    public final double re; 
+    public final double im; 
+    public Complex(double re, double im) { 
+        this.re = re; 
+        this.im = im; 
+    } 
+    public static Complex add(Complex a, Complex b) { 
+        return new Complex(a.re+b.re, a.im+b.im); 
+    } 
+}
+```
+不过类型Complex的值为引用类型，对Complex的每个操作都需要进行对象分配——增加了add中两次加法操作的开销。我们需要的是类似Complex的简单数据类型，我们也许可以称其为complex。
+
+以下面的这个难题为例：
+```java
+double d1 = 3.14; 
+double d2 = d1; 
+Double o1 = d1; 
+Double o2 = d2; 
+Double ox = o1; 
+System.out.println(d1 == d2 ? "yes" : "no"); // yes
+System.out.println(o1 == o2 ? "yes" : "no"); // no
+System.out.println(o1 == ox ? "yes" : "no"); // yes
+```
+对于简单变量，特征比较采用的是逐位比较（bitwise comparison），对于对象
+类型它采用的是引用比较（reference equality）。
+
+#### 2.值对象——无论简单类型还是对象类型都不能包打天下
+
+Java的初心：
+1. 任何事物，如果不是简单数据类型，就是对象类型，所有的对象类型都继承自Object；
+2. 所有的引用都是指向对象的引用。
+
+Java中有两种类型的值：
+- 一类是对象类型，它们包含着可变的字段（除非使用了final关键字进行修饰），对这种类型值的特征，可以使用==进行比较；
+- 还有一类是值类型，这种类型的变量是不能改变的，也不带任何的引用特征（reference identity），简单类型就属于这种更宽泛意义上的值类型。
+
+对于值类型，默认情况下，硬件对int进行比较时会以一个字节接着一个字节逐次的方式进行，==会以同样的方式一个元素接着一个元素地对两个变量进行比较。 
+
+此外，值类型可以减少对存储的要求，因为它们并不包含引用特征。
+
+#### 3.装箱、泛型、值类型——互相交织的问题
+
+我们希望能够在Java中引入值类型，因为函数式编程处理的不可变对象并不含有特征。
+
+我们希望简单数据类型可以作为值类型的特例，但又不要有当前Java所携带的泛型的消除模式，因为这意味着值类型不做装箱就不能使用泛型。
+
+由于对象的消除模式，简单类型（比如int）的对象（装箱）版本（比如Integer）对集合和Java泛型依旧非常重要，不过它们继承自Object（并因此引用相等），这被当成了一种缺点。
+
+解决这些问题中的任何一个就意味着解决了所有的问题。
