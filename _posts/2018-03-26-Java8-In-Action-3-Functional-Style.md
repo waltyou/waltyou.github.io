@@ -477,6 +477,17 @@ public class ForkJoinSumCalculator extends java.util.concurrent.RecursiveTask<Lo
 目的：为解决因为每个子任务所花的时间可能天差地别而造成的效率低下。
 过程：线程把任务保存到一个双向链式队列，当一个线程的队列空了，它就随机从其他线程的队列尾部“偷”一个任务执行
 
+### 思考：
+问：都是拆分任务，并行执行，为什么不使用线程池，如ThreadPoolExecutor呢？
+
+答：
+
+Thread pool 默认期望它们所有执行的任务都是不相关的，可以尽可能的并行执行。
+
+而fork join框架解决的问题，是一个全局问题，所有子任务拆分运行后的结果，是要合并起来的。
+
+另外，fork-join pool另一个特点work stealing，如果用ThreadPoolExecutor实现是比较麻烦的。
+
 ## 3. Spliterator分割流
 
 ### 简单了解
