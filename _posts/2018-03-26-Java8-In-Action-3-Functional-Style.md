@@ -381,6 +381,15 @@ stream.parallel()
 - 保证在内核中并行执行工作的时间比在内核之间传输数据的时间长。
 - 避免改变了某些共享状态
 
+### 配置并行流使用的线程池
+
+并行流内部使用了默认的 ForkJoinPool， 它默认的线程数量就是你的处理器数量, 这个值是由Runtime.getRuntime().availableProcessors() 得到的。
+
+可以通过系统属性java.util.concurrent.ForkJoinPool.common.parallelism 来改变线程池大小：
+```java
+System.setProperty("java.util.concurrent.ForkJoinPool.common.parallelism","12");
+```
+
 ### 如何高效使用：
 
 - 测量
