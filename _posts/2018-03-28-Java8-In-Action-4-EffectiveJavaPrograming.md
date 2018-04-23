@@ -951,6 +951,10 @@ public Future<Double> getPriceAsync(String product) {
 }
 ```
 
+当运行时报错时，客户端会收到一个 ExecutionException 异常,该异常接收了一个包含失败原因的Exception 参数。
+
+这样子我们就可以看到报错信息了。
+
 ### 4）更进一步：使用工厂方法supplyAsync创建CompletableFuture
 
 ```java
