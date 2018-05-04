@@ -5,7 +5,7 @@ date: 2018-05-02 16:16:04
 author: admin
 comments: true
 categories: [Hadoop]
-tags: [Hadoop， Big Data]
+tags: [Hadoop, Big Data, MapReduce]
 ---
 
 一直对Mapreduce的工作流程不甚清楚，今天花了点时间，来了解一下。
