@@ -796,4 +796,169 @@ final String outputDir = ctxt.getOptions().getScratchDir().getAbsolutePath();
 
 ---
 
+## 错误处理
+
+### 1. 使用异常，而不是返回码
+### 2. 先写Try Catch Finally 语句
+### 3. 使用不可控异常
+
+可控异常违反了开放/闭合原则
+
+### 4. 给出异常发生的环境说明
+### 5. 依调用者需要定义异常类
+### 6. 定义常规流程
+### 7. 别返回null
+### 8. 别传递null
+
+    java 8 中提供了Optional类来解决null这个问题，要善用它。
+---
+
+## 边界
+
+该怎么将外来代码干净利落的整合进自己的代码中呢？
+
+### 1. 使用第三方代码
+
+要根据自己代码，进行适当封装。
+
+### 2. 浏览和学习边界
+
+善用测试
+
+### 3. 学习log4j
+### 4. 学习性测试的好处不仅是免费
+### 5. 使用尚不存在的代码
+### 6. 整洁的边界
+
+改动底边界上常发生的事，所以在边界代码上，我们要清晰的分割和定义期望的测试，依靠能够确定的东西。
+
+
+---
+
+## 单元测试
+
+### 1. TDD三定律
+
+1. 除非这能让失败的单元测试通过，否则不允许去编写任何的产品代码。
+2. 只允许编写刚好能够导致失败的单元测试。 （编译失败也属于一种失败）
+3. 只允许编写刚好能够导致一个失败的单元测试通过的产品代码。
+
+### 2. 保持测试整洁
+
+脏测试等于没测试。
+
+测试代码和生产代码一样重要。
+
+### 3. 整洁的测试
+
+三个要素：可读性，可读性和可读性。
+```java
+public void testGetPageHieratchyAsXml() throws Exception
+{
+    crawler.addPage(root, PathParser.parse("PageOne"));
+    crawler.addPage(root, PathParser.parse("PageOne.ChildOne"));
+    crawler.addPage(root, PathParser.parse("PageTwo"));
+    request.setResource("root");
+    request.addInput("type", "pages");
+    Responder responder = new SerializedPageResponder();
+    SimpleResponse response =
+        (SimpleResponse) responder.makeResponse(
+                            new FitNesseContext(root), request);
+    String xml = response.getContent();
+    assertEquals("text/xml", response.getContentType());
+    assertSubString("<name>PageOne</name>", xml);
+    assertSubString("<name>PageTwo</name>", xml);
+    assertSubString("<name>ChildOne</name>", xml);
+}
+
+public void testGetPageHieratchyAsXmlDoesntContainSymbolicLinks()
+throws Exception
+{
+    WikiPage pageOne = crawler.addPage(root, PathParser.parse("PageOne"));
+    crawler.addPage(root, PathParser.parse("PageOne.ChildOne"));
+    crawler.addPage(root, PathParser.parse("PageTwo"));
+    PageData data = pageOne.getData();
+    WikiPageProperties properties = data.getProperties();
+    WikiPageProperty symLinks = properties.set(SymbolicPage.PROPERTY_NAME);
+    symLinks.set("SymPage", "PageTwo");
+    pageOne.commit(data);
+    request.setResource("root");
+    request.addInput("type", "pages");
+    Responder responder = new SerializedPageResponder();
+    SimpleResponse response =
+        (SimpleResponse) responder.makeResponse(
+                                new FitNesseContext(root), request);
+    String xml = response.getContent();
+    assertEquals("text/xml", response.getContentType());
+    assertSubString("<name>PageOne</name>", xml);
+    assertSubString("<name>PageTwo</name>", xml);
+    assertSubString("<name>ChildOne</name>", xml);
+    assertNotSubString("SymPage", xml);
+}
+
+public void testGetDataAsHtml() throws Exception
+{
+    crawler.addPage(root, PathParser.parse("TestPageOne"), "test page");
+    request.setResource("TestPageOne");
+    request.addInput("type", "data");
+    Responder responder = new SerializedPageResponder();
+    SimpleResponse response =
+        (SimpleResponse) responder.makeResponse(
+                            new FitNesseContext(root), request);
+    String xml = response.getContent();
+    assertEquals("text/xml", response.getContentType());
+    assertSubString("test page", xml);
+    assertSubString("<Test", xml);
+}
+```
+重构后：
+```java
+public void testGetPageHierarchyAsXml() throws Exception {
+    makePages("PageOne", "PageOne.ChildOne", "PageTwo");
+    submitRequest("root", "type:pages");
+    assertResponseIsXML();
+    assertResponseContains(
+        "<name>PageOne</name>", "<name>PageTwo</name>"，"<name>ChildOne</name>"
+    );
+}
+public void testSymbolicLinksAreNotInXmlPageHierarchy() throws Exception {
+    WikiPage page = makePage("PageOne");
+    makePages("PageOne.ChildOne", "PageTwo");
+    addLinkTo(page, "PageTwo", "SymPage");
+    submitRequest("root", "type:pages");
+    assertResponseIsXML();
+    assertResponseContains(
+        "<name>PageOne</name>", "<name>PageTwo</name>", "<name>ChildOne</name>"
+    );
+    assertResponseDoesNotContain("SymPage");
+}
+public void testGetDataAsXml() throws Exception {
+    makePageWithContent("TestPageOne", "test page");
+    submitRequest("TestPageOne", "type:data");
+    assertResponseIsXML();
+    assertResponseContains("test page", "<Test");
+}
+```
+重构后，这些测试呈现了**构造-操作-检验**模式。每个测试都该这样子。
+
+#### 1）面向特定领域的测试语言
+
+可以构造一些清晰易懂的函数。
+
+#### 2）双重标准
+
+生产环境和测试环境不一样，所以可以依照双重标准来写测试用例。
+
+### 4. 每个测试一个断言，每个测试一个概念
+
+### 5. F.I.R.S.T
+
+1. Fast 快速
+2. Independent 独立
+3. Repeatable 可重复
+4. Self-Validating 自足验证
+5. Timely 及时
+
+---
+
 ## 未完待续......
