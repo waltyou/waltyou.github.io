@@ -11,3 +11,14 @@ tags: [Hadoop, Big Data]
 
 
 <!-- more -->
+---
+## 目录
+{:.no_toc}
+
+* 目录
+{:toc}
+---
+
+# 什么是Hadoop中的分布式缓存（Distributed cache in hadoop）
+
+
