@@ -8,10 +8,18 @@ categories: [Hadoop]
 tags: [Hadoop, Big Data, MapReduce]
 ---
 
-一直对Mapreduce的工作流程不甚清楚，今天花了点时间，来了解一下。
+Mapreduce 作为hadoop的计算框架层， 是hadoop的核心之一。
+
+今天来从InputFormat角度来简单看一看它的工作流程是什么。
 
 <!-- more -->
+---
+## 目录
+{:.no_toc}
 
+* 目录
+{:toc}
+---
 ## 流程图
 
 [![](/images/posts/MapReduceWorkFlow.jpg)](/images/posts/MapReduceWorkFlow.jpg)
