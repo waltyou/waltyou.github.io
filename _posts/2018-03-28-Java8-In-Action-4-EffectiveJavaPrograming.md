@@ -140,163 +140,167 @@ tags: [Java,Java8]
 
 1. 准备工作
 
-策略接口
+    策略接口
 
-```java
-public interface ValidationStrategy {
-    boolean execute(String s);
-}
-```
-调用类
-```java
-public class Validator{
-    private final ValidationStrategy strategy;
+    ```java
+    public interface ValidationStrategy {
+        boolean execute(String s);
+    }
+    ```
+    调用类
+    ```java
+    public class Validator{
+        private final ValidationStrategy strategy;
 
-    public Validator(ValidationStrategy v){
-        this.strategy = v;
+        public Validator(ValidationStrategy v){
+            this.strategy = v;
+        }
+
+        public boolean validate(String s){
+            return strategy.execute(s);
+        }
     }
-    
-    public boolean validate(String s){
-        return strategy.execute(s);
-    }
-}
-```
+    ```
 2. 接口实现类的实现与调用
  
-实现
-```java
-public class IsAllLowerCase implements ValidationStrategy {
-    public boolean execute(String s){
-        return s.matches("[a-z]+");
+    实现
+    ```java
+    public class IsAllLowerCase implements ValidationStrategy {
+        public boolean execute(String s){
+            return s.matches("[a-z]+");
+        }
     }
-}
-public class IsNumeric implements ValidationStrategy {
-    public boolean execute(String s){
-        return s.matches("\\d+");
+    public class IsNumeric implements ValidationStrategy {
+        public boolean execute(String s){
+            return s.matches("\\d+");
+        }
     }
-}
-```
-调用
-```java
-Validator numericValidator = new Validator(new IsNumeric());
-boolean b1 = numericValidator.validate("aaaa");
-Validator lowerCaseValidator = new Validator(new IsAllLowerCase ());
-boolean b2 = lowerCaseValidator.validate("bbbb");
-```
+    ```
+    调用
+    ```java
+    Validator numericValidator = new Validator(new IsNumeric());
+    boolean b1 = numericValidator.validate("aaaa");
+    Validator lowerCaseValidator = new Validator(new IsAllLowerCase ());
+    boolean b2 = lowerCaseValidator.validate("bbbb");
+    ```
 3. lambda实现(无需创建接口实现类)
-```java
-Validator numericValidator =
-    new Validator((String s) -> s.matches("[a-z]+"));
-boolean b1 = numericValidator.validate("aaaa");
+    ```java
+    Validator numericValidator =
+        new Validator((String s) -> s.matches("[a-z]+"));
+    boolean b1 = numericValidator.validate("aaaa");
 
-Validator lowerCaseValidator =
-    new Validator((String s) -> s.matches("\\d+"));
-boolean b2 = lowerCaseValidator.validate("bbbb");
-```
+    Validator lowerCaseValidator =
+        new Validator((String s) -> s.matches("\\d+"));
+    boolean b2 = lowerCaseValidator.validate("bbbb");
+    ```
+
 ### 2）模板方法
+
 如果你需要采用某个算法的框架,同时又希望有一定的灵活度,能对它的某些部分进行改进,那么采用模板方法设计模式是比较通用的方案。
 
 1.改写前
-```java
-abstract class OnlineBanking {
-    public void processCustomer(int id){
-        Customer c = Database.getCustomerWithId(id);
-        makeCustomerHappy(c);
+
+    ```java
+    abstract class OnlineBanking {
+        public void processCustomer(int id){
+            Customer c = Database.getCustomerWithId(id);
+            makeCustomerHappy(c);
+        }
+
+        abstract void makeCustomerHappy(Customer c);
     }
-    
-    abstract void makeCustomerHappy(Customer c);
-}
-```
-这个抽象类构建了一个模板，所有的子类都要实现makeCustomerHappy，来面对差异化的需求。
+    ```
+    这个抽象类构建了一个模板，所有的子类都要实现makeCustomerHappy，来面对差异化的需求。
 2. 改写后
-首先添加一个重载的新方法，它多传入一个Consumer接口作为参数
-```java
-public void processCustomer(int id, Consumer<Customer> makeCustomerHappy){
-    Customer c = Database.getCustomerWithId(id);
-    makeCustomerHappy.accept(c);
-}
-```
-传入lambda
-```java
-new OnlineBankingLambda().processCustomer(1337, (Customer c) ->
-    System.out.println("Hello " + c.getName());
-```
+    首先添加一个重载的新方法，它多传入一个Consumer接口作为参数
+    ```java
+    public void processCustomer(int id, Consumer<Customer> makeCustomerHappy){
+        Customer c = Database.getCustomerWithId(id);
+        makeCustomerHappy.accept(c);
+    }
+    ```
+    传入lambda
+    ```java
+    new OnlineBankingLambda().processCustomer(1337, (Customer c) ->
+        System.out.println("Hello " + c.getName());
+    ```
+
 ### 3）观察者模式
 某些事件发生时(比如状态转变),如果一个对象(通常我们称之为主题Subject)需要自动地通知其他多个对象(称为观察者Observer)。
 
 1. 准备
-```java
-interface Subject{
-    void registerObserver(Observer o);
-    void notifyObservers(String tweet);
-}
-
-class Feed implements Subject{
-    private final List<Observer> observers = new ArrayList<>();
-    public void registerObserver(Observer o) {
-        this.observers.add(o);
+    ```java
+    interface Subject{
+        void registerObserver(Observer o);
+        void notifyObservers(String tweet);
     }
-    public void notifyObservers(String tweet) {
-        observers.forEach(o -> o.notify(tweet));
-    }
-}
 
-interface Observer {
-    void notify(String tweet);
-}
-```
+    class Feed implements Subject{
+        private final List<Observer> observers = new ArrayList<>();
+        public void registerObserver(Observer o) {
+            this.observers.add(o);
+        }
+        public void notifyObservers(String tweet) {
+            observers.forEach(o -> o.notify(tweet));
+        }
+    }
+
+    interface Observer {
+        void notify(String tweet);
+    }
+    ```
 2. 改写前
 
-实现三个观察者 
+    实现三个观察者
 
-```java
-class NYTimes implements Observer{
-    public void notify(String tweet) {
+    ```java
+    class NYTimes implements Observer{
+        public void notify(String tweet) {
+            if(tweet != null && tweet.contains("money")){
+                System.out.println("Breaking news in NY! " + tweet);
+            }
+        }
+    }
+    class Guardian implements Observer{
+        public void notify(String tweet) {
+            if(tweet != null && tweet.contains("queen")){
+                System.out.println("Yet another news in London... " + tweet);
+            }
+        }
+    }
+    class LeMonde implements Observer{
+        public void notify(String tweet) {
+            if(tweet != null && tweet.contains("wine")){
+                System.out.println("Today cheese, wine and news! " + tweet);
+            }
+        }
+    }
+    ```
+    调用
+    ```java
+    Feed f = new Feed();
+    f.registerObserver(new NYTimes());
+    f.registerObserver(new Guardian());
+    f.registerObserver(new LeMonde());
+    f.notifyObservers("The queen said her favourite book is Java 8 in Action!");
+    ```
+3. 改写后
+
+    无需显式地实例化三个观察者对象,直接传递Lambda表达式表示需要执行的行为即可。
+    ```java
+    f.registerObserver((String tweet) -> {
         if(tweet != null && tweet.contains("money")){
             System.out.println("Breaking news in NY! " + tweet);
         }
-    }
-}
-class Guardian implements Observer{
-    public void notify(String tweet) {
+    });
+    f.registerObserver((String tweet) -> {
         if(tweet != null && tweet.contains("queen")){
             System.out.println("Yet another news in London... " + tweet);
         }
-    }
-}
-class LeMonde implements Observer{
-    public void notify(String tweet) {
-        if(tweet != null && tweet.contains("wine")){
-            System.out.println("Today cheese, wine and news! " + tweet);
-        }
-    }
-}
-```
-调用
-```java
-Feed f = new Feed();
-f.registerObserver(new NYTimes());
-f.registerObserver(new Guardian());
-f.registerObserver(new LeMonde());
-f.notifyObservers("The queen said her favourite book is Java 8 in Action!");
-```
-3. 改写后
-
-无需显式地实例化三个观察者对象,直接传递Lambda表达式表示需要执行的行为即可。
-```java
-f.registerObserver((String tweet) -> {
-    if(tweet != null && tweet.contains("money")){
-        System.out.println("Breaking news in NY! " + tweet);
-    }
-});
-f.registerObserver((String tweet) -> {
-    if(tweet != null && tweet.contains("queen")){
-        System.out.println("Yet another news in London... " + tweet);
-    }
-});
-```
-**注意**：如果观察者的逻辑十分复杂,或者持有了状态,抑或定义了多个方法,诸如此
-类。在这些情形下,还是应该继续使用类的方式。
+    });
+    ```
+    **注意**：如果观察者的逻辑十分复杂,或者持有了状态,抑或定义了多个方法,诸如此
+    类。在这些情形下,还是应该继续使用类的方式。
 
 
 ### 4）责任链模式
@@ -305,56 +309,56 @@ f.registerObserver((String tweet) -> {
 
 1. 改写前
 
-构建抽象类
-```java
-public abstract class ProcessingObject<T> {
-    protected ProcessingObject<T> successor;
-    public void setSuccessor(ProcessingObject<T> successor){
-        this.successor = successor;
-    }
-    public T handle(T input){
-        T r = handleWork(input);
-        if(successor != null){
-            return successor.handle(r);
+    构建抽象类
+    ```java
+    public abstract class ProcessingObject<T> {
+        protected ProcessingObject<T> successor;
+        public void setSuccessor(ProcessingObject<T> successor){
+            this.successor = successor;
         }
-        return r;
+        public T handle(T input){
+            T r = handleWork(input);
+            if(successor != null){
+                return successor.handle(r);
+            }
+            return r;
+        }
+        abstract protected T handleWork(T input);
     }
-    abstract protected T handleWork(T input);
-}
-```
-实现类
-```java
-public class HeaderTextProcessing extends ProcessingObject<String> {
-    public String handleWork(String text){
-        return "From Raoul, Mario and Alan: " + text;
+    ```
+    实现类
+    ```java
+    public class HeaderTextProcessing extends ProcessingObject<String> {
+        public String handleWork(String text){
+            return "From Raoul, Mario and Alan: " + text;
+        }
     }
-}
-public class SpellCheckerProcessing extends ProcessingObject<String> {
-    public String handleWork(String text){
-        return text.replaceAll("labda", "lambda");
+    public class SpellCheckerProcessing extends ProcessingObject<String> {
+        public String handleWork(String text){
+            return text.replaceAll("labda", "lambda");
+        }
     }
-}
-```
-调用
-```java
-ProcessingObject<String> p1 = new HeaderTextProcessing();
-ProcessingObject<String> p2 = new SpellCheckerProcessing();
-p1.setSuccessor(p2);
-String result = p1.handle("Aren't labdas really sexy?!!");
-System.out.println(result);
-```
+    ```
+    调用
+    ```java
+    ProcessingObject<String> p1 = new HeaderTextProcessing();
+    ProcessingObject<String> p2 = new SpellCheckerProcessing();
+    p1.setSuccessor(p2);
+    String result = p1.handle("Aren't labdas really sexy?!!");
+    System.out.println(result);
+    ```
 2. 改写后
 
-可以直接使用UnaryOperator
-```java
-UnaryOperator<String> headerProcessing =
-    (String text) -> "From Raoul, Mario and Alan: " + text;
-UnaryOperator<String> spellCheckerProcessing =
-    (String text) -> text.replaceAll("labda", "lambda");
-Function<String, String> pipeline =
-    headerProcessing.andThen(spellCheckerProcessing);
-String result = pipeline.apply("Aren't labdas really sexy?!!")
-```
+    可以直接使用UnaryOperator
+    ```java
+    UnaryOperator<String> headerProcessing =
+        (String text) -> "From Raoul, Mario and Alan: " + text;
+    UnaryOperator<String> spellCheckerProcessing =
+        (String text) -> text.replaceAll("labda", "lambda");
+    Function<String, String> pipeline =
+        headerProcessing.andThen(spellCheckerProcessing);
+    String result = pipeline.apply("Aren't labdas really sexy?!!")
+    ```
 
 ### 5）工厂模式
 
