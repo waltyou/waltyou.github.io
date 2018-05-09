@@ -31,6 +31,21 @@ Hadoop中的MapReduce有个一个很实用的机制，叫做分布式缓存（Di
 
 因此，map和reduce任务从所有datanode上访问文件。
 
+
+## 常见使用场景
+
+1. 可以完成分布式文件共享
+2. 在执行一些join操作时，将小表放入cache中，来提高连接效率。
+
+## 几种共享模式的比较
+
+1. 使用Configuration的set方法，只适合数据内容比较小的场景
+2. 将共享文件放在HDFS上，每次都去读取，效率比较低
+3. 将共享文件放在DistributedCache里，在setup初始化一次后，即可多次使用，缺点是不支持修改操作，仅能读取
+
+
+---
+
 # 2. 使用分布式缓存
 
 ## 1) 条件
@@ -45,19 +60,36 @@ Hadoop中的MapReduce有个一个很实用的机制，叫做分布式缓存（Di
 ## 2）使用
 
 1. 复制文件到HDFS：
-```
-$ hdfs dfs-put/user/dataflair/lib/jar_file.jar
-```
+
+    ```
+    $ hdfs dfs-put/user/dataflair/lib/jar_file.jar
+    ```
 2. 设置application的jobConf：
-```
-DistributedCache.addFileToClasspath(new Path("/user/dataflair/lib/jar-file.jar"),
-                                                conf)
-```
-不过在hadoop 2.x后，DistributedCache已经deprecated，所以可以按照下面代码使用：
-```
-Job job = new Job();
-job.addCacheFile(new Path(filename).toUri());
-```
+
+    ```
+    DistributedCache.addFileToClasspath(new Path("/user/dataflair/lib/jar-file.jar"),
+                                                    conf)
+    ```
+    不过我发现在hadoop 2.x和3.x版本，DistributedCache已经显示弃用。
+
+    弃用的原因是：
+
+    > 在YARN中，所有文件都会创建一个符号链接。文件/目录的名称将是符号链接的名称。
+     因为之前的DistributedCache，在同时缓存名字相同路径不同的文件时，如hdfs：//foo/bar.zip和hdfs：//bar/bar.zip， yarn只会显示一个warning，然后只下载其中一个文件。
+     另外由于API的编写方式，映射程序代码可能不知道只有其中一个被下载，并且无法找到丢失的并毁灭它。
+     这就是为什么我弃用它们而赞成让人们总是使用符号链接，这样行为总是一致的。
+
+    所以可以按照下面代码使用：
+    ```
+    Job job = new Job();
+    job.addCacheFile(new URI(fileName + "#symbolName"));
+    ```
+
+3. 在map或reduce中使用
+
+    ```java
+    File cacheFile = new File("symbolName");
+    ```
 
 ## 3) 分布式缓存的大小
 
@@ -114,3 +146,7 @@ Hadoop中的分布式缓存，它是Hadoop MapReduce框架支持的机制。
 # 参考链接
 
 https://data-flair.training/blogs/hadoop-distributed-cache/
+http://qindongliang.iteye.com/blog/2038108
+https://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html
+https://issues.apache.org/jira/browse/MAPREDUCE-4493
+https://gist.github.com/twasink/8813628
