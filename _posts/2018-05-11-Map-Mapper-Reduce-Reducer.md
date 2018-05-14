@@ -41,5 +41,5 @@ Hadoop中的MapReduce中，有两个主要的步骤，一个是map，一个是re
 
 # 参考链接
 
-https://stackoverflow.com/questions/35861206/difference-between-reduce-task-and-a-reducer
-http://data-flair.training/forums/topic/what-is-reducer-in-hadoop
+1. Difference between reduce task and a reducer: <https://stackoverflow.com/questions/35861206/difference-between-reduce-task-and-a-reducer>
+2. What is Reducer in Hadoop?: <http://data-flair.training/forums/topic/what-is-reducer-in-hadoop>

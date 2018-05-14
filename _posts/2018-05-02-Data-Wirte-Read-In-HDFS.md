@@ -105,7 +105,8 @@ HDFS在进行block读写的时候是以**packet**(默认每个packet为64K)为�
 
 
 ---
+
 # 参考链接
-https://data-flair.training/blogs/hadoop-hdfs-data-read-and-write-operations/
-https://blog.csdn.net/qq_20641565/article/details/53328279
-http://www.cnblogs.com/ggjucheng/archive/2013/02/19/2917020.html
+1. Hadoop HDFS Data Read and Write Operations: <https://data-flair.training/blogs/hadoop-hdfs-data-read-and-write-operations/>
+2. HDFS读写文件流程: <https://blog.csdn.net/qq_20641565/article/details/53328279>
+3. HDFS dfsclient写文件过程 源码分析: <http://www.cnblogs.com/ggjucheng/archive/2013/02/19/2917020.html>

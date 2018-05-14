@@ -143,10 +143,10 @@ Hadoop中的分布式缓存，它是Hadoop MapReduce框架支持的机制。
 
 ---
 
-# 参考链接
+# 6. 参考链接
 
-https://data-flair.training/blogs/hadoop-distributed-cache/
-http://qindongliang.iteye.com/blog/2038108
-https://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html
-https://issues.apache.org/jira/browse/MAPREDUCE-4493
-https://gist.github.com/twasink/8813628
+1. Distributed Cache in Hadoop: Most Comprehensive Guide: <https://data-flair.training/blogs/hadoop-distributed-cache/>
+2. 如何使用Hadoop的DistributedCache: <http://qindongliang.iteye.com/blog/2038108>
+3. MapReduce Tutorial: <https://hadoop.apache.org/docs/stable/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html>
+4. Distibuted Cache Compatability Issues: <https://issues.apache.org/jira/browse/MAPREDUCE-4493>
+5. Example Hadoop Job that reads a cache file loaded from S3: <https://gist.github.com/twasink/8813628>
