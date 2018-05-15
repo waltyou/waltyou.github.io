@@ -1018,6 +1018,7 @@ public void testGetDataAsXml() throws Exception {
 通过降低连接度，就引出了另一条需要遵守的原则：依赖倒置原则（Dependency Inversion Principle， DIP）。
 
 它认为：类应依赖于抽象而不是依赖于具体细节。
+
 ---
 
 ## 系统
