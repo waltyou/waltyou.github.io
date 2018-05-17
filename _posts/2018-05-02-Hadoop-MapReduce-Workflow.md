@@ -56,7 +56,7 @@ Mapreduce 作为hadoop的计算框架层， 是hadoop的核心之一。
 
 ## 1. 流程图
 
-[![](/images/posts/mapreduce-job-execution-flow-1.jpg)](/images/posts/mapreduce-job-execution-flow-1.jpg)
+[![](/images/posts/mapreduce-job-execution-flow.png)](/images/posts/mapreduce-job-execution-flow.png)
 
 
 ## 2. 分步介绍
@@ -146,30 +146,7 @@ public abstract class InputFormat<K, V>
 
 Mapper的数量：**No. of Mapper= {(total data size)/ (input split size)}**
 
-Mapper的输出结果会通过Combiner来进一步处理。
-
-### 6）Combiner
-
-Combiner也被成为“Mini-reducer”，即缩小版的reducer。
-从它的使用方式上，也可以看出它这个名字的由来。因为当我们使用它时，也是直接继承Reducer类，来实现reduce方法，最后在Job中指定combiner类即可。
-
-另外，它是个可选的步骤。
-
-Combiner对Mapper的output进行local的聚合，来减少mapper和reducer之间的网络传输。
-尤其是在处理一个巨大的数据集时，会产生很多巨大的中间数据，这些巨大的中间数据，不仅会加大网络传输的压力，同时也会加大Reducer的处理压力。
-
-优点：
-- 减少了网络传输时间
-- 降低了Reducer处理的数据量
-- 改善了Reducer的性能
-
-同时，它也有一些缺点：
-- Combiner的执行是不被保证的，所以MapReduce job不能依赖于combiner
-- 在Combiner处理中间数据时，中间数据是存储在本地文件系统中的，所以会造成昂贵的磁盘I/O。
-
-一旦Combiner被执行后，数据就会传给Partitioner来进一步处理。
-
-### 7）Partitioner
+### 6）Partitioner
 
 首先如果只有一个Reducer，是不使用Partitioner的。
 
@@ -218,6 +195,25 @@ Partitioner主要保证了相同key值的键值对，可以进入同一个Reduce
 （关于数据倾斜，以后应该会专门再来一篇介绍。）
 
 这时候，一种解决途径，就是自己定制化Partitioner，让mapper的输出可以均匀地分给reducer们。
+
+### 7）Combiner
+
+Combiner也被成为“Mini-reducer”，即缩小版的reducer。
+从它的使用方式上，也可以看出它这个名字的由来。因为当我们使用它时，也是直接继承Reducer类，来实现reduce方法，最后在Job中指定combiner类即可。
+
+另外，它是个可选的步骤。
+
+Combiner对Mapper的output进行local的聚合，来减少mapper和reducer之间的网络传输。
+尤其是在处理一个巨大的数据集时，会产生很多巨大的中间数据，这些巨大的中间数据，不仅会加大网络传输的压力，同时也会加大Reducer的处理压力。
+
+优点：
+- 减少了网络传输时间
+- 降低了Reducer处理的数据量
+- 改善了Reducer的性能
+
+同时，它也有一些缺点：
+- Combiner的执行是不被保证的，所以MapReduce job不能依赖于combiner
+- 在Combiner处理中间数据时，中间数据是存储在本地文件系统中的，所以会造成昂贵的磁盘I/O。
 
 ### 8）Shuffling and Sorting
 
