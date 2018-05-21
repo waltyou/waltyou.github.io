@@ -8,7 +8,7 @@ categories: [Java]
 tags: [Java，JVM]
 ---
 
-自动内存管理机制
+学习JVM，首先要了解JVM是如何划分内存，然后引出垃圾回收算法，最后介绍了常用的JVM调试工具和JVM调优的几个实例。
 
 <!-- more -->
 ---
