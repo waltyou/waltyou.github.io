@@ -27,11 +27,15 @@ Mapreduce 作为hadoop的计算框架层， 是hadoop的核心之一。
 
 # Job的提交运行过程
 
-## 1. 流程图
+## 1. MR1
 
-[![](/images/posts/MapReduceWorkFlow.jpg)](/images/posts/MapReduceWorkFlow.jpg)
+MR1中，任务处理的核心部件有两个JobTracker和TaskTracker。
 
-## 2. 过程步骤
+### 1）流程图
+
+[![](/images/posts/Job-Execution-Flow-MR1.jpg)](/images/posts/Job-Execution-Flow-MR1.jpg)
+
+### 2）过程步骤
 
 1. client启动jvm，创建一个job和JobClient
 2. JobClient向JobTracker申请一个job ID，来标识这个job
@@ -45,10 +49,38 @@ Mapreduce 作为hadoop的计算框架层， 是hadoop的核心之一。
 10. child jvm中运行MapTask或者ReduceTask
 
 
-## 3. 注意
+### 3）注意
 - 数据划分是在JobClient上完成的，它适用InputFormat将输入数据做一次划分，形成若干split。
 - 在第7步，JobTracker会根据TaskTracker的地址，再结合上一步读到的split中location信息，来选择一个location离TaskTracker最近的map或reduce任务分配给它
 - 在第10步，MapTask会使用InputSplit.getRecordReader()返回的RecordReader对象，来读取Split中的每一条记录。
+
+
+## 2. MR2
+
+MR2的MapReduce Job是在YARN框架中执行的。
+
+### 0) 基本概念
+
+- RM(Resource Manager)
+- AM(Application Master)
+- NM(Node Manager)
+- CLC(Container Launch Context)：CLC发给ResourceManager，提供了资源需求（内存/CPU）、作业文件、安全令牌以及在节点上启动ApplicationMaster需要的其他信息。
+
+### 1）流程图
+
+[![](/images/posts/Job-Execution-Flow-In-YARN-Framework.png)](/images/posts/Job-Execution-Flow-In-YARN-Framework.png)
+
+### 2）过程步骤
+
+1. client向RM提交申请，包括CLC所需的信息。
+2. 位于RM中的Application Manager会协商一个容器并为应用程序初始化AM。
+3. AM注册到RM，并请求容器。
+4. AM与NM通信以启动已授予的容器，并为每个容器指定CLC
+5. 然后AM管理应用程序执行
+
+    在执行期间，应用程序向AM提供进度和状态信息。Client可以通过查询RM或直接与AM通信来监视应用程序的状态。
+6. AM向RM报告应用程序的完成情况
+7. AM从RM上注销，RM清理AM所在容器。
 
 ---
 
@@ -308,6 +340,7 @@ Hadoop提供的OutputFormat实例可以用来将文件写入HDFS或者本地文�
 ---
 
 # 参考链接
-1. How Hadoop MapReduce Works – MapReduce Tutorial: <https://data-flair.training/blogs/how-hadoop-mapreduce-works/>
-2. Hadoop Map/Reduce执行流程详解: <http://zheming.wang/blog/2015/05/19/3AFF5BE8-593C-4F76-A72A-6A40FB140D4D/>
-3. Partitioner (Apache Hadoop Main 2.4.1 API) - Apache™ HadoopL: <https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/mapreduce/Partitioner.html>
+1. [How Hadoop MapReduce Works – MapReduce Tutorial]: <https://data-flair.training/blogs/how-hadoop-mapreduce-works/>
+2. [Hadoop Map/Reduce执行流程详解]: <http://zheming.wang/blog/2015/05/19/3AFF5BE8-593C-4F76-A72A-6A40FB140D4D/>
+3. [Partitioner (Apache Hadoop Main 2.4.1 API) - Apache™ HadoopL]: <https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/mapreduce/Partitioner.html>
+4. [How to: Job Execution Framework MapReduce V1 & V2](https://mapr.com/blog/how-job-execution-framework-mapreduce-v1-v2/)
