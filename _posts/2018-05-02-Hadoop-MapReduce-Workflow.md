@@ -184,7 +184,7 @@ Mapper的数量：**No. of Mapper= {(total data size)/ (input split size)}**
 
 #### 步骤
 
-Partitioner对combiners的输出执行分区操作。具体步骤如下：
+Partitioner对Mapper的输出执行分区操作。具体步骤如下：
 1. partitioner拿到combiner的输出键值对中的key
 2. 对key的值进行hash函数转换，获取分区id
 3. 根据分区id，再将键值对分入对应分区
@@ -235,7 +235,7 @@ Combiner也被成为“Mini-reducer”，即缩小版的reducer。
 
 另外，它是个可选的步骤。
 
-Combiner对Mapper的output进行local的聚合，来减少mapper和reducer之间的网络传输。
+Combiner对partition后的output进行local的聚合，来减少mapper和reducer之间的网络传输。
 尤其是在处理一个巨大的数据集时，会产生很多巨大的中间数据，这些巨大的中间数据，不仅会加大网络传输的压力，同时也会加大Reducer的处理压力。
 
 优点：
@@ -340,7 +340,7 @@ Hadoop提供的OutputFormat实例可以用来将文件写入HDFS或者本地文�
 ---
 
 # 参考链接
-1. [How Hadoop MapReduce Works – MapReduce Tutorial]: <https://data-flair.training/blogs/how-hadoop-mapreduce-works/>
-2. [Hadoop Map/Reduce执行流程详解]: <http://zheming.wang/blog/2015/05/19/3AFF5BE8-593C-4F76-A72A-6A40FB140D4D/>
-3. [Partitioner (Apache Hadoop Main 2.4.1 API) - Apache™ HadoopL]: <https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/mapreduce/Partitioner.html>
+1. [How Hadoop MapReduce Works – MapReduce Tutorial](https://data-flair.training/blogs/how-hadoop-mapreduce-works/)
+2. [Hadoop Map/Reduce执行流程详解](http://zheming.wang/blog/2015/05/19/3AFF5BE8-593C-4F76-A72A-6A40FB140D4D/)
+3. [Partitioner (Apache Hadoop Main 2.4.1 API) - Apache™ HadoopL](https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/mapreduce/Partitioner.html)
 4. [How to: Job Execution Framework MapReduce V1 & V2](https://mapr.com/blog/how-job-execution-framework-mapreduce-v1-v2/)
