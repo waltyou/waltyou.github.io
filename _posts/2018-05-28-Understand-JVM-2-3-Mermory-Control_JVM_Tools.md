@@ -53,6 +53,7 @@ jps [ options ] [ hostid]
 -l | 输出主类的全名，如果进程执行的是Jar包，输出Jar路径
 -v | 输出虚拟机进程启动时JVM参数
 
+可以到[官网](https://docs.oracle.com/javase/7/docs/technotes/tools/share/jps.html)上了解更多。
 
 ## 2）jstat：虚拟机统计信息监视工具
 
@@ -90,6 +91,8 @@ jstat [ options vmid [interval[s|ms] [count]]
 -printcompliation | 输出已经被JIT编译的方法
 
 
+可以到[官网](https://docs.oracle.com/javase/7/docs/technotes/tools/share/jstat.html)上了解更多。
+
 ## 3）jinfo：Java配置信息工具
 
 **Configuration Info for Java**
@@ -107,6 +110,8 @@ jinfo的-flag选项，可以获得未被显式指定的参数的系统默认值�
 ```
 jinfo [ options ] pid
 ```
+
+可以到[官网](https://docs.oracle.com/javase/7/docs/technotes/tools/share/jinfo.html)上了解更多。
 
 ## 4）jmap：Java内存映像工具
 
@@ -130,6 +135,8 @@ jmap [ options ] vmid
 -histo | 显示堆中对象统计信息，包括类、实例数量、合计容量
 -permstat | 以ClassLoader为统计口径显示永久代内存状态
 -F | 当虚拟机进程对dump选项没有响应时，可以使用这个强制生成dump快照
+
+可以到[官网](https://docs.oracle.com/javase/7/docs/technotes/tools/share/jmap.html)上了解更多。
 
 ## 5）jhat：虚拟机堆转储快照分析工具
 
@@ -162,6 +169,8 @@ jstack [ options ] vmid
 -F | 当正常输出的请求不被响应时，强制输出线程堆栈
 -l | 出堆栈外，显示关于锁的附加信息
 -m | 如果调用本地方法的话，可以显示c、c++的堆栈
+
+可以到[官网](https://docs.oracle.com/javase/7/docs/technotes/tools/share/jstack.html)上了解更多。
 
 ## 7）HSDIS：JIT生成代码反汇编
 
