@@ -47,7 +47,7 @@ SparkContext是Apache Spark功能的入口，任何Spark驱动程序应用程序
 
 ---
 
-# WorkCount例子
+# WordCount例子
 
 ```scala
 package org.apache.spark.examples
@@ -57,7 +57,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 /**
   * Created by waltyou on 18-6-14.
   */
-object WorkCount {
+object WordCount {
 
   def main(args: Array[String]) {
     //Create conf object
