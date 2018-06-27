@@ -135,6 +135,94 @@ Java至今为止的是一门静态多分派、动态单分派的语言。
 
 除了虚方法表之外，还有内联缓存和基于“类型继承关系分析”技术的守护内联。
 
+## 3. 动态类型语言支持
+
+### 1）动态类型语言
+
+动态类型语言的关键特征是它的类型检查的主体过程是在运行期而不是编译期。
+
+“变量无类型，而变量值有类型”，这个特点也是动态类型语言的一个重要特征。
+
+静态类型语言的优点是：编译器可以提供严谨的类型检查，这样与类型相关的问题能在编码的时候就及时发现，利于稳定性及代码达到更大规模。
+
+动态类型语言的优点是：可以为开发人员提供更大的灵活性，也可以提升开发效率。
+
+### 2）JDK1.7与动态类型
+
+JDK1.7之前，JVM层面对于动态类型语言的支持不太好，主要表现在方法调用方面。
+
+所以JDK1.7中引入了invokedynamic指令以及java.lang.invoke包。
+
+### 3）java.lang.invoke包
+
+这个包提供了一种新的动态确定目标方法的机制，称为Methodhandle。
+
+MethodHandle和Reflection有很多的相似之处，但是也有很多区别：
+- 从本质上来讲，Reflection和 MethodHandle机制都是在模拟方法调用，但Reflection是在模拟 Java 代码层次的方法调用，而 MethodHandle 是在模拟字节码层次的方法调用。
+- Reflection 中的 java.lang.reflect.Method对象远比MethodHandle机制中的 java.lang.invoke.Methodhandle对象所包含的信息多。
+- 由于MethodHandle 是对字节码的方法指令调用的模拟，所以理论上虚拟机在这方面做的各种优化，在 MethodHandle上也应当可以采用类似思路去支持，而通过反射就不行。
+
+### 4）invokedynamic指令
+
+每一处含有invokedynamic指令的位置都称做“动态调用点”。
+
+### 5）掌控方法分派规则
+
+可以使用它来调用祖父类方法。
+
+```java
+import static java.lang.invoke.MethodHandles.lookup;
+
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+
+class Test {
+
+class GrandFather {
+    void thinking() {
+        System.out.println("i am grandfather");
+    }
+}
+
+class Father extends GrandFather {
+    void thinking() {
+        System.out.println("i am father");
+    }
+}
+
+class Son extends Father {
+     void thinking() {
+          try {
+                MethodType mt = MethodType.methodType(void.class);
+                MethodHandle mh = lookup().findSpecial(GrandFather.class, 
+"thinking", mt, getClass());
+                mh.invoke(this);
+            } catch (Throwable e) {
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        (new Test().new Son()).thinking();
+    }
+}
+
+
+```
+
+---
+
+# 基于栈的字节码解释执行引擎
+
+## 1. 解释执行
+
+将代码进行词法分析和语法分析处理，再转化为抽象语法树，然后遍历语法树生成闲心的字节码指令流的过程。
+
+## 2. 基于栈的指令集与基于寄存器的指令集
+
+基于栈的指令集主要的优点是可移植。缺点是会稍慢一些。
+
+
 ---
 
 # 未完待续.....

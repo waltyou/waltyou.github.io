@@ -32,7 +32,7 @@ Tez 是一个基于hadoop yarn的应用框架。
 
 ## 使用合适的文件格式
 
-OCRFILE 就是一个合适的文件格式。它的全名是Optimized Row Columnar (ORC) file。
+ORCFILE 就是一个合适的文件格式。它的全名是Optimized Row Columnar (ORC) file。
 
 据[官方文档](https://orc.apache.org/)介绍，这种文件格式可以提供一种高效的方法来存储Hive数据。它的设计目标是来克服Hive其他格式的缺陷。
 
