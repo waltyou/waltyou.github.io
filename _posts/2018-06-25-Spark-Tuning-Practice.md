@@ -175,7 +175,7 @@ val lines = sc.textFile(args(1), 100)
 
 和 Stage：
 
-[![](/images/posts/spark-tuning-5.png)](/images/posts/spark-tuning-5png)
+[![](/images/posts/spark-tuning-5.png)](/images/posts/spark-tuning-5.png)
 
 在上图中可以看到，Total Uptime 降到了 1.9 min。
 
