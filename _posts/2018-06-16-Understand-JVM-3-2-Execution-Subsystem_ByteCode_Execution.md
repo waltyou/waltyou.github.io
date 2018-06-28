@@ -178,24 +178,23 @@ import java.lang.invoke.MethodType;
 
 class Test {
 
-class GrandFather {
-    void thinking() {
-        System.out.println("i am grandfather");
+    class GrandFather {
+        void thinking() {
+            System.out.println("i am grandfather");
+        }
     }
-}
-
-class Father extends GrandFather {
-    void thinking() {
-        System.out.println("i am father");
+    
+    class Father extends GrandFather {
+        void thinking() {
+            System.out.println("i am father");
+        }
     }
-}
-
-class Son extends Father {
-     void thinking() {
-          try {
+    
+    class Son extends Father {
+         void thinking() {
+            try {
                 MethodType mt = MethodType.methodType(void.class);
-                MethodHandle mh = lookup().findSpecial(GrandFather.class, 
-"thinking", mt, getClass());
+                MethodHandle mh = lookup().findSpecial(GrandFather.class, "thinking", mt, getClass());
                 mh.invoke(this);
             } catch (Throwable e) {
             }
@@ -207,8 +206,9 @@ class Son extends Father {
     }
 }
 
-
 ```
+
+**注意**： JDK1.8环境下MethodHandles.lookup方法是调用者敏感的，所以1.8下的打印结果是“i am father”。
 
 ---
 
