@@ -222,6 +222,108 @@ class Test {
 
 基于栈的指令集主要的优点是可移植。缺点是会稍慢一些。
 
+---
+
+# 类加载及执行子系统的案例与实战
+
+有4个例子，关于类加载和字节码的案例各有两个。
+
+## 1. Tomcat：正统的类加载器架构
+
+### 1）Web服务器需要解决的问题
+
+- 部署在同一个服务器上的两个web应用程序锁使用的Java类库可以实现相互隔离
+- 部署在同一个服务器上的两个web应用程序锁使用的Java类库可以互相共享
+- 服务器需要尽可能地保证自身的安全不受部署的web应用程序影响
+- 支持JSP应用的web服务器，大多数都需要支持HotSwap功能
+
+为了解决上述问题，所以各种web服务器都提供了好几个ClassPath路径供用户存放第三方类库，通常以lib或者classes命名。被放置在不同路径中的类库，具备不同的访问范围和服务对象。通常，每一个目录都会有一个相应的自定义类加载器去加载本目录下的Java类库。
+
+### 2）Tomcat的目录结构
+
+在Tomcat下，有3组目录可以存放Java类库：/common，/server，/shared。
+另外还有web应用程序自身的目录 /WEB-INF，一共4组，把Java类库放置在这些目录中的含义分别如下：
+
+- /common： 类库可以被Tomcat和所有的Web应用程序共同使用
+- /server：类库只能被Tomcat使用
+- /shared：类库可以被所有web应用程序共同使用，但对tomcat自己不可见
+- /WebApp/WEB—INF：类库仅仅可以被此web应用程序使用，对tomcat和其他web应用都不可见
+
+![image](https://img-blog.csdn.net/20170226110723953) 
+
+从上图的委派关系中可以看出，CommonClassLoader能加载的类都可以被CatalinaClassLoader和SharedClassLoader使用，而 CatalinaClassLoader 和 SharedClassLoader 加载的类相互隔离。
+
+Tomcat 6.x版本，默认把common、server和shared三个目录合并到了一起成为lib目录。同时也没有建立CatalinaClassLoader和SharedClassLoader的实例。如果需要，可以修改配置文件指定server.loader和share.loader的方式呈现启用Tomcat 5的加载器结构。
+
+## 2. OSGi：灵活的类加载器架构
+
+OSGi：Open Service Gateway Initiative，是一个基于Java引用的动态模块化规范。最常见的应用案例，就是Eclipse IDE。
+
+### 1）模块 Bundle
+
+OSGi中模块（Bundle）与普通的Java类库区别并不太大，两者一般都为JAR格式进行封装，并且内部存储的是Java Package和Class。
+
+但是一个Bundle可以声明它所依赖的Java Package（Import-Package），也可以声明它允许导出发布的Java Package（Export-Package）。
+
+这样子，Bundle之间的依赖关系从传统的上层依赖底层，编程了平级模块之间的依赖。另外类库的可见性得到了非常精确的控制。除此之外，可以实现模块级别的热插拔功能。
+
+### 2）类加载器架构
+
+OSGi的Bundle类加载器直接只有规则，没有固定的委派关系。
+
+比如，某个Bundle A声明了一个它依赖Package 1，如果有其他的Bundle B声明发布了Package 1，那么所有对Package 1的类加载动作都会委派给Bundle B的类加载器去完成。
+
+另外，一个 Bundle 类加载器为其他 Bundle 通过服务时，会根据Export-Package列表严格控制访问范围。
+
+如果一个类存在于Bundle A 的类库中但是没有被Export，那么Bundle A的类加载器能找到这个类，但不会提供给其他Bundle使用。而且OSGi平台也不会把其他Bundle的类加载器请求分配给Bundle A来处理。
+
+## 3. 字节码生成技术与动态代理的实现
+
+字节码生成的例子有很多，最基本的就是javac命令，还有Web中JSP编译器，还有常用的动态代理技术。
+
+动态代理中所谓的“动态”，是相对于Java代码中实际编写代理类的静态代理而言的。它的优势不在于省去了编写代理类的工作量，而是实现了可以在原始类和接口还未知的时候，就确定代理类的代理行为。当代理类与原始类脱离直接联系后，就可能很灵活地重用在不同的应用场景之中。
+
+```java
+public class DynamicProxyTest {
+
+    interface IHello {
+        void sayHello();
+    }
+
+    static class Hello implements IHello {
+        @Override
+        public void sayHello() {
+            System.out.println("hello world");
+        }
+    }
+
+    static class DynamicProxy implements InvocationHandler {
+
+        Object originalObj;
+
+        Object bind(Object originalObj) {
+            this.originalObj = originalObj;
+            return Proxy.newProxyInstance(originalObj.getClass().getClassLoader(), originalObj.getClass().getInterfaces(), this);
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("welcome");
+            return method.invoke(originalObj, args);
+        }
+    }
+
+    public static void main(String[] args) {
+        IHello hello = (IHello) new DynamicProxy().bind(new Hello());
+        hello.sayHello();
+    }
+}
+
+```
+
+## 4. Retrotranslator：跨越JDK版本
+
+在有些情况下，需要把JDK 1.5 中编译的代码，放到JDK 1.4、1.3的环境中去运行。为了解决这个问题，一种名为“Java逆向移植”的工具（Java Backporting Tools）应运而生，Retrotranslator是其中较出色的一个。
 
 ---
 
