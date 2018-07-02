@@ -249,7 +249,7 @@ class Test {
 - /shared：类库可以被所有web应用程序共同使用，但对tomcat自己不可见
 - /WebApp/WEB—INF：类库仅仅可以被此web应用程序使用，对tomcat和其他web应用都不可见
 
-![image](https://img-blog.csdn.net/20170226110723953) 
+[![](/images/posts/tomcat-classloader.png)](/images/posts/tomcat-classloader.png)
 
 从上图的委派关系中可以看出，CommonClassLoader能加载的类都可以被CatalinaClassLoader和SharedClassLoader使用，而 CatalinaClassLoader 和 SharedClassLoader 加载的类相互隔离。
 
