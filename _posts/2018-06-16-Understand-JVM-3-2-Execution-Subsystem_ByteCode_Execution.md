@@ -325,6 +325,291 @@ public class DynamicProxyTest {
 
 在有些情况下，需要把JDK 1.5 中编译的代码，放到JDK 1.4、1.3的环境中去运行。为了解决这个问题，一种名为“Java逆向移植”的工具（Java Backporting Tools）应运而生，Retrotranslator是其中较出色的一个。
 
----
+## 5. 自己动手实现远程执行功能
 
-# 未完待续.....
+有时候我们需要在运行的服务中，执行一段代码，用来定位或者排除问题。
+
+### 1）目标
+
+为了实现“在服务端执行临时代码”这个需求，我们希望我们的目标产品是这样子的：
+- 不依赖JDK版本
+- 不改变原有服务端程序的部署
+- 不依赖任何第三方类库
+- 不侵入原有程序
+- 需要直接支持java语言
+- 具有足够的自由度，不需要依赖特定的类或者实现特定的接口
+- 执行结果能返回客户端
+
+### 2）思路
+
+在实现程序之前，需要解决三个问题：
+- 如何编译提交到服务器的java代码？
+- 如何执行编译之后的java代码？
+- 如何收集java代码的执行结果？
+
+#### 第一个问题
+
+有两种思路。
+
+一种是使用tools.jar包中的com.sun.tools.javac.Main类来编译Java文件，这其实和使用Javac命令编译时一样的。缺点是引入了额外的JAR包，而且把程序“绑死”在Sun的JDK上了。
+
+另一种是直接在客户端编译好，把字节码而不是java代码传到服务器。
+
+#### 第二个问题
+
+让类加载器加载这个类生成的一个Class对象，然后反射调用一下某个方法就可以了。可以直接是main方法。还要注意类在执行完后，可以能够卸载和回收。
+
+#### 第三个问题
+
+因为System.out 和 System.err 是整个虚拟机进程全局共享的资源，所以如果java代码使用了它们把输出流重定向到自己定义的PrintStream对象上，有可能会对原有程序产生影响。
+
+为了解决这个问题，可以在执行类中把对 System.out 的符号引用替换为我们准备的PrintStream的符号引用。
+
+### 3）实现
+
+共有4个类。
+
+第一个类用于实现“同一个类的代码可以被多次加载”。
+
+```
+/**
+ * 为了多次载入执行类而加入的加载器<br>
+ * 把defineClass方法开放出来，只有外部显式调用的时候才会使用到loadByte方法
+ * 由虚拟机调用时，仍然按照原有的双亲委派规则使用loadClass方法进行类加载
+ *
+ * @author zzm
+ */
+public class HotSwapClassLoader extends ClassLoader {
+
+    public HotSwapClassLoader() {
+        super(HotSwapClassLoader.class.getClassLoader());
+    }
+
+    public Class loadByte(byte[] classByte) {
+        return defineClass(null, classByte, 0, classByte.length);
+    }
+
+}
+```
+
+第二个类是实现将java.lang.System替换为我们自己定义的HackSystem类的过程，它直接修改符合Class文件格式的byte[]数组中的常量池部分，将常量池中指定内容的CONSTANT_Utf8_info 常量替换为新的字符串。
+
+
+```
+/**
+ * 修改Class文件，暂时只提供修改常量池常量的功能
+ * @author zzm 
+ */
+public class ClassModifier {
+
+    /**
+     * Class文件中常量池的起始偏移
+     */
+    private static final int CONSTANT_POOL_COUNT_INDEX = 8;
+
+    /**
+     * CONSTANT_Utf8_info常量的tag标志
+     */
+    private static final int CONSTANT_Utf8_info = 1;
+
+    /**
+     * 常量池中11种常量所占的长度，CONSTANT_Utf8_info型常量除外，因为它不是定长的
+     */
+    private static final int[] CONSTANT_ITEM_LENGTH = { -1, -1, -1, 5, 5, 9, 9, 3, 3, 5, 5, 5, 5 };
+
+    private static final int u1 = 1;
+    private static final int u2 = 2;
+
+    private byte[] classByte;
+
+    public ClassModifier(byte[] classByte) {
+        this.classByte = classByte;
+    }
+
+    /**
+     * 修改常量池中CONSTANT_Utf8_info常量的内容
+     * @param oldStr 修改前的字符串
+     * @param newStr 修改后的字符串
+     * @return 修改结果
+     */
+    public byte[] modifyUTF8Constant(String oldStr, String newStr) {
+        int cpc = getConstantPoolCount();
+        int offset = CONSTANT_POOL_COUNT_INDEX + u2;
+        for (int i = 0; i < cpc; i++) {
+            int tag = ByteUtils.bytes2Int(classByte, offset, u1);
+            if (tag == CONSTANT_Utf8_info) {
+                int len = ByteUtils.bytes2Int(classByte, offset + u1, u2);
+                offset += (u1 + u2);
+                String str = ByteUtils.bytes2String(classByte, offset, len);
+                if (str.equalsIgnoreCase(oldStr)) {
+                    byte[] strBytes = ByteUtils.string2Bytes(newStr);
+                    byte[] strLen = ByteUtils.int2Bytes(newStr.length(), u2);
+                    classByte = ByteUtils.bytesReplace(classByte, offset - u2, u2, strLen);
+                    classByte = ByteUtils.bytesReplace(classByte, offset, len, strBytes);
+                    return classByte;
+                } else {
+                    offset += len;
+                }
+            } else {
+                offset += CONSTANT_ITEM_LENGTH[tag];
+            }
+        }
+        return classByte;
+    }
+
+    /**
+     * 获取常量池中常量的数量
+     * @return 常量池数量
+     */
+    public int getConstantPoolCount() {
+        return ByteUtils.bytes2Int(classByte, CONSTANT_POOL_COUNT_INDEX, u2);
+    }
+}
+```
+
+```
+/**
+ * Bytes数组处理工具
+ * @author
+ */
+public class ByteUtils {
+
+    public static int bytes2Int(byte[] b, int start, int len) {
+        int sum = 0;
+        int end = start + len;
+        for (int i = start; i < end; i++) {
+            int n = ((int) b[i]) & 0xff;
+            n <<= (--len) * 8;
+            sum = n + sum;
+        }
+        return sum;
+    }
+
+    public static byte[] int2Bytes(int value, int len) {
+        byte[] b = new byte[len];
+        for (int i = 0; i < len; i++) {
+            b[len - i - 1] = (byte) ((value >> 8 * i) & 0xff);
+        }
+        return b;
+    }
+
+    public static String bytes2String(byte[] b, int start, int len) {
+        return new String(b, start, len);
+    }
+
+    public static byte[] string2Bytes(String str) {
+        return str.getBytes();
+    }
+
+    public static byte[] bytesReplace(byte[] originalBytes, int offset, int len, byte[] replaceBytes) {
+        byte[] newBytes = new byte[originalBytes.length + (replaceBytes.length - len)];
+        System.arraycopy(originalBytes, 0, newBytes, 0, offset);
+        System.arraycopy(replaceBytes, 0, newBytes, offset, replaceBytes.length);
+        System.arraycopy(originalBytes, offset + len, newBytes, offset + replaceBytes.length, originalBytes.length - offset - len);
+        return newBytes;
+    }
+}
+```
+
+```
+/**
+ * 为JavaClass劫持java.lang.System提供支持
+ * 除了out和err外，其余的都直接转发给System处理
+ * 
+ * @author zzm
+ */
+public class HackSystem {
+
+    public final static InputStream in = System.in;
+
+    private static ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+    public final static PrintStream out = new PrintStream(buffer);
+
+    public final static PrintStream err = out;
+
+    public static String getBufferString() {
+        return buffer.toString();
+    }
+
+    public static void clearBuffer() {
+        buffer.reset();
+    }
+
+    public static void setSecurityManager(final SecurityManager s) {
+        System.setSecurityManager(s);
+    }
+
+    public static SecurityManager getSecurityManager() {
+        return System.getSecurityManager();
+    }
+
+    public static long currentTimeMillis() {
+        return System.currentTimeMillis();
+    }
+
+    public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length) {
+        System.arraycopy(src, srcPos, dest, destPos, length);
+    }
+
+    public static int identityHashCode(Object x) {
+        return System.identityHashCode(x);
+    }
+
+    // 下面所有的方法都与java.lang.System的名称一样
+    // 实现都是字节转调System的对应方法
+    // 因版面原因，省略了其他方法
+}
+```
+
+```
+/**
+ * JavaClass执行工具
+ *
+ * @author zzm
+ */
+public class JavaClassExecuter {
+
+    /**
+     * 执行外部传过来的代表一个Java类的Byte数组<br>
+     * 将输入类的byte数组中代表java.lang.System的CONSTANT_Utf8_info常量修改为劫持后的HackSystem类
+     * 执行方法为该类的static main(String[] args)方法，输出结果为该类向System.out/err输出的信息
+     * @param classByte 代表一个Java类的Byte数组
+     * @return 执行结果
+     */
+    public static String execute(byte[] classByte) {
+        HackSystem.clearBuffer();
+        ClassModifier cm = new ClassModifier(classByte);
+        byte[] modiBytes = cm.modifyUTF8Constant("java/lang/System", "org/fenixsoft/classloading/execute/HackSystem");
+        HotSwapClassLoader loader = new HotSwapClassLoader();
+        Class clazz = loader.loadByte(modiBytes);
+        try {
+            Method method = clazz.getMethod("main", new Class[] { String[].class });
+            method.invoke(null, new String[] { null });
+        } catch (Throwable e) {
+            e.printStackTrace(HackSystem.out);
+        }
+        return HackSystem.getBufferString();
+    }
+}
+```
+
+### 4）验证
+
+```
+<%@ page import="java.lang.*" %>
+<%@ page import="java.io.*" %>
+<%@ page import="org.fenixsoft.classloading.execute.*" %>
+<%
+	InputStream is = new FileInputStream("c:/TestClass.class");
+	byte[] b = new byte[is.available()];
+	is.read(b);
+	is.close();
+
+	out.println("<textarea style='width:1000;height=800'>");
+	out.println(JavaClassExecuter.execute(b));
+	out.println("</textarea>"); 
+%>
+
+```
+
