@@ -128,6 +128,233 @@ public static void main(String[] args) {
 
 这段代码，在编译之后，就只有一段“System.out.println("block 1");”。
 
+## 4. 实战：插入式注解处理器
+
+### 1）实战目标
+
+使用注解处理器API来编写一款拥有自己编码风格的校验工具：NameCheckProcessor。它主要做以下check：
+- 类或接口：符合驼峰命名法，首字母大写
+- 方法：符合驼峰命名法，首字母小写
+- 字段：
+    - 类或者实例变量：符合符合驼峰命名法，首字母小写
+    - 常量：要求全部由大写字或下划线构成，并且第一个字符不能是下划线
+
+### 2）代码实现
+
+首先注解处理器的代码需要继承抽象类：javax.annotation.processing.AbstractProcessor，覆盖其中的abstract方法：process。
+
+这个方法的第一个参数“annotations”中获取到此注解处理器所要处理的注解集合，从第二个参数“roundEnv”中访问到当前这个Round中的语法树节点，每个语法树节点在这里表示为一个Element。
+
+```
+// 可以用"*"表示支持所有Annotations
+@SupportedAnnotationTypes("*")
+// 只支持JDK 1.6的Java代码
+@SupportedSourceVersion(SourceVersion.RELEASE_6)
+public class NameCheckProcessor extends AbstractProcessor {
+
+    private NameChecker nameChecker;
+
+    /**
+     * 初始化名称检查插件
+     */
+    @Override
+    public void init(ProcessingEnvironment processingEnv) {
+        super.init(processingEnv);
+        nameChecker = new NameChecker(processingEnv);
+    }
+
+    /**
+     * 对输入的语法树的各个节点进行进行名称检查
+     */
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        if (!roundEnv.processingOver()) {
+            for (Element element : roundEnv.getRootElements())
+                nameChecker.checkNames(element);
+        }
+        return false;
+    }
+
+}
+
+```
+
+
+```
+/**
+ * 程序名称规范的编译器插件：<br>
+ * 如果程序命名不合规范，将会输出一个编译器的WARNING信息
+ */
+public class NameChecker {
+    private final Messager messager;
+
+    NameCheckScanner nameCheckScanner = new NameCheckScanner();
+
+    NameChecker(ProcessingEnvironment processsingEnv) {
+        this.messager = processsingEnv.getMessager();
+    }
+
+    /**
+     * 对Java程序命名进行检查，根据《Java语言规范》第三版第6.8节的要求，Java程序命名应当符合下列格式：
+     * 
+     * <ul>
+     * <li>类或接口：符合驼式命名法，首字母大写。
+     * <li>方法：符合驼式命名法，首字母小写。
+     * <li>字段：
+     * <ul>
+     * <li>类、实例变量: 符合驼式命名法，首字母小写。
+     * <li>常量: 要求全部大写。
+     * </ul>
+     * </ul>
+     */
+    public void checkNames(Element element) {
+        nameCheckScanner.scan(element);
+    }
+
+    /**
+     * 名称检查器实现类，继承了JDK 1.6中新提供的ElementScanner6<br>
+     * 将会以Visitor模式访问抽象语法树中的元素
+     */
+    private class NameCheckScanner extends ElementScanner6<Void, Void> {
+
+        /**
+         * 此方法用于检查Java类
+         */
+        @Override
+        public Void visitType(TypeElement e, Void p) {
+            scan(e.getTypeParameters(), p);
+            checkCamelCase(e, true);
+            super.visitType(e, p);
+            return null;
+        }
+
+        /**
+         * 检查方法命名是否合法
+         */
+        @Override
+        public Void visitExecutable(ExecutableElement e, Void p) {
+            if (e.getKind() == METHOD) {
+                Name name = e.getSimpleName();
+                if (name.contentEquals(e.getEnclosingElement().getSimpleName()))
+                    messager.printMessage(WARNING, "一个普通方法 “" + name + "”不应当与类名重复，避免与构造函数产生混淆", e);
+                checkCamelCase(e, false);
+            }
+            super.visitExecutable(e, p);
+            return null;
+        }
+
+        /**
+         * 检查变量命名是否合法
+         */
+        @Override
+        public Void visitVariable(VariableElement e, Void p) {
+            // 如果这个Variable是枚举或常量，则按大写命名检查，否则按照驼式命名法规则检查
+            if (e.getKind() == ENUM_CONSTANT || e.getConstantValue() != null || heuristicallyConstant(e))
+                checkAllCaps(e);
+            else
+                checkCamelCase(e, false);
+            return null;
+        }
+
+        /**
+         * 判断一个变量是否是常量
+         */
+        private boolean heuristicallyConstant(VariableElement e) {
+            if (e.getEnclosingElement().getKind() == INTERFACE)
+                return true;
+            else if (e.getKind() == FIELD && e.getModifiers().containsAll(EnumSet.of(PUBLIC, STATIC, FINAL)))
+                return true;
+            else {
+                return false;
+            }
+        }
+
+        /**
+         * 检查传入的Element是否符合驼式命名法，如果不符合，则输出警告信息
+         */
+        private void checkCamelCase(Element e, boolean initialCaps) {
+            String name = e.getSimpleName().toString();
+            boolean previousUpper = false;
+            boolean conventional = true;
+            int firstCodePoint = name.codePointAt(0);
+
+            if (Character.isUpperCase(firstCodePoint)) {
+                previousUpper = true;
+                if (!initialCaps) {
+                    messager.printMessage(WARNING, "名称“" + name + "”应当以小写字母开头", e);
+                    return;
+                }
+            } else if (Character.isLowerCase(firstCodePoint)) {
+                if (initialCaps) {
+                    messager.printMessage(WARNING, "名称“" + name + "”应当以大写字母开头", e);
+                    return;
+                }
+            } else
+                conventional = false;
+
+            if (conventional) {
+                int cp = firstCodePoint;
+                for (int i = Character.charCount(cp); i < name.length(); i += Character.charCount(cp)) {
+                    cp = name.codePointAt(i);
+                    if (Character.isUpperCase(cp)) {
+                        if (previousUpper) {
+                            conventional = false;
+                            break;
+                        }
+                        previousUpper = true;
+                    } else
+                        previousUpper = false;
+                }
+            }
+
+            if (!conventional)
+                messager.printMessage(WARNING, "名称“" + name + "”应当符合驼式命名法（Camel Case Names）", e);
+        }
+
+        /**
+         * 大写命名检查，要求第一个字母必须是大写的英文字母，其余部分可以是下划线或大写字母
+         */
+        private void checkAllCaps(Element e) {
+            String name = e.getSimpleName().toString();
+
+            boolean conventional = true;
+            int firstCodePoint = name.codePointAt(0);
+
+            if (!Character.isUpperCase(firstCodePoint))
+                conventional = false;
+            else {
+                boolean previousUnderscore = false;
+                int cp = firstCodePoint;
+                for (int i = Character.charCount(cp); i < name.length(); i += Character.charCount(cp)) {
+                    cp = name.codePointAt(i);
+                    if (cp == (int) '_') {
+                        if (previousUnderscore) {
+                            conventional = false;
+                            break;
+                        }
+                        previousUnderscore = true;
+                    } else {
+                        previousUnderscore = false;
+                        if (!Character.isUpperCase(cp) && !Character.isDigit(cp)) {
+                            conventional = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!conventional)
+                messager.printMessage(WARNING, "常量“" + name + "”应当全部以大写字母或下划线命名，并且以字母开头", e);
+        }
+    }
+}
+
+```
+
+### 3）运行与测试
+
+在执行javac命令时，通过“-processor”参数来执行编译时需要附带的注解处理器。
+
 ---
 
 # 未完待续.....
