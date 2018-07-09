@@ -213,6 +213,27 @@ root@5b0063dd73a2:/# ls /path/in/docker/
 
 到此为止，我们就很欢快的调试代码了。
 
+### 6.2.3 使用后台运行的Docker
+
+更多的时候，我们希望docker的container在后台运行， 这时可以通过添加 -d 参数来实现。
+
+当我们想进入容器工作时， 可以使用 _docker exec_ 命令，加上 _-it_ 参数。 如下：
+
+```sbtshell
+
+$ docker run -dit ubuntu
+69d137adef7a8a689cbcb059e94da5489d3cddd240ff675c640c8d96e84fe1f6
+
+$ docker container ls
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES
+69d137adef7a        ubuntu:latest       "/bin/bash"         18 seconds ago      Up 17 seconds                           zealous_swirles
+
+$ docker exec -it 69d1 bash
+root@69d137adef7a:/#
+
+```
+
+
 ---
 
 # 7. 参考资料
