@@ -11,6 +11,7 @@ tags: [Hadoop, Big Data, Hive]
 Hive 提供了一个交互式接口，来让用户通过 SQL 来操作数据。这里记录一下常用的Hive SQL 语句。
 
 <!-- more -->
+
 ---
 ## 目录
 {:.no_toc}
@@ -122,5 +123,31 @@ month, name, money, row_number() over (distribute by month sort by money desc) a
 from userMoney
 ) as temp
 where temp.rank < 3;
+
+```
+--- 
+
+# 使用 Split 函数的单行变多行
+
+## 1. 准备
+
+有时候，我们会有类似下面的表：
+
+id | values
+---|---
+1 | aaa,bbb,ccc
+
+但是我们想得到如下的表：
+
+id | value
+---|---
+1 | aaa
+1 | bbb
+1 | ccc
+
+## 语句
+
+```sql
+select id, v from test lateral view explode(split(values,',')) adtable as v;  
 
 ```
