@@ -139,7 +139,7 @@ id | values
 
 但是我们想得到如下的表：
 
-id | value
+id | v
 ---|---
 1 | aaa
 1 | bbb
