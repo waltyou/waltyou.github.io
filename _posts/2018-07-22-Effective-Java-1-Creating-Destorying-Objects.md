@@ -74,7 +74,6 @@ public static Boolean valueOf(boolean b) {
 - 对于不变值的类，可以保证他们是相等的
 - 这是享元模式的基础
 
-
 ## 3. 静态工厂方法可以返回其返回类型的任何子类型对象
 
 这个功能让使用者可以更加灵活地选择返回对象的类。
@@ -88,6 +87,26 @@ public static Boolean valueOf(boolean b) {
 此外，使用这种静态工厂方法，需要客户端通过**接口**而不是**实现类**来引用返回的对象，这通常是一种很好的做法。
 
 从Java 8开始，消除了接口不能包含静态方法的限制，因此通常没有理由为接口提供不可实例化的伴随类。许多公共静态成员应该放在接口本身中。但请注意，可能仍有必要将大量实现代码放在这些静态方法后面的单独的包私有（package-private）类中。这是因为Java 8要求接口的所有静态成员都是公共的。Java 9允许私有静态方法，但静态字段和静态成员类仍然需要公开。
+## 4. 静态工厂方法可以根据输入参数而改变返回对象的类
+
+返回对象的类型，只要是声明类型的子类型就可以。
+
+EnumSet 类就没有公共的构造方法，只有静态工厂。在 OpenJDk 的实现上，它可以返回两个子类型中的其中一种：如果 enum type 数量小于等于64，静态工厂会返回 RegularEnumSet，否则，会返回 JumboEnumSet 。
+
+这两种实现的子类，对于调用者是不可见的。所以，如果将来出于性能考虑，移除这个类，那对使用者也毫无影响。同样的，再添加一个新的子类，对调用者也无影响。
+
+## 5. 在写静态工厂方法时，方法返回对象的类不需要存在。
+
+这种灵活的静态工厂方法构成了服务提供者框架（service provider frameworks）的基础，如Java数据库连接API（JDBC）。服务提供者框架是提供者负责实现服务的系统。系统使实现可用于客户端，将客户端与实现分离。
+
+服务提供者框架中有三个基本组件：
+- service interface，代表一个具体实现
+- provider registration API，提供者用于注册一个实现
+- service access API，客户端使用它来获取服务的实例
+
+Service access API可以允许客户端指定用于选择实现的标准，如果没有这样的标准，API将返回默认实现的实例，或允许客户端循环遍历所有可用的实现。 Service access API是灵活的静态工厂，它构成了服务提供者框架的基础。
+
+另外一个可选的组件是：service provider interface，它用来描述一个生产service interface实例的工厂对象。在缺少服务提供者接口的情况下，必须反射地实例化实现。在 JDBC 中, Connection 作为 service interface, DriverManager.registerDriver 作为 provider registration API, DriverManager.getConnection 作为 service access API, Driver 是 service provider interface.
 
 ---
 
