@@ -118,3 +118,60 @@ Service access API可以允许客户端指定用于选择实现的标准，如�
 例如，我们不可能在Collections Framework中继承任何便捷的实现类。
 
 可以说这可能是一种伪装的祝福，因为它鼓励程序员使用组合而不是继承（第18项），并且是不可变类型（第17项）所必需的。
+
+### 2）静态工厂方法不能容易的被使用者找到
+
+构造方法，我们不看 API 文档也知道，但是静态工厂方法不一样，所以我们最好约定一些命名规范，来减少问题的发生。如下：
+
+- from: 一种类型转换方法，它接受一个参数并返回一个相应的这种类型的实例。
+    ```
+    Date d = Date.from(instant);
+    ```
+- of：一种聚合方法，它接受多个参数并返回实例包含它们的这种类型
+    ```
+    Set<Rank> faceCards = EnumSet.of(JACK, QUEEN, KING);
+    ```
+- valueOf：一个更详细的替代 from 和 of
+    ```
+    BigInteger prime = BigInteger.valueOf(Integer.MAX_VALUE);
+    ```
+- instance or getInstance：返回由其参数（如果有）描述的实例，但不能说具有相同的值
+    ```
+    StackWalker luke = StackWalker.getInstance(options);
+    ```
+- create or newInstance：像instance或getInstance，但是该方法保证每个调用返回一个新实例
+    ```
+    Object newArray = Array.newInstance(classObject, arrayLen);
+    ```
+- getType：与getInstance类似，但如果工厂方法位于不同的类中，则使用它。 Type是工厂方法返回的对象类型
+    ```
+    FileStore fs = Files.getFileStore(path);
+    ```
+- newType：与newInstance类似，但如果工厂方法在不同的类中，则使用。 Type是工厂方法返回的对象类型
+    ```
+    BufferedReader br = Files.newBufferedReader(path);
+    ```
+- type：getType和newType的简明替代方案
+    ```
+    List<Complaint> litany = Collections.list(legacyLitany);
+    ```
+
+---
+
+# Item 2：当构造函数有许多参数的时，请考虑构建器（Builder）
+
+静态工厂和构造函数共享一个限制：当有很多可选参，它们不能很好地扩展。
+
+因为面对这种可选参数较多的情况，构造函数无论如何都需要传递一个值给它，即使这些参数我们不需要。
+
+直观上，我们可以采用**伸缩构造模式**的方法（也就是函数复用），来一定程度上解决这个问题。但是当参数变得更多时，这个思路下代码就会臃肿起来。而且程序也变得更加难以阅读。
+
+第二个思路是**JavaBeans**模式，也就是使用 get、set 方法。您可以在其中调用无参数构造函数来创建对象，然后调用setter方法来设置每个必需参数和每个感兴趣的可选参数。这个方法没有上一个方法的缺点。它很容易创建实例，并且易于阅读生成的代码。
+
+不幸的是，JavaBeans模式本身就存在严重的缺点。因为想要构造出一个完整地对象，需要多次调用，而这些调用在多线程的情况下，可以会出现不一致的状态。当然我们可以使用锁来避免这类错误，但是程序就变得笨重了。
+
+幸运的是，这里有第三种方式，就是生成器模式（Builder Pattern）。
+
+---
+
+# 未完待续.....
