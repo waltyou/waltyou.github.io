@@ -170,7 +170,83 @@ Service access API可以允许客户端指定用于选择实现的标准，如�
 
 不幸的是，JavaBeans模式本身就存在严重的缺点。因为想要构造出一个完整地对象，需要多次调用，而这些调用在多线程的情况下，可以会出现不一致的状态。当然我们可以使用锁来避免这类错误，但是程序就变得笨重了。
 
-幸运的是，这里有第三种方式，就是生成器模式（Builder Pattern）。
+幸运的是，这里有第三种方式，就是生成器模式（Builder Pattern）。它先用必须的参数，构建一个builder对象，然后再设置那些可选参数（这一步有些类似setter函数），最后，通过调用 builder 方法，生成最后的对象。
+
+```java
+public class NutritionFacts {
+
+    private final int servingSize;
+    private final int servings;
+    private final int calories;
+    private final int fat;
+    private final int sodium;
+    private final int carbohydrate;
+    
+    public static class Builder {
+        // Required parameters
+        private final int servingSize;
+        private final int servings;
+        
+        // Optional parameters - initialized to default values
+        private int calories = 0;
+        private int fat = 0;
+        private int sodium = 0;
+        private int carbohydrate = 0;
+        
+        public Builder(int servingSize, int servings) {
+            this.servingSize = servingSize;
+            this.servings = servings;
+        }
+        
+        public Builder calories(int val)
+        { calories = val; return this; }
+        public Builder fat(int val)
+        { fat = val; return this; }
+        public Builder sodium(int val)
+        { sodium = val; return this; }
+        public Builder carbohydrate(int val)
+        { carbohydrate = val; return this; }
+        
+        public NutritionFacts build() {
+            return new NutritionFacts(this);
+        }
+    }
+    
+    private NutritionFacts(Builder builder) {
+        servingSize = builder.servingSize;
+        servings = builder.servings;
+        calories = builder.calories;
+        fat = builder.fat;
+        sodium = builder.sodium;
+        carbohydrate = builder.carbohydrate;
+    }
+}
+```
+
+客户端的调用程序是这样子的：
+
+```java
+NutritionFacts cocaCola = new NutritionFacts.Builder(240, 8)
+.calories(100).sodium(35).carbohydrate(27).build();
+```
+
+Builder模式模拟Python和Scala中的命名可选参数。
+
+另外，需要尽早在builder函数中检查参数的有效性，如果不满足，及时抛出 IllegalArgumentException，并指明具体的无效参数。
+
+Builder模式非常适合类层次结构。使用并行的构建器层次结构，每个构建器都嵌套在相应的类中。 抽象类有抽象构建器; 具体的类有具体的建设者。
+
+构建器相对于构造函数的一个小优点是构建器可以具有多个varargs参数，因为每个参数都在其自己的方法中指定。 或者，构建器可以将传递给方法的多个调用的参数聚合到单个字段中。
+
+Builder模式非常灵活。 可以重复使用单个构建器来构建多个对象。 可以在构建方法的调用之间调整构建器的参数，以改变创建的对象。 构建器可以在创建对象时自动填充某些字段，例如每次创建对象时增加的序列号。
+
+Builder模式也有缺点，就是要创建对象，必须先创建其构建器。虽然在实践中创建此构建器的成本不太可能明显，但在性能关键的情况下可能会出现问题。
+
+此外，Builder模式比伸缩构造函数模式更冗长，因此只有在有足够的参数使其值得（例如四个或更多）时才应使用它。但请记住，参数可能在未来会变多。
+
+但是如果一开始写的是构造函数或静态工厂，那么随着需求变化，在参数数量多到失控时，再切换到构建器，那么过时的构造函数或静态工厂就很冗余了。因此，首先从 builder 模式开始通常会更好。
+
+总之，在设计构造函数或静态工厂具有多个参数的类时，Builder模式是一个不错的选择，特别是如果许多参数是可选的或类型相同的话。与使用伸缩式构造函数相比，客户端代码更易于使用构建器进行读写，与JavaBeans相比，则更安全。
 
 ---
 
