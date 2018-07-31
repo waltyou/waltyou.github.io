@@ -250,4 +250,69 @@ Builder模式也有缺点，就是要创建对象，必须先创建其构建器�
 
 ---
 
+# Item 3: 强制单例属性为私有构造函数或枚举类型
+
+## 1. 什么是单例
+
+单例只是一个实例化一次的类。单例通常代表无状态对象，例如函数或本质上唯一的系统组件。
+
+通常有两种方式实现单例。这两种都是保证构造函数是私有的，然后提供公共静态成员唯一的获取方式。
+
+## 2. 第一种方法
+
+```java
+// Singleton with public final field
+public class Elvis {
+    public static final Elvis INSTANCE = new Elvis();
+    private Elvis() { ... }
+    public void leaveTheBuilding() { ... }
+}
+```
+客户端调用可以直接使用*Elvis.INSTANCE*来获取对象。这种方法创建的单例对象，在类加载时就会创建。不过要小心的时，可以通过反射来调用构造方法，所以当这种情况发生时，需要在构造函数中抛出异常。
+
+这个方法的主要优点是API清楚地表明该类是单例：公共静态字段是final，因此它将始终包含相同的对象引用。 第二个优点是它更简单。
+
+## 3. 第二种方法
+
+```java
+// Singleton with static factory
+public class Elvis {
+    private static final Elvis INSTANCE = new Elvis();
+    private Elvis() { ... }
+    public static Elvis getInstance() { return INSTANCE; }
+    public void leaveTheBuilding() { ... }
+}
+```
+客户端使用 *Elvis.getInstance* 来获取对象。
+
+静态工厂方法的一个优点是，它能在你不更改API的情况下，灵活地控制类是否为单例。工厂方法返回唯一的实例，但可以修改它，例如，为每个调用它的线程返回一个单独的实例。
+
+第二个优点是，如果您的应用需要，您可以编写通用的单例工厂。 
+
+使用静态工厂的最后一个优点是方法引用可以用作供应商，例如Elvis :: instance是Supplier <Elvis>。 
+
+除非是为了其中一个优点，否则第一种方法更可取。
+
+## 4. 序列化
+
+要注意对一个拥有单例属性的类来讲，仅仅实现 *Serializable* 接口是不够的。而是要将单例属性前加上 *transient* 关键字，否则每一次的反序列化，都会创建出一个的新的对象。在反序列化后，如果需要获取单例属性，需要添加 *readResolve* 方法。
+
+## 5. 第三种方法
+
+第三种实现单例的方式就是声明一个单元素的枚举类型。
+
+```java
+// Enum singleton - the preferred approach
+public enum Elvis {
+    INSTANCE;
+    public void leaveTheBuilding() { ... }
+}
+```
+
+这种方法类似于公共领域方法，但它更简洁，免费提供序列化机制，并提供了对多次实例化的铁定保证，即使面对复杂的序列化或反射攻击。
+
+这种方法可能会有点不自然，但单元素枚举类型通常是实现单例的最佳方法。 请注意，如果您的单例必须扩展Enum以外的超类，则不能使用此方法（尽管您可以声明枚举来实现接口）。
+
+---
+
 # 未完待续.....
