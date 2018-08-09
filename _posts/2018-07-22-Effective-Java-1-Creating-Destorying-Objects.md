@@ -560,7 +560,7 @@ finalizer机制有一个严重的安全问题：**它们会打开你的类来进
 
 Cleaner机制使用起来有点棘手。下面是演示该功能的一个简单的Room类。假设Room对象必须在被回收前清理干净。Room类实现AutoCloseable接口；它的自动清理安全网使用的是一个Cleaner机制，这仅仅是一个实现细节。与Finalizer机制不同，Cleaner机制不污染一个类的公共API：
 
-```
+```java
 // An autocloseable class using a cleaner as a safety net
 public class Room implements AutoCloseable {
     private static final Cleaner cleaner = Cleaner.create();
@@ -607,8 +607,7 @@ public class Room implements AutoCloseable {
 
 就像我们之前说的，Room的Cleaner机制仅仅被用作一个安全网。如果客户将所有Room的实例放在try-with-resource块中，则永远不需要自动清理。行为良好的客户端如下所示：
 
-
-```
+```java
 public class Adult {
     public static void main(String[] args) {
         try (Room myRoom = new Room(7)) {
@@ -620,8 +619,7 @@ public class Adult {
 
 正如你所预料的，运行Adult程序会打印Goodbye字符串，随后打印Cleaning room字符串。但是如果时不合规矩的程序，它从来不清理它的房间会是什么样的?
 
-
-```
+```java
 public class Teenager {
     public static void main(String[] args) {
         new Room(99);
@@ -634,7 +632,98 @@ public class Teenager {
 
 总之，除了作为一个安全网或者终止非关键的本地资源，不要使用Cleaner机制，或者是在Java 9发布之前的finalizers机制。即使是这样，也要当心不确定性和性能影响。
 
-
 ---
 
-# 未完待续.....
+# Item 9：偏向使用 try-with-resources 来代替 try-finally
+
+Java类库中包含许多必须通过调用close方法手动关闭的资源。 比如InputStream，OutputStream和java.sql.Connection。 客户经常忽视关闭资源，其性能结果可想而知。 尽管这些资源中有很多使用finalizer机制作为安全网，但finalizer机制却不能很好地工作。
+
+从以往来看，try-finally语句是保证资源正确关闭的最佳方式，即使是在程序抛出异常或返回的情况下：
+
+```java
+// try-finally - No longer the best way to close resources!
+static String firstLineOfFile(String path) throws IOException {
+    BufferedReader br = new BufferedReader(new FileReader(path));
+    try {
+        return br.readLine();
+    } finally {
+        br.close();
+    }
+}
+```
+
+这可能看起来并不坏，但是当添加第二个资源时，情况会变得更糟：
+
+```java
+// try-finally is ugly when used with more than one resource!
+static void copy(String src, String dst) throws IOException {
+    InputStream in = new FileInputStream(src);
+    try {
+        OutputStream out = new FileOutputStream(dst);
+        try {
+            byte[] buf = new byte[BUFFER_SIZE];
+            int n;
+            while ((n = in.read(buf)) >= 0)
+                out.write(buf, 0, n);
+        } finally {
+            out.close();
+        }
+    } finally {
+        in.close();
+    }
+}
+```
+
+这可能很难相信，但即使是优秀的程序员，大多数时候也会犯错误。事实上，2007年Java类库中使用close方法的三分之二都是错误的。
+
+即使是用try-finally语句关闭资源的正确代码，如前面两个代码示例所示，也有一个微妙的缺陷。 try-with-resources块和finally块中的代码都可以抛出异常。例如，在firstLineOfFile方法中，由于底层物理设备发生故障，对readLine方法的调用可能会引发异常，并且由于相同的原因，调用close方法可能会失败。 在这种情况下，第二个异常完全冲掉了第一个异常。在异常堆栈跟踪中没有第一个异常的记录，这可能使实际系统中的调试非常复杂——通常这是你想要诊断问题的第一个异常。 虽然可以编写代码来抑制第二个异常，但是实际上没有人这样做，因为它太冗长了。
+
+当Java 7引入了try-with-resources语句时，所有这些问题一下子都得到了解决。要使用这个构造，资源必须实现 AutoCloseable接口，该接口由一个返回为void的close组成。Java类库和第三方类库中的许多类和接口现在都实现或继承了AutoCloseable接口。如果你编写的类表示必须关闭的资源，那么这个类也应该实现AutoCloseable接口。
+
+以下是我们的第一个使用try-with-resources的示例：
+
+```java
+// try-with-resources - the the best way to close resources!
+static String firstLineOfFile(String path) throws IOException {
+    try (BufferedReader br = new BufferedReader(
+           new FileReader(path))) {
+       return br.readLine();
+    }
+}
+```
+
+以下是我们的第二个使用try-with-resources的示例：
+
+```java
+// try-with-resources on multiple resources - short and sweet
+static void copy(String src, String dst) throws IOException {
+    try (InputStream in = new FileInputStream(src);
+         OutputStream out = new FileOutputStream(dst)) {
+        byte[] buf = new byte[BUFFER_SIZE];
+        int n;
+        while ((n = in.read(buf)) >= 0)
+            out.write(buf, 0, n);
+    }
+}
+```
+
+不仅 try-with-resources版本比原始版本更精简，更好的可读性，而且它们提供了更好的诊断。 
+
+考虑firstLineOfFile方法。 如果调用readLine和close方法（不可见）都抛出异常，则后一个异常将被抑制（suppressed），而不是前者。事实上，为了保留你真正想看到的异常，可能会抑制多个异常。 这些抑制的异常没有被抛弃，而是打印在堆栈跟踪中，并标注为被抑制了。 你也可以使用getSuppressed方法以编程方式访问它们，该方法在Java 7中已添加到的Throwable中。
+
+可以在 try-with-resources语句中添加catch子句，就像在常规的try-finally语句中一样。这允许你处理异常，而不会在另一层嵌套中污染代码。作为一个稍微有些做作的例子，这里有一个版本的firstLineOfFile方法，它不会抛出异常，但是如果它不能打开或读取文件，则返回默认值：
+
+```java
+// try-with-resources with a catch clause
+static String firstLineOfFile(String path, String defaultVal) {
+    try (BufferedReader br = new BufferedReader(
+           new FileReader(path))) {
+        return br.readLine();
+    } catch (IOException e) {
+        return defaultVal;
+    }
+}
+```
+
+结论明确：在处理必须关闭的资源时，使用try-with-resources语句替代try-finally语句。 生成的代码更简洁，更清晰，并且生成的异常更有用。try-with-resources语句在编写必须关闭资源的代码时会更容易，也不会出错，而使用try-finally语句实际上是不可能的。
+
