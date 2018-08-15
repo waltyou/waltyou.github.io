@@ -5,7 +5,7 @@ date: 2018-07-22 10:11:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，Effective Java]
+tags: [Java, Effective Java]
 ---
 
 该如何编写有效的 Java 代码呢？来学习一下《Effective Java》第三版。

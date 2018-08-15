@@ -5,7 +5,7 @@ date: 2018-06-10 20:06:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 Class文件的里一串的字节流，虚拟机是如何使用呢？

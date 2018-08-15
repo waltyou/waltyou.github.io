@@ -5,7 +5,7 @@ date: 2018-07-04 20:26:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 程序员对效率的追求，是永无停止的。

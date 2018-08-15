@@ -5,7 +5,7 @@ date: 2018-5-17 20:16:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 Java虚拟机（JVM）是java语言这么流行的基础。因为它，程序员代码与内存管理进行了一定程度上的隔离；因为它，java可以一次编译，多次运行；因为它，java可以跨越不同平台。

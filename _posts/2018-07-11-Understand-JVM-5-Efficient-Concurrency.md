@@ -5,7 +5,7 @@ date: 2018-07-11 20:26:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 这是《深入理解Java虚拟机》的最后一部分，分为两章，分别为Java内存模型与线程、线程安全与锁优化。

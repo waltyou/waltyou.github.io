@@ -5,7 +5,7 @@ date: 2018-05-28 19:06:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 JDK除了提供编译和运行Java的功能外，也附带了许多命令行工具来分析JVM运行状况。来简单了解一下。

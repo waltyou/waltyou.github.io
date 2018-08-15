@@ -5,7 +5,7 @@ date: 2018-5-21 21:06:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 垃圾回收(GC)，是JVM的重要部分，这一篇，会大概介绍一下几种GC算法，和7种垃圾收集器，以及JVM分配内存的一些策略。

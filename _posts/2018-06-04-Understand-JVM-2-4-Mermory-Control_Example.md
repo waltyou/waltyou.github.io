@@ -5,7 +5,7 @@ date: 2018-06-04 20:06:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 “纸上得来终觉浅”，来从几个实例来实战一下之前学到的知识吧。

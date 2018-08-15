@@ -5,7 +5,7 @@ date: 2018-06-05 20:06:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 书中的第三部分主要来了解一下虚拟机执行子系统。这部分有四个部分：类文件结构、虚拟机类加载机制、虚拟机字节码执行引擎和类加载及执行子系统的案例与实战。

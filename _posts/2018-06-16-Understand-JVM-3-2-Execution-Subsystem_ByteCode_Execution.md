@@ -5,7 +5,7 @@ date: 2018-06-16 10:26:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java，JVM]
+tags: [Java, JVM]
 ---
 
 虚拟机是如何执行字节码的呢？
