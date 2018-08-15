@@ -4,8 +4,8 @@ title: Hive 常用 Sql 命令
 date: 2018-07-08 10:16:04
 author: admin
 comments: true
-categories: [Hadoop]
-tags: [Hadoop, Big Data, Hive]
+categories: [Hive]
+tags: [Big Data, Hive]
 ---
 
 Hive 提供了一个交互式接口，来让用户通过 SQL 来操作数据。这里记录一下常用的Hive SQL 语句。

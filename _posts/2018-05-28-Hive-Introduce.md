@@ -4,8 +4,8 @@ title: Hive 介绍
 date: 2018-05-28 14:16:04
 author: admin
 comments: true
-categories: [Hadoop]
-tags: [Hadoop, Big Data, Hive]
+categories: [Hive]
+tags: [Big Data, Hive]
 ---
 
 MapReduce很强大，但是对于不会JAVA的一些数据库开发者，还是不太友好。所以Hive出现了，它可以将SQL解析成为MapReduce程序，既降低了SQL开发者的入门成本，又可享受MapReduce强大的计算能力。

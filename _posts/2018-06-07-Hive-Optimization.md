@@ -4,8 +4,8 @@ title: Hive 调优
 date: 2018-06-07 15:16:04
 author: admin
 comments: true
-categories: [Hadoop]
-tags: [Hadoop, Big Data, Hive]
+categories: [Hive]
+tags: [Big Data, Hive]
 ---
 
 当数据量变得越来越大，或者处理逻辑变得越来越复杂时，如何优化hive的执行就显得越发重要。
