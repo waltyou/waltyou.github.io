@@ -343,13 +343,110 @@ URL类的equals方法的行为是一个很大的错误，不应该被效仿。
 
 综合起来，以下是编写高质量equals方法的配方（recipe）：
 - 使用 == 运算符检查参数是否为该对象的引用。如果是，返回true。这只是一种性能优化，但是如果这种比较可能很昂贵的话，那就值得去做。
-- 使用instanceof运算符来检查参数是否具有正确的类型。 如果不是，则返回false。 通常，正确的类型是equals方法所在的那个类。 
+- 使用 instanceof 运算符来检查参数是否具有正确的类型。 如果不是，则返回false。 通常，正确的类型是equals方法所在的那个类。 
     有时候，该类实现了一些接口。 如果类实现了一个接口，该接口可以改进 equals约定以允许实现接口的类进行比较，那么使用接口。
     集合接口（如Set，List，Map和Map.Entry）具有此特性。
 - 参数转换为正确的类型。因为转换操作在instanceof中已经处理过，所以它肯定会成功。
 - 对于类中的每个“重要”的属性，请检查该参数属性是否与该对象对应的属性相匹配。
     如果所有这些测试成功，返回true，否则返回false。
     如果步骤2中的类型是一个接口，那么必须通过接口方法访问参数的属性;如果类型是类，则可以直接访问属性，这取决于属性的访问权限。
+
+对于类型为非float或double的基本类型，使用 == 运算符进行比较；对于对象引用属性，递归地调用equals方法；
+对于float 基本类型的属性，使用静态Float.compare(float, float)方法；对于double 基本类型的属性，使用Double.compare(double, double)方法。
+由于存在Float.NaN，-0.0f和类似的double类型的值，所以需要对float和double属性进行特殊的处理；有关详细信息，请参阅JLS 15.21.1或Float.equals方法的详细文档。 
+虽然你可以使用静态方法Float.equals和Double.equals方法对float和double基本类型的属性进行比较，这会导致每次比较时发生自动装箱，引发非常差的性能。 
+对于数组属性，将这些准则应用于每个元素。 如果数组属性中的每个元素都很重要，请使用其中一个重载的Arrays.equals方法。
+
+某些对象引用的属性可能合法地包含null。 为避免出现NullPointerException异常，请使用静态方法 Objects.equals(Object, Object)检查这些属性是否相等。
+
+对于一些类，例如上的CaseInsensitiveString类，属性比较相对于简单的相等性测试要复杂得多。
+在这种情况下，你想要保存属性的一个规范形式（ canonical form），这样 equals 方法就可以基于这个规范形式去做开销很小的精确比较，来取代开销很大的非标准比较。
+这种方式其实最适合不可变类（条目 17）。一旦对象发生改变，一定要确保把对应的规范形式更新到最新。
+
+equals方法的性能可能受到属性比较顺序的影响。 
+为了获得最佳性能，你应该首先比较最可能不同的属性，开销比较小的属性，或者最好是两者都满足（derived fields）。 
+你不要比较不属于对象逻辑状态的属性，例如用于同步操作的lock 属性。 
+不需要比较可以从“重要属性”计算出来的派生属性，但是这样做可以提高equals方法的性能。 
+如果派生属性相当于对整个对象的摘要描述，比较这个属性将节省在比较失败时再去比较实际数据的开销。 
+例如，假设有一个Polygon类，并缓存该区域。 如果两个多边形的面积不相等，则不必费心比较它们的边和顶点。
+
+当你完成编写完equals方法时，问你自己三个问题：它是对称的吗?它是传递吗?它是一致的吗?
+除此而外，编写单元测试加以排查，除非使用AutoValue框架(第49页)来生成equals方法，在这种情况下可以安全地省略测试。
+如果持有的属性失败，找出原因，并相应地修改equals方法。当然，equals方法也必须满足其他两个属性(自反性和非空性)，但这两个属性通常都会满足。
+
+在下面这个简单的PhoneNumber类中展示了根据之前的配方构建的equals方法：
+
+```java
+// Class with a typical equals method
+public final class PhoneNumber {
+
+    private final short areaCode, prefix, lineNum;
+
+    public PhoneNumber(int areaCode, int prefix, int lineNum) {
+        this.areaCode = rangeCheck(areaCode, 999, "area code");
+        this.prefix = rangeCheck(prefix, 999, "prefix");
+        this.lineNum = rangeCheck(lineNum, 9999, "line num");
+    }
+
+    private static short rangeCheck(int val, int max, String arg) {
+        if (val < 0 || val > max)
+            throw new IllegalArgumentException(arg + ": " + val);
+        
+        return (short) val;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof PhoneNumber))
+            return false;
+
+        PhoneNumber pn = (PhoneNumber) o;
+
+        return pn.lineNum == lineNum && pn.prefix == prefix
+                && pn.areaCode == areaCode;
+    }
+
+    ... // Remainder omitted
+}
+```
+
+以下是一些最后提醒：
+- 当重写equals方法时，同时也要重写hashCode方法（Item 11）。
+- 不要让equals方法试图太聪明。如果只是简单地测试用于相等的属性，那么要遵守equals约定并不困难。
+    如果你在寻找相等方面过于激进，那么很容易陷入麻烦。
+    一般来说，考虑到任何形式的别名通常是一个坏主意。
+    例如，File类不应该试图将引用的符号链接等同于同一文件对象。幸好 File 类并没这么做。
+- 在equal 时方法声明中，不要将参数Object替换成其他类型。
+    对于程序员来说，编写一个看起来像这样的equals方法并不少见，然后花上几个小时苦苦思索为什么它不能正常工作：
+    ```java
+    // Broken - parameter type must be Object!
+    public boolean equals(MyClass o) {
+      ...
+    }
+    ```
+    问题在于这个方法并没有重写Object.equals方法，它的参数是Object类型的，这样写只是重载了 equals 方法（Item 52）。 
+    即使除了正常的方法之外，提供这种“强类型”的equals方法也是不可接受的，因为它可能会导致子类中的Override注解产生误报，提供不安全的错觉。
+    在这里，使用Override注解会阻止你犯这个错误(Item 40)。这个equals方法不会编译，错误消息会告诉你到底错在哪里：
+    ```java
+    // Still broken, but won’t compile
+    @Override 
+    public boolean equals(MyClass o) {
+      ...
+    }
+    ```
+
+编写和测试equals(和hashCode)方法很繁琐，生的代码也很普通。
+替代手动编写和测试这些方法的优雅的手段是，使用谷歌AutoValue开源框架，该框架自动为你生成这些方法，只需在类上添加一个注解即可。
+在大多数情况下，AutoValue框架生成的方法与你自己编写的方法本质上是相同的。
+
+很多 IDE（例如 Eclipse，NetBeans，IntelliJ IDEA 等）也有生成equals和hashCode方法的功能，但是生成的源代码比使用AutoValue框架的代码更冗长、可读性更差，不会自动跟踪类中的更改，因此需要进行测试。
+这就是说，使用IDE工具生成equals(和hashCode)方法通常比手动编写它们更可取，因为IDE工具不会犯粗心大意的错误，而人类则会。
+
+总之，除非必须：在很多情况下，不要重写equals方法，从Object继承的实现完全是你想要的。 
+如果你确实重写了equals 方法，那么一定要比较这个类的所有重要属性，并且以保护前面equals约定里五个规定的方式去比较。
+
 
 
 
