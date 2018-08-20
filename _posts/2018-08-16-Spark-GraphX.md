@@ -74,7 +74,170 @@ VertexRDD[VD] 和 EdgeRDD[ED] 都提供了围绕图形计算构建的附加功�
 
 ---
 
-## 未完待续......
+# 属性图的例子
+
+假设我们要构建一个由GraphX项目上的各种协作者组成的属性图。
+vertex属性可能包含用户名和职业。我们可以使用描述协作者之间关系的字符串来注释edges：
+
+[![](/images/posts/Spark-GraphX-property_graph.png)](/images/posts/Spark-GraphX-property_graph.png)
+
+那么构成的结果图将具有以下的类型签名:
+```scala
+val userGraph: Graph[(String, String), String]
+```
+
+有许多方法可以从原始文件，RDD甚至合成生成器（synthetic generators）构建属性图，这些在[图构建器](#图构建器)一节中有更详细的讨论。
+可能最常用的方法就是使用[Graph对象](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.graphx.Graph$)。
+如下的代码，显示了如何从一组 RDD 中构建一个图：
+
+```scala
+// 假设 SparkContext 已经被构建
+val sc: SparkContext
+// 为 vertices 创建一个 RDD
+val users: RDD[(VertexId, (String, String))] =
+  sc.parallelize(Array((3L, ("rxin", "student")), (7L, ("jgonzal", "postdoc")),
+                       (5L, ("franklin", "prof")), (2L, ("istoica", "prof"))))
+// 为 edges 创建一个 RDD
+val relationships: RDD[Edge[String]] =
+  sc.parallelize(Array(Edge(3L, 7L, "collab"),    Edge(5L, 3L, "advisor"),
+                       Edge(2L, 5L, "colleague"), Edge(5L, 7L, "pi")))
+// 定义一个默认的用户，来防止一个关系指向了不存在的用户
+val defaultUser = ("John Doe", "Missing")
+// 构建初步的 Graph
+val graph = Graph(users, relationships, defaultUser)
+```
+
+在上面的例子中，我们使用了Edge case类。 Edges 有一个 srcId 和一个 dstId 来对应源顶点和目标顶点的id。
+同时 Edges 有一个 attr 成员来存储边的属性。
+
+我们可以分别使用 graph.vertices 和 graph.edges 成员将图解构为相应的顶点和边视图。
+
+```scala
+val graph: Graph[(String, String), String] // 上面构造的graph
+// 计算所有是postdocs的用户数量
+graph.vertices.filter { case (id, (name, pos)) => pos == "postdoc" }.count
+// 计算所有 src > dst 的边的数量
+graph.edges.filter(e => e.srcId > e.dstId).count
+```
+
+> 注意的是 graph.vertices 返回了一个继承 RDD[(VertexId, (String, String))] 的 VertexRDD[(String, String)]。
+所以我们可以使用 scala 的 _case_ 表达式来结构这个元组（tuple）。
+另一方面来讲，graph.edges 返回了一个包含 Edge[String] 的 EdgeRDD。
+我们也可以使用case类类型构造函数，如下所示：
+```scala
+graph.edges.filter { case Edge(src, dst, prop) => src > dst }.count
+```
+
+除了属性图的顶点和边视图外，GraphX还公开了三元组视图（triplet view）。
+三元组视图在逻辑上连接顶点和边缘属性，并产生一个包含 EdgeTriplet 类实例的 RDD[EdgeTriplet[VD, ED]]。
+
+此连接可以用以下SQL表达式表示：
+```sql
+SELECT src.id, dst.id, src.attr, e.attr, dst.attr
+FROM edges AS e LEFT JOIN vertices AS src, vertices AS dst
+ON e.srcId = src.Id AND e.dstId = dst.Id
+```
+或者用图形表示：
+[![](/images/posts/Spark-GraphX-triplet.png)](/images/posts/Spark-GraphX-triplet.png)
+
+[EdgeTriplet](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.graphx.EdgeTriplet) 继承了 Edges，
+但是添加了 srcAttr 和 dstAttr 两个成员变量来分别表示源顶点和目标顶点的属性。
+我们使用图的三元组视图可以得到一个能够呈现描述用户之间关系的字符串集合。
+```scala
+val graph: Graph[(String, String), String] 
+// Use the triplets view to create an RDD of facts.
+val facts: RDD[String] =
+  graph.triplets.map(triplet =>
+    triplet.srcAttr._1 + " is the " + triplet.attr + " of " + triplet.dstAttr._1)
+facts.collect.foreach(println(_))
+```
+
+---
+
+# 图运算符（Graph Operators）
+
+就像 RDD 拥有 map、filter 和 reduceByKey 等基本操作一样，属性图也拥有一系列基本操作，来获取用户定义的函数并生成具有已转换属性和结构的新图形。
+具有优化实现的核心运算符在[Graph](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.graphx.Graph)中定义，
+并且表示为核心运算符的组合的便捷运算符在[GraphOps](http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.graphx.GraphOps)中定义。
+
+但是，得益于Scala 的 implicits，GraphOps中的运算符自动作为Graph的成员提供。例如，我们可以通过以下方式计算每个顶点的 in-degree（在GraphOps中定义）：
+```scala
+val graph: Graph[(String, String), String]
+// Use the implicit GraphOps.inDegrees operator
+val inDegrees: VertexRDD[Int] = graph.inDegrees
+```
+
+区分核心图操作和GraphOps的原因是为了能够在将来支持不同的图表表示。每个图形表示必须提供核心操作的实现，并重用GraphOps中定义的许多有用操作。
+
+## 操作的摘要列表
+
+以下是 Graph 和 GraphOps 中定义的功能的快速摘要，但为了简单起见，作为Graph的成员提供。
+请注意，某些功能签名已经简化（例如，删除了默认参数和类型约束），并且删除了一些更高级的功能，因此请参阅API文档以获取正式的操作列表。
+```scala
+/** Summary of the functionality in the property graph */
+class Graph[VD, ED] {
+  // Graph 的信息 ===================================================================
+  val numEdges: Long
+  val numVertices: Long
+  val inDegrees: VertexRDD[Int]
+  val outDegrees: VertexRDD[Int]
+  val degrees: VertexRDD[Int]
+  // graph 的集合视角 =============================================================
+  val vertices: VertexRDD[VD]
+  val edges: EdgeRDD[ED]
+  val triplets: RDD[EdgeTriplet[VD, ED]]
+  // 缓存 graphs 的函数 ==================================================================
+  def persist(newLevel: StorageLevel = StorageLevel.MEMORY_ONLY): Graph[VD, ED]
+  def cache(): Graph[VD, ED]
+  def unpersistVertices(blocking: Boolean = true): Graph[VD, ED]
+  // 更改分区启发式  ============================================================
+  def partitionBy(partitionStrategy: PartitionStrategy): Graph[VD, ED]
+  // 变换顶点和边缘属性 ==========================================================
+  def mapVertices[VD2](map: (VertexId, VD) => VD2): Graph[VD2, ED]
+  def mapEdges[ED2](map: Edge[ED] => ED2): Graph[VD, ED2]
+  def mapEdges[ED2](map: (PartitionID, Iterator[Edge[ED]]) => Iterator[ED2]): Graph[VD, ED2]
+  def mapTriplets[ED2](map: EdgeTriplet[VD, ED] => ED2): Graph[VD, ED2]
+  def mapTriplets[ED2](map: (PartitionID, Iterator[EdgeTriplet[VD, ED]]) => Iterator[ED2]): Graph[VD, ED2]
+  // 修改 graph 结构 ====================================================================
+  def reverse: Graph[VD, ED]
+  def subgraph(
+      epred: EdgeTriplet[VD,ED] => Boolean = (x => true),
+      vpred: (VertexId, VD) => Boolean = ((v, d) => true))
+    : Graph[VD, ED]
+  def mask[VD2, ED2](other: Graph[VD2, ED2]): Graph[VD, ED]
+  def groupEdges(merge: (ED, ED) => ED): Graph[VD, ED]
+  // join RDDs 和 graph ======================================================================
+  def joinVertices[U](table: RDD[(VertexId, U)])(mapFunc: (VertexId, VD, U) => VD): Graph[VD, ED]
+  def outerJoinVertices[U, VD2](other: RDD[(VertexId, U)])
+      (mapFunc: (VertexId, VD, Option[U]) => VD2)
+    : Graph[VD2, ED]
+  // 有关相邻三元组的汇总信息 =================================================
+  def collectNeighborIds(edgeDirection: EdgeDirection): VertexRDD[Array[VertexId]]
+  def collectNeighbors(edgeDirection: EdgeDirection): VertexRDD[Array[(VertexId, VD)]]
+  def aggregateMessages[Msg: ClassTag](
+      sendMsg: EdgeContext[VD, ED, Msg] => Unit,
+      mergeMsg: (Msg, Msg) => Msg,
+      tripletFields: TripletFields = TripletFields.All)
+    : VertexRDD[A]
+  // 迭代图并行计算 ==========================================================
+  def pregel[A](initialMsg: A, maxIterations: Int, activeDirection: EdgeDirection)(
+      vprog: (VertexId, VD, A) => VD,
+      sendMsg: EdgeTriplet[VD, ED] => Iterator[(VertexId,A)],
+      mergeMsg: (A, A) => A)
+    : Graph[VD, ED]
+  // 图基本算法 ========================================================================
+  def pageRank(tol: Double, resetProb: Double = 0.15): Graph[Double, Double]
+  def connectedComponents(): Graph[VertexId, ED]
+  def triangleCount(): Graph[Int, ED]
+  def stronglyConnectedComponents(numIter: Int): Graph[VertexId, ED]
+}
+```
+
+
+---
+
+
+# 未完待续......
 
 
 ---
