@@ -173,6 +173,7 @@ val inDegrees: VertexRDD[Int] = graph.inDegrees
 
 以下是 Graph 和 GraphOps 中定义的功能的快速摘要，但为了简单起见，作为Graph的成员提供。
 请注意，某些功能签名已经简化（例如，删除了默认参数和类型约束），并且删除了一些更高级的功能，因此请参阅API文档以获取正式的操作列表。
+
 ```scala
 /** Summary of the functionality in the property graph */
 class Graph[VD, ED] {
@@ -232,6 +233,114 @@ class Graph[VD, ED] {
   def stronglyConnectedComponents(numIter: Int): Graph[VertexId, ED]
 }
 ```
+
+## 属性操作
+
+类似 RDD 中的 map 操作， Graph 中也包含如下操作：
+
+```scala
+class Graph[VD, ED] {
+  def mapVertices[VD2](map: (VertexId, VD) => VD2): Graph[VD2, ED]
+  def mapEdges[ED2](map: Edge[ED] => ED2): Graph[VD, ED2]
+  def mapTriplets[ED2](map: EdgeTriplet[VD, ED] => ED2): Graph[VD, ED2]
+}
+```
+
+每个操作都会产生一个新的 graph， 这个 graph 的 vertex 和 edge 的属性会更具用户输入的 map 函数发生更改。
+
+> 需要注意的是在每种情况下， graph 的结构都是不变的。这是这些操作中的一个核心特点，它允许产生的图重用原始图的结构索引。
+> 以下两个代码片段在逻辑上是等效的，但第一个片段不保留结构索引，并且不会受益于GraphX系统优化
+```scala
+// 第一个片段
+val newVertices = graph.vertices.map { case (id, attr) => (id, mapUdf(id, attr)) }
+val newGraph = Graph(newVertices, graph.edges)
+// 第二个片段： 使用 mapVertices 
+val newGraph = graph.mapVertices((id, attr) => mapUdf(id, attr))
+```
+
+这些运算通常用于初始化一些用于特定计算或者项目的图形，让它们远离不必要的属性。
+例如，给出一个以 out degree 为顶点属性的图形（我们稍后将描述如何构建这样的图形），我们初始化它用于 PageRank：
+```scala
+// 创建一个顶点属性为 out degree 的图
+val inputGraph: Graph[Int, String] =
+  graph.outerJoinVertices(graph.outDegrees)((vid, _, degOpt) => degOpt.getOrElse(0))
+// 构建一个每条边都包含权重的图
+// 图的每个顶点是初始化的 PageRank
+val outputGraph: Graph[Double, Double] =
+  inputGraph.mapTriplets(triplet => 1.0 / triplet.srcAttr).mapVertices((id, _) => 1.0)
+``` 
+
+## 结构操作
+
+目前GraphX仅支持一组简单的常用结构运算符：
+```scala
+class Graph[VD, ED] {
+  def reverse: Graph[VD, ED]
+  def subgraph(epred: EdgeTriplet[VD,ED] => Boolean,
+               vpred: (VertexId, VD) => Boolean): Graph[VD, ED]
+  def mask[VD2, ED2](other: Graph[VD2, ED2]): Graph[VD, ED]
+  def groupEdges(merge: (ED, ED) => ED): Graph[VD,ED]
+}
+```
+
+### reverse 
+
+返回一个新图形，其中所有边方向都反转。 
+例如，当尝试计算反向PageRank时，这可能很有用。 
+由于反向操作不会修改顶点或边缘属性或更改边数，因此可以有效地实现，而无需数据移动或复制。
+
+### subgraph 
+
+采用顶点和边谓词，并返回仅包含满足顶点谓词（计算为true）的顶点和满足边谓词的边的图，并连接满足顶点谓词的顶点。 
+可以在多种情况下使用子图操作符将图形限制为感兴趣的顶点和边缘或消除断开的链接。 
+例如，在以下代码中，我们删除了断开的链接：
+```scala
+// 创建一个顶点的 RDD
+val users: RDD[(VertexId, (String, String))] =
+  sc.parallelize(Array((3L, ("rxin", "student")), (7L, ("jgonzal", "postdoc")),
+                       (5L, ("franklin", "prof")), (2L, ("istoica", "prof")),
+                       (4L, ("peter", "student"))))
+// 创建一个边的 RDD
+val relationships: RDD[Edge[String]] =
+  sc.parallelize(Array(Edge(3L, 7L, "collab"),    Edge(5L, 3L, "advisor"),
+                       Edge(2L, 5L, "colleague"), Edge(5L, 7L, "pi"),
+                       Edge(4L, 0L, "student"),   Edge(5L, 0L, "colleague")))
+// 定义一个默认 user 防止关系连到不存在的 user 
+val defaultUser = ("John Doe", "Missing")
+// 构建图
+val graph = Graph(users, relationships, defaultUser)
+// 注意在边的初始中，存在一个 user0 （缺失信息）
+graph.triplets.map(
+  triplet => triplet.srcAttr._1 + " is the " + triplet.attr + " of " + triplet.dstAttr._1
+).collect.foreach(println(_))
+// 删除丢失的顶点，以及连接到它们的顶点
+// 请注意，这里仅提供了顶点谓词。如果未提供顶点或边谓词，则子图运算符默认为true
+val validGraph = graph.subgraph(vpred = (id, attr) => attr._2 != "Missing")
+// subgraph 中移除了 user 0 后， user 4 和 5 将不再相连
+validGraph.vertices.collect.foreach(println(_))
+validGraph.triplets.map(
+  triplet => triplet.srcAttr._1 + " is the " + triplet.attr + " of " + triplet.dstAttr._1
+).collect.foreach(println(_))
+```
+
+### mask 
+
+构建了一个子图，这个子图包含了那些能在输入图中找到的顶点和边。 
+这可以与子图运算符结合使用，以基于另一个相关图中的属性来限制图。 
+例如，我们可以使用缺少顶点的图运行连接的组件，然后将答案限制为有效的子图。
+```scala
+// 运行 Connected Components
+val ccGraph = graph.connectedComponents() // No longer contains missing field
+// 删除无效的顶点，及连向它们的边
+val validGraph = graph.subgraph(vpred = (id, attr) => attr._2 != "Missing")
+// 限制答案都必须在 validGraph 中
+val validCCGraph = ccGraph.mask(validGraph)
+```
+
+### groupEdges 
+
+合并多图中的平行边（即，顶点对之间的重复边）。 
+在许多数字应用中，可以将平行边缘（它们的权重组合）添加到单个边缘中，从而减小图形的尺寸。
 
 
 ---
