@@ -342,9 +342,118 @@ val validCCGraph = ccGraph.mask(validGraph)
 合并多图中的平行边（即，顶点对之间的重复边）。 
 在许多数字应用中，可以将平行边缘（它们的权重组合）添加到单个边缘中，从而减小图形的尺寸。
 
+## Join 操作
+
+在许多情况下，有必要将外部集合（RDD）中的数据与图形连接起来。
+例如，我们可能有我们想要与现有图形合并的额外用户属性，或者我们可能希望将顶点属性从一个图形拉到另一个图形。
+可以使用连接运算符完成这些任务。下面我们列出了键连接运算符：
+```scala
+class Graph[VD, ED] {
+  def joinVertices[U](table: RDD[(VertexId, U)])(map: (VertexId, VD, U) => VD): Graph[VD, ED]
+  def outerJoinVertices[U, VD2](table: RDD[(VertexId, U)])(map: (VertexId, VD, Option[U]) => VD2): Graph[VD2, ED]
+}
+```
+
+### joinVertices
+
+将顶点与输入RDD连接，并返回一个新图形，其中包含通过将用户定义的映射函数应用于连接顶点的结果而获得的顶点属性。
+RDD中没有匹配值的顶点保留其原始值。
+> 请注意，如果RDD包含给定顶点的多个值，则只使用一个。 因此，建议使用以下方法使输入RDD唯一，这也将对结果值进行预索引，以大大加速后续连接。
+```scala
+val nonUniqueCosts: RDD[(VertexId, Double)]
+val uniqueCosts: VertexRDD[Double] =
+  graph.vertices.aggregateUsingIndex(nonUnique, (a,b) => a + b)
+val joinedGraph = graph.joinVertices(uniqueCosts)(
+  (id, oldCost, extraCost) => oldCost + extraCost)
+```
+
+### outerJoinVertices
+
+outerJoinVertices的行为通常来讲与joinVertices类似，不同之处在于用户定义的map函数应用于所有顶点并且可以更改顶点属性类型。 
+因为并非所有顶点在输入RDD中都具有匹配值，所以map函数采用Option类型。 
+例如，我们可以通过使用outDegree初始化顶点属性来为PageRank设置图形。
+```scala
+val outDegrees: VertexRDD[Int] = graph.outDegrees
+val degreeGraph = graph.outerJoinVertices(outDegrees) { (id, oldAttr, outDegOpt) =>
+  outDegOpt match {
+    case Some(outDeg) => outDeg
+    case None => 0 // No outDegree means zero outDegree
+  }
+}
+```
+> 您可能已经注意到在上面的示例中使用的多个参数列表（例如，f(a)(b)）curried函数模式。 
+虽然我们可以将 f(a)(b) 写成 f(a, b)，但这意味着b上的类型推断不依赖于a。
+因此，用户需要为用户定义的函数提供类型注释：
+```scala
+val joinedGraph = graph.joinVertices(uniqueCosts,
+  (id: VertexId, oldCost: Double, extraCost: Double) => oldCost + extraCost)
+```
+
+## 邻域聚合 Neighborhood Aggregation
+
+许多图形分析任务中的关键步骤是聚合关于每个顶点的邻域的信息。 
+例如，我们可能想知道每个用户拥有的关注者数量或每个用户的关注者的平均年龄。 
+许多迭代图算法（例如，PageRank，最短路径和连通分量）重复地聚合相邻顶点的属性（例如，当前PageRank值，到源的最短路径和最小可到达顶点id）。
+> 为了提高性能，主聚合运算符从 graph.mapReduceTriplets 更改为新 graph.AggregateMessages。 
+虽然API的变化相对较小，但我们在下面提供了过渡指南。
+
+### 聚合信息 (aggregateMessages)
+
+GraphX中的核心聚合操作是 [aggregateMessages](https://github.com/apache/spark/blob/v2.3.1/graphx/src/main/scala/org/apache/spark/graphx/Graph.scala)。
+此运算符将用户定义的 sendMsg 函数应用于图中的每个边三元组，然后使用 mergeMsg 函数在其目标顶点聚合这些消息。 
+```scala
+class Graph[VD, ED] {
+  def aggregateMessages[Msg: ClassTag](
+      sendMsg: EdgeContext[VD, ED, Msg] => Unit,
+      mergeMsg: (Msg, Msg) => Msg,
+      tripletFields: TripletFields = TripletFields.All)
+    : VertexRDD[Msg]
+}
+```
+用户定义的 sendMsg 函数接收 EdgeContext， 它公开源和目标属性以及edge属性和函数（sendToSrc和sendToDst）来将消息发送到源和目标属性。
+可以将 sendMsg 当作 Map-Reduce 中的 Map 函数。
+用户定义的 mergeMsg 函数接收两个发往同一顶点的消息，并生成一条消息。可以将 mergeMsg 当作 Map-Reduce 中的 Reduce 函数。
+aggregateMessages运算符返回一个 VertexRDD[Msg] ，其中包含发往每个顶点的聚合消息（类型为Msg）。
+未收到消息的顶点不包含在返回的 VertexRDD 中。
+
+此外，aggregateMessages 采用可选的 tripletsFields，它指示在 EdgeContext 中访问哪些数据（比如只要源顶点属性，但不是目标顶点属性）。
+tripletsFields 的可能选项在 [TripletFields](http://spark.apache.org/docs/latest/api/java/org/apache/spark/graphx/TripletFields.html) 中定义，默认值为 TripletFields.All，表示用户定义的 sendMsg 函数可以访问 EdgeContext 中的任何字段。
+tripletFields 参数可用于通知 GraphX 只需要部分 EdgeContext，从而允许 GraphX 选择优化的连接策略。
+例如，如果我们计算每个用户的关注者的平均年龄，我们只需要源字段，因此我们将使用 TripletFields.Src 来指示我们只需要源字段。
+> 在早期版本的GraphX中，我们使用字节码检查来推断TripletField，但是我们发现字节码检查稍微不可靠，而是选择更明确的用户控制。
+
+在下面的示例中，我们使用aggregateMessages运算符来计算每个用户的更高级关注者的平均年龄。
+```scala
+import org.apache.spark.graphx.{Graph, VertexRDD}
+import org.apache.spark.graphx.util.GraphGenerators
+
+// Create a graph with "age" as the vertex property.
+// Here we use a random graph for simplicity.
+val graph: Graph[Double, Int] =
+  GraphGenerators.logNormalGraph(sc, numVertices = 100).mapVertices( (id, _) => id.toDouble )
+// Compute the number of older followers and their total age
+val olderFollowers: VertexRDD[(Int, Double)] = graph.aggregateMessages[(Int, Double)](
+  triplet => { // Map Function
+    if (triplet.srcAttr > triplet.dstAttr) {
+      // Send message to destination vertex containing counter and age
+      triplet.sendToDst((1, triplet.srcAttr))
+    }
+  },
+  // Add counter and age
+  (a, b) => (a._1 + b._1, a._2 + b._2) // Reduce Function
+)
+// Divide total age by number of older followers to get average age of older followers
+val avgAgeOfOlderFollowers: VertexRDD[Double] =
+  olderFollowers.mapValues( (id, value) =>
+    value match { case (count, totalAge) => totalAge / count } )
+// Display the results
+avgAgeOfOlderFollowers.collect.foreach(println(_))
+```
+> 当消息们（和消息们总和）的大小恒定时（例如，浮动和添加而不是列表和连接），aggregateMessages操作最佳地执行。
+
+
 
 ---
-
 
 # 未完待续......
 
