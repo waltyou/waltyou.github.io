@@ -451,6 +451,137 @@ avgAgeOfOlderFollowers.collect.foreach(println(_))
 ```
 > 当消息们（和消息们总和）的大小恒定时（例如，浮动和添加而不是列表和连接），aggregateMessages操作最佳地执行。
 
+### 计算度信息
+
+常见的聚合任务是计算每个顶点的度数：每个顶点相邻的边数。
+在有向图的上下文中，通常需要知道每个顶点的 in-degree，out-degree 和 total-degree。
+GraphOps类包含一组运算符，用于计算每个顶点的度数。
+例如，在下面我们计算最大的 in，out 和 total degree：
+```scala
+// Define a reduce operation to compute the highest degree vertex
+def max(a: (VertexId, Int), b: (VertexId, Int)): (VertexId, Int) = {
+  if (a._2 > b._2) a else b
+}
+// Compute the max degrees
+val maxInDegree: (VertexId, Int)  = graph.inDegrees.reduce(max)
+val maxOutDegree: (VertexId, Int) = graph.outDegrees.reduce(max)
+val maxDegrees: (VertexId, Int)   = graph.degrees.reduce(max)
+```
+
+### 收集邻域信息
+
+在某些情况下，通过在每个顶点收集相邻顶点及其属性来表达计算可能更容易。
+这可以使用 collectNeighborIds 和 collectNeighbors 运算符轻松完成。
+```scala
+class GraphOps[VD, ED] {
+  def collectNeighborIds(edgeDirection: EdgeDirection): VertexRDD[Array[VertexId]]
+  def collectNeighbors(edgeDirection: EdgeDirection): VertexRDD[ Array[(VertexId, VD)] ]
+}
+```
+> 这些运算符可能非常昂贵，因为它们复制信息并需要大量通信。如果可能，尝试直接使用aggregateMessages运算符表示相同的计算。
+
+## 缓存与非缓存
+
+在Spark中，默认情况下RDD不会保留在内存中。
+为避免重新计算，必须多次使用它们时显式缓存它们（请参阅[Spark编程指南](https://spark.apache.org/docs/latest/rdd-programming-guide.html#rdd-persistence)）。
+GraphX中的图表行为相同。多次使用图形时，请务必先在其上调用 _Graph.cache()_。
+
+在迭代计算中，为了获得最佳性能，还可能需要非缓存。
+默认情况下，缓存的RDD和图形将保留在内存中，直到内存压力迫使它们按LRU顺序逐出。
+对于迭代计算，来自先前迭代的中间结果将填满缓存。
+虽然它们最终会被逐出，但存储在内存中的不必要数据会减慢垃圾收集速度。
+一旦不再需要中间结果，就 uncache 它们，这样子会使程序更有效率。
+这涉及在每次迭代中实体化（caching 和 forcing）图形或RDD，uncache 所有其他数据集，并且仅在将来的迭代中使用实体化数据集。
+但是，由于图形由多个RDD组成，因此很难正确地非持久化它们。
+对于迭代计算，我们建议使用 Pregel API，它正确地解决了中间结果。
+
+---
+
+# Pregel API
+
+图是本质上递归的数据结构，因为顶点的属性取决于它们的邻居的属性，而邻居的属性又取决于它们的邻居的属性。
+因此，许多重要的图算法迭代地重新计算每个顶点的属性，直到达到定点条件。
+一系列图形并行抽象已经被提出，用来表达这些迭代算法。
+GraphX公开了Pregel API的变体。
+
+在高层次上，GraphX中的Pregel运算符是一种大规模同步并行消息传递抽象，它受到图形拓扑的约束。
+Pregel 运算符在一系列超级步骤（super steps）中执行，在超级步骤中，顶点从前一个超级步骤接收其入站消息的总和，计算顶点属性的新值，然后在下一个超级步骤中将消息发送到相邻顶点。
+与 Pregel 不同，消息是作为边缘三元组的函数并行计算的，并且消息计算可以访问源和目标顶点属性。
+在超级步骤中跳过未接收消息的顶点。
+Pregel运算符终止迭代并在没有剩余消息时返回最终图。
+
+> 注意，与更标准的 Pregel 实现不同，GraphX 中的顶点只能向邻近顶点发送消息，并且消息构造是使用用户定义的消息传递函数并行完成的。
+这些约束允许在GraphX中进行额外的优化。
+
+以下是Pregel运算符的类型签名以及其实现的草图
+（注意：为了避免由于长谱系链而导致的 stackOverflowError，
+pregel通过将*spark.graphx.pregel.checkpointInterval*设置为正数来定期支持检查点图和消息，例如10。
+并使用 *SparkContext.setCheckpointDir(directory: String)*设置检查点目录）：
+
+```scala
+class GraphOps[VD, ED] {
+  def pregel[A]
+      (initialMsg: A,
+       maxIter: Int = Int.MaxValue,
+       activeDir: EdgeDirection = EdgeDirection.Out)
+      (vprog: (VertexId, VD, A) => VD,
+       sendMsg: EdgeTriplet[VD, ED] => Iterator[(VertexId, A)],
+       mergeMsg: (A, A) => A)
+    : Graph[VD, ED] = {
+    // Receive the initial message at each vertex
+    var g = mapVertices( (vid, vdata) => vprog(vid, vdata, initialMsg) ).cache()
+
+    // compute the messages
+    var messages = g.mapReduceTriplets(sendMsg, mergeMsg)
+    var activeMessages = messages.count()
+    // Loop until no messages remain or maxIterations is achieved
+    var i = 0
+    while (activeMessages > 0 && i < maxIterations) {
+      // Receive the messages and update the vertices.
+      g = g.joinVertices(messages)(vprog).cache()
+      val oldMessages = messages
+      // Send new messages, skipping edges where neither side received a message. We must cache
+      // messages so it can be materialized on the next line, allowing us to uncache the previous
+      // iteration.
+      messages = GraphXUtils.mapReduceTriplets(
+        g, sendMsg, mergeMsg, Some((oldMessages, activeDirection))).cache()
+      activeMessages = messages.count()
+      i += 1
+    }
+    g
+  }
+}
+```
+请注意，Pregel有两个参数列表： _graph.pregel(list1)(list2)_ 。
+第一个参数列表包含配置参数，包括初始消息，最大迭代次数以及发送消息的边缘方向（默认情况下沿边缘）。
+第二个参数列表包含用户定义的函数，用于接收消息（顶点程序vprog），计算消息（sendMsg）和组合消息mergeMsg。
+
+我们可以使用 Pregel 运算符来表示以下示例中的单源最短路径等计算。
+
+```scala
+import org.apache.spark.graphx.{Graph, VertexId}
+import org.apache.spark.graphx.util.GraphGenerators
+
+// A graph with edge attributes containing distances
+val graph: Graph[Long, Double] =
+  GraphGenerators.logNormalGraph(sc, numVertices = 100).mapEdges(e => e.attr.toDouble)
+val sourceId: VertexId = 42 // The ultimate source
+// Initialize the graph such that all vertices except the root have distance infinity.
+val initialGraph = graph.mapVertices((id, _) =>
+    if (id == sourceId) 0.0 else Double.PositiveInfinity)
+val sssp = initialGraph.pregel(Double.PositiveInfinity)(
+  (id, dist, newDist) => math.min(dist, newDist), // Vertex Program
+  triplet => {  // Send Message
+    if (triplet.srcAttr + triplet.attr < triplet.dstAttr) {
+      Iterator((triplet.dstId, triplet.srcAttr + triplet.attr))
+    } else {
+      Iterator.empty
+    }
+  },
+  (a, b) => math.min(a, b) // Merge Message
+)
+println(sssp.vertices.collect.mkString("\n"))
+```
 
 
 ---
