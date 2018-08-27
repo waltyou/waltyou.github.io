@@ -996,4 +996,121 @@ public static Yum newInstance(Yum yum) { ... };
 
 ---
 
+# Item 14: 考虑实现 Comparable 接口
+
+与本章中讨论的其他方法不同，compareTo 方法未在 Object 中声明。 
+相反，它是 Comparable 接口中的唯一方法。 
+它的特征与 Object 的 equals 方法类似，不同之处在于除了简单的相等比较之外它还允许顺序比较，并且它是通用的。 
+通过实现Comparable，类指示其实例具有自然顺序。 
+对实现 Comparable 的对象数组进行排序就像这样简单：
+
+```java
+Arrays.sort(a);
+```
+
+它同样易于搜索，计算极值，并维护自动排序的 Comparable 对象集合。 
+例如，以下程序依赖于 String 实现了 Comparable，打印其命令行参数的按字母顺序排列的列表，并删除重复项：
+```java
+public class WordList {
+    public static void main(String[] args) {
+        Set<String> s = new TreeSet<>();
+        Collections.addAll(s, args);
+        System.out.println(s);
+    }
+}
+```
+通过实现Comparable，您可以让您的类与依赖于此接口的所有许多通用算法和集合实现进行互操作。 
+只需少量努力即可获得巨大的动力。 
+实际上，Java平台库中的所有值类以及所有枚举类型（第34项）都实现了Comparable。 
+如果您正在编写具有明显自然顺序的值类，例如字母顺序，数字顺序或时间顺序，则应实现Comparable接口：
+```java
+public interface Comparable<T> {
+    int compareTo(T t);
+}
+```
+
+## compareTo方法的常规协定
+
+类似于equals：
+
+将此对象与指定的对象进行比较以获得顺序。 
+返回负整数，零或正整数，因为此对象小于，等于或大于指定对象。 
+如果指定对象的类型阻止将其与此对象进行比较，则抛出ClassCastException。
+
+在以下描述中，符号sgn（表达式）指定数学符号函数，其被定义为根据表达式的值是负，零还是正而返回-1,0或1。
+- 实现者必须保证 sgn(x.compareTo(y)) == -sgn(y.compareTo(x)) 适用于所有 x 和 y。 
+    如果 x.compareTo(y) 抛出异常，那么 y.compareTo(x) 也应该抛出异常。
+- 同时实现者也应该保证关系是可传递的： (x.compareTo(y) > 0 && y.compareTo(z) > 0) 暗示着 x.compareTo(z) > 0
+- 最后，实现者必须保证 x.compareTo(y) == 0 暗示着对于所有 z， sgn(x.compareTo(z)) == sgn(y.compareTo(z))都成立。
+- 强烈推荐，但不是必须的， (x.compareTo(y) == 0) == (x.equals(y))。
+    通常来讲，任何实现了 Comparable 接口并违反此条件的类都应清楚地表明这一点事实。
+    推荐的语言是“注意：此类具有与equals不一致的自然顺序。”
+    
+不要因为这份约定的数学性质而推迟它。 
+就像 equals 一样，这份约定并不像看起来那么复杂。 
+与equals方法不同，equals方法在所有对象上强加全局等价关系，compareTo不必跨越不同类型的对象：
+当遇到不同类型的对象时，允许compareTo抛出ClassCastException。 
+通常，这正是它的作用。 
+约定确实允许交互式比较，这通常在由被比较的对象实现的接口中定义。
+
+正如违反 hashCode 契约的类可以破坏依赖于哈希的其他类一样，违反 compareTo 契约的类可能会破坏依赖于比较的其他类。 
+依赖于比较的类包括已排序的集合 TreeSet 和 TreeMap 以及包含搜索和排序算法的实用程序集 Collections 和 Arrays。
+
+我们来看看compareTo合同的规定。 
+
+1. 第一条规定说如果你反转两个对象引用之间的比较方向，就会发生预期的事情：
+如果第一个对象小于第二个对象，那么第二个对象必须大于第一个对象; 
+如果第一个对象等于第二个对象，那么第二个对象必须等于第一个对象; 
+如果第一个对象大于第二个对象，那么第二个对象必须小于第一个对象。 
+2. 第二条规定如果一个对象大于第二个对象，而第二个对象大于第三个对象，那么第一个对象必须大于第三个对象。
+3. 最后的规定说，与任何其他对象相比，所有比较相等的对象必须产生相同的结果。
+
+这三个规定的一个结果是，compareTo 方法所施加的相等性测试必须遵守 equals 合约所施加的相同限制：反身性，对称性和传递性。
+因此，同样的警告适用：
+除非您愿意放弃面向对象抽象的好处（第10项），否则无法在保留compareTo契约的情况下使用新值组件扩展可实例化类。
+同样的解决方法也适用。 
+如果要将值组件添加到实现Comparable的类中，请不要扩展它; 
+编写一个包含第一个类实例的无关类。 
+然后提供一个返回包含实例的“view”方法。 
+这使您可以在包含的类上实现您喜欢的任何compareTo方法，同时允许其客户端在需要时查看包含类的实例作为包含类的实例。
+
+compareTo契约的最后一段是一个强烈的建议，而不是一个真正的要求，只是说明compareTo方法所施加的相等测试通常应该返回与equals方法相同的结果。 
+如果遵守此规定，则compareTo方法强加的顺序与equals一致。 
+如果它被违反，则说明顺序与equals不一致。 
+compareTo方法强加与equals不一致的顺序的类仍然有效，但包含该类元素的有序集合可能不遵守相应集合接口（Collection，Set或Map）的常规协定。 
+这是因为这些接口的一般契约是根据equals方法定义的，但是有序集合使用compareTo强加的相等性测试来代替equals。 
+如果发生这种情况，虽然不是灾难，但是仍然需要注意。
+
+例如，考虑BigDecimal类，其compareTo方法与equals不一致。 
+如果您创建一个空的HashSet实例，然后添加新的BigDecimal（“1.0”）和新的BigDecimal（“1.00”），该集将包含两个元素，因为使用equals方法比较时，添加到集合中的两个BigDecimal实例是不相等的。 
+但是，如果使用TreeSet而不是HashSet执行相同的过程，则该集合将只包含一个元素，因为使用compareTo方法比较时，两个BigDecimal实例相等。 （有关详细信息，请参阅BigDecimal文档。）
+
+编写compareTo方法与编写equals方法类似，但存在一些关键差异。 
+因为Comparable接口是参数化的，所以compareTo方法是静态类型的，因此您不需要键入check或cast其参数。 
+如果参数的类型错误，则调用甚至不会编译。 
+如果参数为null，则调用应抛出NullPointerException，并且只要方法尝试访问其成员，它就会抛出。
+
+在compareTo方法中，比较字段而不是相等。 
+要比较对象引用字段，请递归调用compareTo方法。 
+如果某个字段未实现Comparable或您需要非标准排序，请改用Comparator。 
+您可以编写自己的比较器或使用现有的比较器，如第10项中的CaseInsensitiveString的compareTo方法：
+```java
+// Single-field Comparable with object reference field
+public final class CaseInsensitiveString
+        implements Comparable<CaseInsensitiveString> {
+    public int compareTo(CaseInsensitiveString cis) {
+        return String.CASE_INSENSITIVE_ORDER.compare(s, cis.s);
+    }
+    ... // Remainder omitted
+}
+```
+
+注意 CaseInsensitiveString 实现了 Comparable<CaseInsensitiveString> 接口。
+这意味着 CaseInsensitiveString  只能和另一个 CaseInsensitiveString 进行比较。
+这是声明一个类来实现 Comparable 时要遵循的正常模式。
+
+
+
+---
+
 # 未完待续.....
