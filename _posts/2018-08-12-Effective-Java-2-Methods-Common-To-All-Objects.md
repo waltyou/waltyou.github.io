@@ -1109,8 +1109,110 @@ public final class CaseInsensitiveString
 这意味着 CaseInsensitiveString  只能和另一个 CaseInsensitiveString 进行比较。
 这是声明一个类来实现 Comparable 时要遵循的正常模式。
 
+## Java 7 写法
 
+本书的先前版本建议compareTo方法使用关系运算符 <and> 比较整数基元字段，使用静态方法Double.compare和Float.compare比较浮点基元字段。 
+在Java 7中，静态比较方法被添加到所有Java的盒装基元类中。 
+在compareTo方法中使用关系运算符 <and> 是冗长且容易出错的，不再推荐使用。
 
----
+如果一个类有多个重要字段，那么比较它们的顺序至关重要。 
+从最重要的领域开始，向下工作。 
+如果比较产生的不是零（代表相等），那么你就完成了; 只返回结果。 
+如果最重要的字段相等，则比较次最重要的字段，依此类推，直到找到不相等的字段或比较最不重要的字段。 
+这是第11项中PhoneNumber类的compareTo方法，演示了这种技术：
 
-# 未完待续.....
+```java
+// Multiple-field Comparable with primitive fields
+public int compareTo(PhoneNumber pn) {
+    int result = Short.compare(areaCode, pn.areaCode);
+    if (result == 0) {
+        result = Short.compare(prefix, pn.prefix);
+        if (result == 0)
+            result = Short.compare(lineNum, pn.lineNum);
+    }
+    return result;
+}
+```
+
+## Java 8 写法
+
+在Java 8中，Comparator接口配备了一组比较器构造方法，可以精确构建比较器。 
+然后，可以使用这些比较器来实现compareTo方法，这是Comparable接口所要求的。 
+许多程序员更喜欢这种方法的简洁性，虽然它确实以适度的性能成本：在我的机器上排序PhoneNumber实例的数组大约慢10％。 
+使用此方法时，请考虑使用Java的静态导入工具，以便您可以通过简单的名称来引用静态比较器构造方法，以简化和简洁。 
+以下是使用此方法的PhoneNumber的compareTo方法的外观：
+
+```java
+// Comparable with comparator construction methods
+private static final Comparator<PhoneNumber> COMPARATOR =
+        comparingInt((PhoneNumber pn) -> pn.areaCode)
+            .thenComparingInt(pn -> pn.prefix)
+            .thenComparingInt(pn -> pn.lineNum);
+
+public int compareTo(PhoneNumber pn) {
+    return COMPARATOR.compare(this, pn);
+}
+```
+
+此实现中在类初始化时，构建了一个比较器（comparator），它使用了两种比较器构造方法。 
+第一个是 comparingInt。 
+它是一个静态方法，它接受一个 key 提取器函数，它将对象引用映射到int类型的键，并返回一个比较器，该比较器根据该键对实例进行排序。 
+在前面的示例中，comparisonInt 采用 lambda 从 PhoneNumber 中提取区域代码，并返回 Comparator<PhoneNumber>，根据区号对电话号码进行排序。
+请注意，lambda 显式指定其输入参数的类型（PhoneNumber pn）。 
+事实证明，在这种情况下，Java的类型推断并不足以为自己确定类型，因此我们不得不帮助它来编译程序。
+
+如果两个电话号码具有相同的区号，我们需要进一步细化比较，这正是第二个比较器构造方法 thenComparingInt 所做的事。
+它是 Comparator 上的一个实例方法，它接受一个int key提取器函数，并返回一个比较器，该比较器首先应用原始比较器，然后使用提取的键来断开关系。 
+您可以根据需要将尽可能多的调用堆叠到 thenComparingInt，从而产生字典顺序。 
+在上面的示例中，我们将两个调用堆叠到 thenComparingInt，从而产生一个排序，其二级排序字段是 prefix ，其三级排序字段是 lineNum。 
+请注意，我们没有必要指定传递给 thenComparingInt 的任一调用的键提取器函数的参数类型：Java的类型推断足够聪明，可以自己解决这个问题。
+
+Comparator类具有完整的构造方法。
+有 comparingInt 和 thenComparingInt 的类似方法来比较基本类型 long 和 double。 
+int版本也可以用于较窄的整数类型，例如short，如我们的PhoneNumber示例中所示。double 也可用于 float。
+它提供了所有Java的数字基元类型的覆盖。
+
+还有对象引用类型的比较器构造方法。
+名为comparison的静态方法有两个重载。
+一个需要一个 key 的提取器，并使用键的自然顺序。
+第二个采用 key 提取器和比较器来提取 key。
+实例方法有三个重载，命名为thenComparing。
+一次重载仅使用比较器并使用它来提供二级排序。
+第二次重载仅使用一个 key 提取器，并使用 key 的自然顺序作为二级排序。
+最后的重载需要一个 key 提取器和一个比较器，用于提取的键。
+
+有时，您可能会看到 compareTo 或比较方法，这些方法依赖于以下事实：
+如果第一个值小于第二个值，则两个值之间的差值为负，如果两个值相等则为零，如果第一个值更大则为正值。
+这是一个例子：
+
+```java
+// BROKEN difference-based comparator - violates transitivity!
+static Comparator<Object> hashCodeOrder = new Comparator<>() {
+    public int compare(Object o1, Object o2) {
+        return o1.hashCode() - o2.hashCode();
+    }
+};
+```
+
+不要使用这种技术。 
+它充满了整数溢出和IEEE 754浮点运算伪像的危险[JLS 15.20.1,15.21.1]。 
+此外，所得到的方法不太可能比使用本项目中描述的技术编写的方法快得多。 
+使用静态比较方法：
+```java
+// Comparator based on static compare method
+static Comparator<Object> hashCodeOrder = new Comparator<>() {
+    public int compare(Object o1, Object o2) {
+        return Integer.compare(o1.hashCode(), o2.hashCode());
+    }
+};
+```
+或者一个 comparator 构造方法：
+
+```java
+// Comparator based on Comparator construction method
+static Comparator<Object> hashCodeOrder = Comparator.comparingInt(o -> o.hashCode());
+```
+
+总之，无论何时实现具有合理排序的值类，都应该让类实现Comparable接口，以便可以在基于比较的集合中轻松地对其实例进行排序，搜索和使用。 
+比较compareTo方法实现中的字段值时，请避免使用<and>运算符。 
+而是使用盒装基元类中的静态比较方法或比较器接口中的比较器构造方法。
