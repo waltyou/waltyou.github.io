@@ -583,6 +583,68 @@ val sssp = initialGraph.pregel(Double.PositiveInfinity)(
 println(sssp.vertices.collect.mkString("\n"))
 ```
 
+---
+
+# Graph 构造器
+
+GraphX提供了几种从RDD或磁盘上的顶点和边集合构建图形的方法。
+
+默认情况下，没有任何图形构建器会对图形的边重新分区; 相反，边缘保留在其默认分区中（例如HDFS中的原始块）。
+
+*Graph.groupEdges* 要求对图表进行重新分区，因为它假定相同的边缘将在同一个分区上共存，因此在调用 groupEdges 之前必须调用 _Graph.partitionBy_。
+
+```scala
+object GraphLoader {
+  def edgeListFile(
+      sc: SparkContext,
+      path: String,
+      canonicalOrientation: Boolean = false,
+      minEdgePartitions: Int = 1)
+    : Graph[Int, Int]
+}
+```
+GraphLoader.edgeListFile提供了一种从磁盘上的边缘列表加载图形的方法。它解析以下形式的（源顶点ID，目标顶点ID）对的邻接列表，跳过以＃开头的注释行：
+```text
+# This is a comment
+2 1
+4 1
+1 2
+```
+它从指定的边创建一个Graph，自动创建边提到的任何顶点。
+所有顶点和边缘属性都默认为1。
+
+canonicalOrientation参数允许重定向正方向上的边（srcId < dstId），这是连接组件算法所需的。
+
+minEdgePartitions参数指定要生成的最小边缘分区数;例如，如果HDFS文件具有更多块，则可能存在比指定更多的边缘分区。
+
+```scala
+object Graph {
+  def apply[VD, ED](
+      vertices: RDD[(VertexId, VD)],
+      edges: RDD[Edge[ED]],
+      defaultVertexAttr: VD = null)
+    : Graph[VD, ED]
+
+  def fromEdges[VD, ED](
+      edges: RDD[Edge[ED]],
+      defaultValue: VD): Graph[VD, ED]
+
+  def fromEdgeTuples[VD](
+      rawEdges: RDD[(VertexId, VertexId)],
+      defaultValue: VD,
+      uniqueEdges: Option[PartitionStrategy] = None): Graph[VD, Int]
+
+}
+```
+_Graph.apply_ 允许从顶点和边的RDD创建图形。
+任意被拾取的重复顶点们，以及在边中 RDD 存在但是在顶点 RDD 中不存在的顶点，都会被赋予默认属性。
+
+Graph.fromEdges 允许仅从边缘的RDD创建图形，自动创建边缘提到的任何顶点并为其指定默认值。
+
+Graph.fromEdgeTuples 允许仅从边缘元组的RDD创建图形，为边缘指定值1，并自动创建边缘提到的任何顶点并为其指定默认值。
+它还支持重复删除边缘; 为了删除重复，可以将 PartitionStrategy 当作 uniqueEdges 参数传入（比如 _uniqueEdges = Some(PartitionStrategy.RandomVertexCut)_）。
+一个分区策略是必须的，来在同一个分区上放置相同的边缘，以便对它们进行重复数据删除。
+
 
 ---
 
