@@ -648,6 +648,79 @@ Graph.fromEdgeTuples 允许仅从边缘元组的RDD创建图形，为边缘指�
 
 ---
 
+# 顶点和边的 RDDs
+
+GraphX公开了图中存储的顶点和边的RDD视图。
+但是，由于 GraphX 是在优化的数据结构中维护顶点和边缘的，并且为这些数据结构提供了额外的功能，因此顶点和边缘分别作为 VertexRDD 和 EdgeRDD 返回。
+在本节中，我们将回顾这些类型中的一些其他有用功能。请注意，这只是一个不完整的列表，请参阅API文档以获取正式的操作列表。
+
+## VertexRDDs
+
+VertexRDD[A] 扩展 RDD[(VertexId，A)] 并添加保证每个 VertexId 仅出现一次的附加约束。
+此外，VertexRDD[A] 表示一组顶点，每个顶点具有类型 A 的属性。
+在内部，这是通过将顶点属性存储在可重用的 hash-map 数据结构中来实现的。
+因此，如果两个 VertexRDD 来自相同的基础 VertexRDD（例如，通过filter或mapValues），则它们可以在恒定时间内 join 而无需散列评估（hash evaluations）。
+为了利用这种索引数据结构，VertexRDD公开了以下附加功能：
+
+```scala
+class VertexRDD[VD] extends RDD[(VertexId, VD)] {
+  // 过滤顶点集但保留内部索引
+  def filter(pred: Tuple2[VertexId, VD] => Boolean): VertexRDD[VD]
+  // 转换值而不更改id（保留内部索引）
+  def mapValues[VD2](map: VD => VD2): VertexRDD[VD2]
+  def mapValues[VD2](map: (VertexId, VD) => VD2): VertexRDD[VD2]
+  // 根据VertexId显示此集合唯一的顶点
+  def minus(other: RDD[(VertexId, VD)])
+  // 从该集中删除出现在另一个集合中的顶点
+  def diff(other: VertexRDD[VD]): VertexRDD[VD]
+  // 加入利用内部索引来加速 join（实质上）
+  def leftJoin[VD2, VD3](other: RDD[(VertexId, VD2)])(f: (VertexId, VD, Option[VD2]) => VD3): VertexRDD[VD3]
+  def innerJoin[U, VD2](other: RDD[(VertexId, U)])(f: (VertexId, VD, U) => VD2): VertexRDD[VD2]
+  // 使用此RDD上的索引来加速输入RDD上的`reduceByKey`操作。
+  def aggregateUsingIndex[VD2](other: RDD[(VertexId, VD2)], reduceFunc: (VD2, VD2) => VD2): VertexRDD[VD2]
+}
+```
+
+请注意，例如，过滤器运算符如何返回 VertexRDD。
+过滤器实际上是使用BitSet实现的，因此重用索引并保留与其他VertexRDD快速连接的能力。
+同样，mapValues 运算符不允许 map 函数更改 VertexId，从而允许重用相同的 HashMap 数据结构。
+leftJoin 和 innerJoin 都能够识别何时连接从同一 HashMap 派生的两个 VertexRDD，并通过线性扫描实现连接，而不是昂贵的点查找。
+
+aggregateUsingIndex 运算符可用于从 RDD[(VertexId，A)] 高效构造新的VertexRDD。
+从概念上讲，如果我在一组顶点上构造了一个 VertexRDD[B]，这是一些 RDD[(VertexId，A)] 中顶点的超集，那么我可以重复使用该索引进行聚合，然后对 RDD[(VertexId，A)] 进行索引。
+举个例子：
+
+```scala
+val setA: VertexRDD[Int] = VertexRDD(sc.parallelize(0L until 100L).map(id => (id, 1)))
+val rddB: RDD[(VertexId, Double)] = sc.parallelize(0L until 100L).flatMap(id => List((id, 1.0), (id, 2.0)))
+// rddB 应该有 200 个元素
+rddB.count
+val setB: VertexRDD[Double] = setA.aggregateUsingIndex(rddB, _ + _)
+// setB 应该有 100 个元素
+setB.count
+// Joining A 和 B 现在会很快！
+val setC: VertexRDD[Double] = setA.innerJoin(setB)((id, a, b) => a + b)
+```
+
+## EdgeRDDs
+
+EdgeRDD[ED] 扩展了 RDD[Edge [ED]]，使用 [PartitionStrategy](https://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.graphx.PartitionStrategy) 中定义的各种分区策略之一来组织分区块中的边缘。
+在每个分区内，边缘属性和邻接结构分别存储，以便在更改属性值时最大程度地重用。
+
+EdgeRDD公开的三个附加功能是:
+```scala
+// 在保留结构的同时转换边缘属性
+def mapValues[ED2](f: Edge[ED] => ED2): EdgeRDD[ED2]
+// 反转边缘重用属性和结构
+def reverse: EdgeRDD[ED]
+// join 两个使用相同分区策略分区的EdgeRDD。
+def innerJoin[ED2, ED3](other: EdgeRDD[ED2])(f: (VertexId, VertexId, ED, ED2) => ED3): EdgeRDD[ED3]
+```
+
+在大多数应用程序中，我们发现 EdgeRDD 上的操作是通过图形运算符完成的，或者依赖于基本RDD类中定义的操作。
+
+---
+
 # 未完待续......
 
 
