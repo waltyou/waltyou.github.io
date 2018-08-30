@@ -721,6 +721,28 @@ def innerJoin[ED2, ED3](other: EdgeRDD[ED2])(f: (VertexId, VertexId, ED, ED2) =>
 
 ---
 
+# 优化表示
+
+虽然分布式图形的GraphX表示中使用的优化的详细描述超出了本指南的范围，但一些高级别的理解可能有助于可伸缩算法的设计以及API的最佳使用。
+GraphX采用顶点切割方法进行分布式图分区：
+
+[![](/images/posts/edge_cut_vs_vertex_cut.png)](/images/posts/edge_cut_vs_vertex_cut.png)
+
+GraphX不是沿着边缘分割图形，而是沿着顶点划分图形，这可以减少通信和存储开销。
+从逻辑上讲，这对应于为机器分配边缘并允许顶点跨越多台机器。
+分配边缘的确切方法取决于 PartitionStrategy ，并且对各种启发式方法有几种权衡。
+用户可以通过使用 Graph.partitionBy 运算符重新分区图表来选择不同的策略。
+默认分区策略是使用图形构造中提供的边的初始分区。
+但是，用户可以轻松切换到GraphX中包含的2D分区或其他启发式方法。
+
+[![](/images/posts/vertex_routing_edge_tables.png)](/images/posts/vertex_routing_edge_tables.png)
+
+一旦边缘被分割，有效图形并行计算的关键挑战就是有效地将顶点属性与边缘连接起来。 
+因为真实世界的图形通常具有比顶点更多的边缘，所以我们将顶点属性移动到边缘。 
+因为并非所有分区都包含与所有顶点相邻的边，所以我们在内部维护一个路由表，该路由表标识在实现 triplets 和 aggregateMessages 等操作所需的连接时广播顶点的位置。
+
+---
+
 # 未完待续......
 
 
