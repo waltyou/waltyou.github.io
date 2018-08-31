@@ -2,4 +2,4 @@
 jekyll blog
 
 
-The site is published at http://waltyou.github.io/
+The site is published at https://waltyou.github.io/
