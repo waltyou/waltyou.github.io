@@ -743,8 +743,93 @@ GraphX不是沿着边缘分割图形，而是沿着顶点划分图形，这可�
 
 ---
 
-# 未完待续......
+# 图算法
 
+GraphX包含一组图算法，可简化分析任务。
+算法包含在org.apache.spark.graphx.lib包中，可以通过GraphOps直接作为Graph上的方法访问。
+本节介绍算法及其使用方法。
+
+## PageRank
+
+PageRank测量图中每个顶点的重要性，假设从u到v的边表示u对v的重要性的认可。
+例如，如果Twitter用户跟随许多其他用户，则用户将被排名很高。
+
+GraphX带有PageRank的静态和动态实现作为PageRank对象的方法。 
+静态PageRank运行固定的迭代次数，而动态PageRank运行直到排名收敛（即停止更改超过指定的容差）。
+GraphOps允许直接将这些算法作为Graph上的方法调用。
+
+GraphX还包括一个我们可以运行PageRank的示例社交网络数据集。 
+data/graphx/users.txt 中给出了一组用户，data/graphx/followers.txt 中给出了用户之间的一组关系。
+我们按如下方式计算每个用户的 PageRank：
+
+```scala
+import org.apache.spark.graphx.GraphLoader
+
+// 加载图的边
+val graph = GraphLoader.edgeListFile(sc, "data/graphx/followers.txt")
+// 运行 PageRank
+val ranks = graph.pageRank(0.0001).vertices
+// 使用 usernames 进行 Join 排名  
+val users = sc.textFile("data/graphx/users.txt").map { line =>
+  val fields = line.split(",")
+  (fields(0).toLong, fields(1))
+}
+val ranksByUsername = users.join(ranks).map {
+  case (id, (username, rank)) => (username, rank)
+}
+// 打印结果
+println(ranksByUsername.collect().mkString("\n"))
+```
+
+## 连通器（Connected Components）
+
+连通器算法使用其编号最小的顶点的ID标记图的每个连通分量。 
+例如，在社交网络中，连接的组件可以近似聚类。 
+GraphX包含ConnectedComponents对象中的算法实现，我们从PageRank部分计算示例社交网络数据集的连接组件，如下所示：
+```scala
+import org.apache.spark.graphx.GraphLoader
+
+// Load the graph as in the PageRank example
+val graph = GraphLoader.edgeListFile(sc, "data/graphx/followers.txt")
+// Find the connected components
+val cc = graph.connectedComponents().vertices
+// Join the connected components with the usernames
+val users = sc.textFile("data/graphx/users.txt").map { line =>
+  val fields = line.split(",")
+  (fields(0).toLong, fields(1))
+}
+val ccByUsername = users.join(cc).map {
+  case (id, (username, cc)) => (username, cc)
+}
+// Print the result
+println(ccByUsername.collect().mkString("\n"))
+```
+
+## 三角计数（Triangle Counting）
+
+当顶点具有两个相邻顶点并且在它们之间具有边缘时，顶点是三角形的一部分。
+GraphX 在 TriangleCount 对象中实现了一个三角形计数算法，该算法确定了通过每个顶点的三角形数量，从而提供了一种聚类度量。
+我们从 PageRank 部分计算社交网络数据集的三角形计数。
+请注意，TriangleCount要求边缘采用规范方向（srcId <dstId），并使用Graph.partitionBy对图形进行分区。
+```scala
+import org.apache.spark.graphx.{GraphLoader, PartitionStrategy}
+
+// 按规范顺序加载边，并将图分区为三角形计数
+val graph = GraphLoader.edgeListFile(sc, "data/graphx/followers.txt", true)
+  .partitionBy(PartitionStrategy.RandomVertexCut)
+// 找到每个顶点的三角形计数
+val triCounts = graph.triangleCount().vertices
+// 使用用户名加入三角形计数
+val users = sc.textFile("data/graphx/users.txt").map { line =>
+  val fields = line.split(",")
+  (fields(0).toLong, fields(1))
+}
+val triCountByUsername = users.join(triCounts).map { case (id, (username, tc)) =>
+  (username, tc)
+}
+// 打印结果
+println(triCountByUsername.collect().mkString("\n"))
+```
 
 ---
 
