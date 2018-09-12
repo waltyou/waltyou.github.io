@@ -80,13 +80,15 @@ HBase有三个主要组成部分：client 客户端库，master server 主服务
 
 ---
 
-# Data Model
+# Data Model 及其操作
 
-## 表 Table 
+## 基本构成
+ 
+### 表 Table 
 
 包含了许多的row。
 
-## 行 Row
+### 行 Row
 
 HBase中的一行(row)由一个行键(row key)和一个或多个具有与之关联的值(value)的列(column)组成。
 
@@ -96,31 +98,73 @@ HBase中的一行(row)由一个行键(row key)和一个或多个具有与之关�
 
 常见的行键模式是网站域。 如果您的行键是域，则应该反向存储它们（org.apache.www，org.apache.mail，org.apache.jira）。 这样，所有Apache域都在表中彼此靠近，而不是基于子域的第一个字母展开。
 
-## 列 Column
+### 列 Column
 
 HBase中的列由列族（Column Family）和列限定符（Column Qualifier）组成，它们由:(冒号）字符分隔。
 
-## 列族 Column Family
+### 列族 Column Family
 
 出于性能考虑，列族通常物理地放置了一组列及其值。 
 每个列族都有一组存储属性，例如是否应将其值缓存在内存中，如何压缩其数据或对其行键进行编码等。
 表中的每一行都具有相同的列族，但给定的行可能不会在给定的列族中存储任何内容。
 
-## 列限定符 Column Qualifier
+### 列限定符 Column Qualifier
 
 将列限定符添加到列族中，是为了给特定的数据提供索引。
 给定列族 content，列限定符可能是 content：html， 另一个可能是 content：pdf。 
 
 虽然列族在创建表时是固定的，但列限定符是可变的，并且行之间可能有很大差异。
 
-## Cell
+### Cell
 
 Cell 是行，列族和列限定符的组合，并包含值和时间戳，表示值的版本。
 
-## Timestamp 
+### Timestamp 
 
 时间戳与每个值一起写入，并且是给定版本的值的标识符。
 默认情况下，timestamp表示数据写入RegionServer上的时间，但是当您将数据放入 cell 时，可以指定不同的时间戳值。
+
+## 操
+
+### Get
+
+获取特定 row 的属性， 可以通过 [Table.get](https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Table.html#get-org.apache.hadoop.hbase.client.Get-) 执行。
+
+### Put
+
+当 key 存在时，更新原有值，当 key 不存在的时，新增一个值。
+可以通过 [Table.put](https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Table.html#put-org.apache.hadoop.hbase.client.Put-)
+或 [Table.batch](https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Table.html#batch-java.util.List-java.lang.Object:A-) 执行。
+
+### Scans
+
+Scan 允许迭代多行以获取指定的属性。
+
+```java
+public static final byte[] CF = "cf".getBytes();
+public static final byte[] ATTR = "attr".getBytes();
+...
+
+Table table = ...      // instantiate a Table instance
+
+Scan scan = new Scan();
+scan.addColumn(CF, ATTR);
+scan.setRowPrefixFilter(Bytes.toBytes("row"));
+ResultScanner rs = table.getScanner(scan);
+try {
+  for (Result r = rs.next(); r != null; r = rs.next()) {
+    // process result...
+  }
+} finally {
+  rs.close();  // always close the ResultScanner!
+}
+```
+
+### Delete
+
+删除特定的行。
+可以通过 [Table.delete](https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Table.html#delete-org.apache.hadoop.hbase.client.Delete-) 执行。
+
 
 ---
 
