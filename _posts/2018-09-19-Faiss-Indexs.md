@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Faiss 进阶
+title: Faiss Indexs 的进一步了解
 date: 2018-09-19 09:29:04
 author: admin
 comments: true
