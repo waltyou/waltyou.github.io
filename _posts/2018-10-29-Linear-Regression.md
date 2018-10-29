@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 机器学习入门(三) -- 线性回归
-date: 2018-10-23 18:00:04
+date: 2018-10-29 19:00:04
 author: admin
 comments: true
 categories: [Machine Learning]
