@@ -1,11 +1,11 @@
 ---
 layout: post
-title: 《Effective Java》学习日志(三) 20: 接口优于抽象类
+title: 《Effective Java》学习日志（三）20：接口优于抽象类
 date: 2018-08-28 15:11:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java, Effective Java]
+tags: [Java,Effective Java]
 ---
 
 Java 有两种机制来定义多实现的类：接口与抽象类。但接口优于抽象类，来看看为什么。
