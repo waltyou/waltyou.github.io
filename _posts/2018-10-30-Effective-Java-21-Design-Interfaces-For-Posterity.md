@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 《Effective Java》学习日志（三）21：为后代设计接口
-date: 2018-09 15:11:04
+date: 2018-10-30 10:51:04
 author: admin
 comments: true
 categories: [Java]
