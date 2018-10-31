@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 《Effective Java》学习日志（三）22：仅使用接口来定义类型
-date: 2018-10-30 10:51:04
+date: 2018-10-31 10:51:04
 author: admin
 comments: true
 categories: [Java]
