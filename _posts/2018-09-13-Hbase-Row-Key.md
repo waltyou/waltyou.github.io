@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Hbase RegionServer Size的调整
+title: Hbase RowKey 设计与其他高级功能
 date: 2018-09-13 16:04:04
 author: admin
 comments: true
