@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Hbase RegionServer Size的调整
+title: Hbase 的二级索引
 date: 2018-10-30 14:04:04
 author: admin
 comments: true
