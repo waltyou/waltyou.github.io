@@ -181,6 +181,16 @@ Rowkeys无法更改。
 
 虽然通常不可取，但只要在 key 空间中可以访问所有创建的区域，使用十六进制键（以及更一般地说，可显示的数据）仍然可以使用预拆分表。
 
+## 8. RowKey 设计实例
+
+官方提供了几个例子，感兴趣可以去看一看[详情](http://hbase.apache.org/book.html#schema.casestudies)：
+
+- Log Data / Timeseries Data
+- Log Data / Timeseries on Steroids
+- Customer/Order
+- Tall/Wide/Middle Schema Design
+- List Data
+
 ---
 
 # Version 的数量
