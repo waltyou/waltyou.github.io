@@ -28,6 +28,7 @@ tags: [Big Data, Hbase]
 当然，用user去搜索很简单，因为它位于 rowkey 开头。
 
 关于处理这个问题的最佳方法没有一个答案，因为它取决于：
+
 - user 数量
 - 数据大小和数据到达率
 - 报告要求的灵活性（例如，完全临时日期选择与预配置范围）
@@ -57,6 +58,7 @@ tags: [Big Data, Hbase]
 ### 官方例子
 
 以下是使用HBase作为源和MapReduce的接收器的示例。此示例将简单地将数据从一个表复制到另一个表。
+
 ```java
 Configuration config = HBaseConfiguration.create();
 Job job = new Job(config,"ExampleReadWrite");
@@ -65,8 +67,8 @@ job.setJarByClass(MyReadWriteJob.class);    // class that contains mapper
 Scan scan = new Scan();
 scan.setCaching(500);        // 1 is the default in Scan, which will be bad for MapReduce jobs
 scan.setCacheBlocks(false);  // don't set to true for MR jobs
-// set other scan attrs
 
+// set other scan attrs
 TableMapReduceUtil.initTableMapperJob(
   sourceTable,      // input table
   scan,             // Scan instance to control CF and attribute selection
@@ -114,7 +116,7 @@ public static class MyMapper extends TableMapper<ImmutableBytesWritable, Put>  {
 
 这只是一个示例，开发人员可以选择不使用TableOutputFormat并自己连接到目标表。
 
-[完整链接](http://hbase.apache.org/book.html#mapreduce.example.readwrite)。
+可以查看[完整链接](http://hbase.apache.org/book.html#mapreduce.example.readwrite)。
 
 ## 3. 双写二级索引（Dual-Write Secondary Index）
 
@@ -200,14 +202,13 @@ public static class MyTableReducer extends TableReducer<Text, IntWritable, Immut
 }
 ```
 
-[完整链接](http://hbase.apache.org/book.html#mapreduce.example.summary)
+可以查看[完整链接](http://hbase.apache.org/book.html#mapreduce.example.summary)
 
 ## 5. 协处理器二级索引（Coprocessor Secondary Index）
 
 协处理器就像RDBMS触发器一样。这些是在0.92中添加的。
 
 后续添加详细介绍，现在可以看[官方文档](http://hbase.apache.org/book.html#cp)
-
 
 ---
 
