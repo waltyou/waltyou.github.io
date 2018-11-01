@@ -18,17 +18,9 @@ layout: default
 
   </header>
 
-  {% if site.baidushare_id %}
-  {% include baidushare.html %}
-  {% endif %}
-
   <article class="post-content">
     {{ content }}
   </article>
-
-  {% if site.baidushare_id %}
-  {% include baidushare.html %}
-  {% endif %}
 
   <div class="pagination">
     {% if page.previous %}
@@ -46,7 +38,4 @@ layout: default
     {% endif %}
   </div>
 
-  {% if site.duoshuo_username %}
-    {% include duoshuo.html %}
-  {% endif %}
 </div>
