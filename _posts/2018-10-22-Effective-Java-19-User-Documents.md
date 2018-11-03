@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（三）19: 如果使用继承设计，必须要文档说明，否则不该使用
+title: 《Effective Java》学习日志（三）19：如果使用继承设计，必须要文档说明，否则不该使用
 date: 2018-10-22 09:41:04
 author: admin
 comments: true

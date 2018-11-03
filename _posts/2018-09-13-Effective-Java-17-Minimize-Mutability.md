@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（三）17: 最小化可变性
+title: 《Effective Java》学习日志（三）17：最小化可变性
 date: 2018-09-13 09:41:04
 author: admin
 comments: true

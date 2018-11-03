@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（三）18: 组合优于继承
+title: 《Effective Java》学习日志（三）18：组合优于继承
 date: 2018-09-14 09:41:04
 author: admin
 comments: true
