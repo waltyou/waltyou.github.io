@@ -4,8 +4,8 @@ title: Spark 源码学习之 RDD
 date: 2018-11-16 15:50:04
 author: admin
 comments: true
-categories: [Java]
-tags: [Java,Effective Java]
+categories: [Spark]
+tags: [Big Data, Spark]
 ---
 
 读一读 Spark 的源码，既可以学习 Spark， 也可以学习 scala。
@@ -116,14 +116,14 @@ class RDD 的代码主要分为三部分：
 
 可选方法，来说明数据是如何分区的，举个例子：hash-partitioned
 
-## 1. 适用与所有RDD的方法与字段
+## 2. 适用与所有RDD的方法与字段
 
 ### persist
 
 这个系列的方法是设置 RDD 计算结果持久化程度的。
 
 先来了解一下什么是持久化？目的：为了复用 RDD 的计算结果，我们可以把计算结果存起来，以供后面直接读取。
-详情参考[这里](./Spark-RDD/#%E6%8C%81%E4%B9%85rdd%E7%9A%84%E5%AD%98%E5%82%A8%E7%BA%A7%E5%88%AB).
+详情参考[这里](../Spark-RDD/#%E6%8C%81%E4%B9%85rdd%E7%9A%84%E5%AD%98%E5%82%A8%E7%BA%A7%E5%88%AB).
 
 它一共有三个方法。
 
