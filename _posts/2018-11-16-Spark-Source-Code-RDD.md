@@ -32,7 +32,7 @@ RDD 是英文版弹性分布式数据集（Resilient Distributed Dataset）的�
 
 RDD 源码下总共分为三个部分：一个 class RDD ，两个 object，分别为 object RDD 与 object DeterministicLevel。
 
-## class RDD
+## 1. class RDD
 
 这是是学习的重点，简单介绍一下，下文有详细介绍。
 
@@ -41,14 +41,14 @@ RDD 源码下总共分为三个部分：一个 class RDD ，两个 object，分�
 - deps: Seq[Dependency[_]]
 
 
-## object RDD
+## 2. object RDD
 
 主要是定义隐式函数，为特定类型的RDD提供额外的功能。
 
 比如它之中有个名为 rddToPairRDDFunctions 的函数，它可以把一个 RDD 转换为一个 PairRDDFunctions（它是一个键值对 RDD）。
 然后我们就可以使用 PairRDDFunctions 的 reduceByKey 方法了。
 
-## object DeterministicLevel
+## 3. object DeterministicLevel
 
 它定义了三个枚举变量，来代表RDD输出的确定性级别（即`RDD＃compute`返回的内容）。 
 
@@ -71,7 +71,7 @@ class RDD 的代码主要分为三部分：
 - 适用与所有RDD的方法与字段
 - 其他内部方法与字段
 
-## 需要RDD子类实现的方法
+## 1. 需要RDD子类实现的方法
 
 在class RDD 的开头注释中，提到区分 RDD 的5个点：
 - 一个 partitions 列表
@@ -116,6 +116,38 @@ class RDD 的代码主要分为三部分：
 
 可选方法，来说明数据是如何分区的，举个例子：hash-partitioned
 
+## 1. 适用与所有RDD的方法与字段
+
+### persist
+
+这个系列的方法是设置 RDD 计算结果持久化程度的。
+
+先来了解一下什么是持久化？目的：为了复用 RDD 的计算结果，我们可以把计算结果存起来，以供后面直接读取。
+详情参考[这里](./Spark-RDD/#%E6%8C%81%E4%B9%85rdd%E7%9A%84%E5%AD%98%E5%82%A8%E7%BA%A7%E5%88%AB).
+
+它一共有三个方法。
+
+#### 1. 基础方法
+
+    private def persist(newLevel: StorageLevel, allowOverride: Boolean): this.type
+
+做了两件事：检查是否能够覆盖StorageLevel；如果这是第一次将此RDD标记为持久，请将其注册到SparkContext以进行清理和记帐（这只做一次）。
+
+#### 2. 设置新的level
+
+    def persist(newLevel: StorageLevel): this.type
+
+这个方法只能给从未设置过 StorageLevel 的 RDD 使用。
+
+需要注意的是 在Local checkpointing 时，allowOverride 为 true。
+
+#### 3. 默认 StorageLevel
+
+    def persist(): this.type = persist(StorageLevel.MEMORY_ONLY)
+
+### 其他
+
+一个可以拿到 sparkContext 的方法：sparkContext，unique 的 id 和可读的 name。
 
 
 ---
