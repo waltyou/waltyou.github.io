@@ -118,14 +118,12 @@ class RDD 的代码主要分为三部分：
 
 ## 2. 适用与所有RDD的方法与字段
 
-### persist
+### 持久化
 
 这个系列的方法是设置 RDD 计算结果持久化程度的。
 
 先来了解一下什么是持久化？目的：为了复用 RDD 的计算结果，我们可以把计算结果存起来，以供后面直接读取。
 详情参考[这里](../Spark-RDD/#%E6%8C%81%E4%B9%85rdd%E7%9A%84%E5%AD%98%E5%82%A8%E7%BA%A7%E5%88%AB).
-
-它一共有三个方法。
 
 #### 1. 基础方法
 
@@ -144,6 +142,26 @@ class RDD 的代码主要分为三部分：
 #### 3. 默认 StorageLevel
 
     def persist(): this.type = persist(StorageLevel.MEMORY_ONLY)
+    
+提供默认级别的持久化水平：MEMORY_ONLY
+
+#### 4. cache
+
+    def cache(): this.type = persist() 
+
+其实就是无参的 persist 
+
+#### 5. unpersist
+
+    def unpersist(blocking: Boolean = true): this.type = {
+
+标记RDD为无持久化状态，并且把它所有的blocks从内存和硬盘中删除。
+
+#### 6. getStorageLevel
+
+    def getStorageLevel: StorageLevel = storageLevel
+
+获取 StorageLevel
 
 ### 其他
 
