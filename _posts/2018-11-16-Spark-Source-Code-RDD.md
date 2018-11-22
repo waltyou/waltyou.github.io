@@ -163,6 +163,37 @@ class RDD 的代码主要分为三部分：
 
 获取 StorageLevel
 
+### dependencies 与 partitions
+
+这一类方法是用来获取依赖和分区信息，它们会在 checkpointed 的时候被重写。
+
+#### 1. checkpointRDD
+
+    private def checkpointRDD: Option[CheckpointRDD[T]] = checkpointData.flatMap(_.checkpointRDD)
+
+当在 checkpoint 时，返回一个持有 CheckpointRDD 的 Option。
+
+#### 2. dependencies
+
+    final def dependencies: Seq[Dependency[_]] = {
+        checkpointRDD.map(r => List(new OneToOneDependency(r))).getOrElse {
+          if (dependencies_ == null) {
+            dependencies_ = getDependencies
+          }
+          dependencies_
+        }
+    }
+    
+这个方法可以获取这个 RDD 的依赖关系，返回类型为 Seq。
+
+#### 3. partitions
+
+    final def partitions: Array[Partition] = {...}
+    
+获取这个RDD的所有分区，返回一个Array。
+
+函数 getNumPartitions 返回 partitions 的数量
+
 ### 其他
 
 一个可以拿到 sparkContext 的方法：sparkContext，unique 的 id 和可读的 name。
