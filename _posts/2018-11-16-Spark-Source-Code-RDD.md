@@ -184,15 +184,57 @@ class RDD 的代码主要分为三部分：
         }
     }
     
-这个方法可以获取这个 RDD 的依赖关系，返回类型为 Seq。
+这个方法可以获取这个 RDD 的依赖关系，返回类型为 Seq，会优先考虑 RDD 是否为 checkpointed。
 
 #### 3. partitions
 
     final def partitions: Array[Partition] = {...}
     
-获取这个RDD的所有分区，返回一个Array。
+获取这个RDD的所有分区，返回一个Array，会优先考虑 RDD 是否为 checkpointed。
 
 函数 getNumPartitions 返回 partitions 的数量
+
+### preferredLocations
+
+获取偏好的localtion信息，会优先考虑 RDD 是否为 checkpointed。
+
+    final def preferredLocations(split: Partition): Seq[String]
+
+### iterator
+
+    final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
+        if (storageLevel != StorageLevel.NONE) {
+          getOrCompute(split, context)
+        } else {
+          computeOrReadCheckpoint(split, context)
+        }
+    }
+
+读取 RDD 的数据，如果被持久化过，就去取出来，否则就计算它。这个方法不应该直接被用户调用，但是可以被子类重写。
+
+里面使用了两个函数：getOrCompute 和 computeOrReadCheckpoint。
+
+### getNarrowAncestors
+
+获取所有和这个 RDD 有窄依赖关系的RDD。
+
+    private[spark] def getNarrowAncestors: Seq[RDD[_]] = {...}
+
+### withScope
+
+它是用来做DAG可视化的，它会所有创建的RDD的方法都包裹起来，同时用RDDOperationScope 记录 RDD 的操作历史和关联，就能在显示的时候看清楚依赖关系。
+
+### Transformations
+
+接下来进入了RDD的一个重点：Transformations. 对RDD进行转换。
+
+以下的函数都会返回一个新的RDD。
+
+#### 1. map
+
+    def map[U: ClassTag](f: T => U): RDD[U] = withScope {...}
+    
+做了两个动作：将传入的函数闭包，生成一个 MapPartitionsRDD。
 
 ### 其他
 
