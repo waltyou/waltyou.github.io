@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（六）45：
+title: 《Effective Java》学习日志（六）45：明智的使用 Stream
 date: 2018-11-29 19:40:04
 author: admin
 comments: true
