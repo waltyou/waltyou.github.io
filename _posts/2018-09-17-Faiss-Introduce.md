@@ -355,6 +355,12 @@ print(I[:5])                   # neighbors of the 5 first queries
 print(I[-5:])                  # neighbors of the 5 last queries
 ```
 
+# 在项目中的实现
+
+以上都来自github上faiss 项目的wiki，可能读下来，对如何在项目中使用还是不明所以。
+
+所以我之后又特意做了个总结，记录一下Faiss实际项目的操作经验，详情参考[这里](../Faiss-In-Project/)。
+
 ---
 
 # 参考链接
