@@ -8,7 +8,7 @@ categories: [Java]
 tags: [Java,Effective Java]
 ---
 
-
+并行流并不像看起来的那么好用，它只在几个场景下可以提高效率。
 
 <!-- more -->
 
