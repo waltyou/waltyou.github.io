@@ -166,7 +166,7 @@ scores, neighbors = index.search(siftfeature, k=topN)
 
 # 总结
 
-后续代码我还在整理，到时候会传到github上。
+后续代码可以在github上看到： [waltyou/faiss-web-service](https://github.com/waltyou/faiss-web-service)。
 
 ---
 
