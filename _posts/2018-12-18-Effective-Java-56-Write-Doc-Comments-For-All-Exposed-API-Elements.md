@@ -1,7 +1,7 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（七）55：谨慎地返回Optional
-date: 2018-12-17 19:19:04
+title: 《Effective Java》学习日志（七）56：给所有对外暴露的API写文档
+date: 2018-12-18 18:54:04
 author: admin
 comments: true
 categories: [Java]
@@ -24,170 +24,131 @@ tags: [Java,Effective Java]
 {:toc}
 ---
 
-在Java 8之前，在编写在某些情况下无法返回值的方法时，可以采用两种方法。
-您可以抛出异常，也可以返回null（假设返回类型是对象引用类型）。
-这些方法都不完美。
-应该为异常条件保留异常（第69项），抛出异常是很昂贵的，因为在创建异常时会捕获整个堆栈跟踪。
+如果API可用，则它必须有文档。
+传统上，API文档是手动生成的，并且与代码保持同步是件苦差事。 
+Java编程环境使用Javadoc实用程序简化了此任务。 
+Javadoc使用特殊格式的文档注释（通常称为doc注释）从源代码自动生成API文档。
 
-返回null没有这些缺点，但它有自己的缺点。
-如果方法返回null，则客户端必须包含特殊情况代码以处理返回null的可能性，除非程序员可以证明无法返回null。
-如果客户端忽略检查空返回并在某些数据结构中存储空返回值，则NullPointerException可能在将来的某个任意时间导致，在代码中与该问题无关的某个位置。
+虽然文档注释约定不是语言的正式部分，但它们构成了每个Java程序员都应该知道的事实上的API。 
+“How to Write Doc Comments”网页[Javadoc-guide]中介绍了这些约定。
+虽然自Java 4发布以来该页面尚未更新，但它仍然是一个非常宝贵的资源。 
+Java 9中添加了一个重要的doc标签，{@ index}; Java 8中的一个，{@implSpec}; 
+Java 5中有两个，{@literal}和{@code}。
+上述网页中缺少这些标签，但在此Item中进行了讨论。
 
-在Java 8中，有第三种方法来编写可能无法返回值的方法。 
-Optional<T>类表示一个不可变容器，它可以包含单个非空T引用，也可以不包含任何内容。
-一个包含任何内容的Optional被认为是空的。
-据说一个值存在于非空的Optional中。
-可选的本质上是一个不可变的集合，最多可以容纳一个元素。
-Optional<T>没有实现Collection <T>，但原则上是可以的。
+**要正确记录API，必须在每个导出的类，接口，构造函数，方法和字段声明之前加上doc注释。**
+如果一个类是可序列化的，你还应该记录它的序列化形式（第87项）。
+在没有文档注释的情况下，Javadoc可以做的最好的事情是将声明重现为受影响的API元素的唯一文档。
+使用缺少文档注释的API令人沮丧且容易出错。
+公共类不应使用默认构造函数，因为无法为它们提供doc注释。
+要编写可维护的代码，您还应该为大多数未导出的类，接口，构造函数，方法和字段编写doc注释，尽管这些注释不需要像导出的API元素那样彻底。
 
-概念上，正常情况下返回T，但在某些情况下，可能无法执行此操作的方法，可以声明为返回 Optional<T>。
-这允许方法返回空结果以指示它无法返回有效结果。
-返回Optional的方法比抛出异常的方法更灵活，更易于使用，并且比返回null的方法更不容易出错。
+**方法的doc注释应该简洁地描述方法与其客户之间的契约。**
+除了为继承而设计的类中的方法（第19项）之外，合同应该说明方法的作用而不是它的工作方式。 
+doc注释应该枚举所有方法的前提条件，这些条件是客户端调用它的必须为真的，以及它的后置条件，这些条件是在调用成功完成后将成立的事情。
+通常，对于未经检查的异常，@throws标记会隐式描述前提条件;每个未经检查的异常对应于前提条件违规。
+此外，可以在@param标记中指定前提条件以及受影响的参数。
 
-在第30项中，我们展示了这种方法，根据元素的自然顺序计算集合中的最大值。
+除前提条件和后置条件外，方法还应记录任何副作用。
+副作用是系统状态的可观察到的变化，为了实现后置条件，这显然不是必需的。
+例如，如果方法启动后台线程，则文档应记录它。
 
-    // Returns maximum value in collection - throws exception if empty
-    public static <E extends Comparable<E>> E max(Collection<E> c) {
-        if (c.isEmpty())
-            throw new IllegalArgumentException("Empty collection");
-        E result = null;
-        for (E e : c)
-            if (result == null || e.compareTo(result) > 0)
-                result = Objects.requireNonNull(e);
-        return result;
-    }
+要完全描述方法的合约，doc注释应该为每个参数都有一个@param标记，@return标记除非方法具有void返回类型，并且对于方法抛出的每个异常都有@throws标记，无论是选中还是未选中（第74项）。
+如果@return标记中的文本与方法的描述相同，则可以允许省略它，具体取决于您遵循的编码标准。
 
-如果给定集合为空，则此方法抛出IllegalArgumentException。 
-我们在第30项中提到，更好的选择是返回Optional <E>。 以下是修改它时方法的外观：
+按照惯例，@param标记或@return标记后面的文本应该是描述参数或返回值表示的值的名词短语。
+很少使用算术表达式代替名词短语;请参阅BigInteger的示例。 
+@throws标记后面的文本应包含单词“if”，后跟一个描述抛出异常的条件的子句。
+按照惯例，@param，@return或@throws标记之后的短语或子句不会被句点终止。
+以下文档评论说明了所有这些约定：
 
-    // Returns maximum value in collection as an Optional<E>
-    public static <E extends Comparable<E>>
-            Optional<E> max(Collection<E> c) {
-        if (c.isEmpty())
-            return Optional.empty();
-        E result = null;
-        for (E e : c)
-            if (result == null || e.compareTo(result) > 0)
-                result = Objects.requireNonNull(e);
-        return Optional.of(result);
-    }
+```java
+/**
+* Returns the element at the specified position in this list.
+*
+* <p>This method is <i>not</i> guaranteed to run in constant
+* time. In some implementations it may run in time proportional
+* to the element position.
+*
+* @param index index of element to return; must be
+*
+non-negative and less than the size of this list
+* @return the element at the specified position in this list
+* @throws IndexOutOfBoundsException if the index is out of range
+*
+({@code index < 0 || index >= this.size()})
+*/
+E get(int index);
 
+```
 
-如您所见，返回Optional很简单。 
-您所要做的就是使用适当的静态工厂创建Optional。 
+请注意在此doc注释（<p>和<i>）中使用HTML标记。 
+Javadoc实用程序将doc注释转换为HTML，文档注释中的任意HTML元素最终都会生成HTML文档。
+有时，程序员甚至会在他们的文档评论中嵌入HTML表格，尽管这种情况很少见。
 
-在这个程序中，我们使用两个：Optional.empty（）返回一个空的Optional，Optional.of（value）返回一个包含给定非null值的Optional。 
-将null传递给Optional.of（value）是一个编程错误。 
-如果这样做，该方法通过抛出NullPointerException来响应。 
-Optional.ofNullable（value）方法接受一个可能为null的值，如果传入null则返回一个空的Optional。
-**永远不要从 Optional-returning 的方法返回一个null值：它会破坏工具的整个目的。**
+还要注意在@throws子句中围绕代码片段使用Javadoc{@code}标记。
+此标记有两个用途：它使代码片段以代码字体呈现，并禁止在代码片段中处理HTML标记和嵌套的Javadoc标记。
+后一个属性允许我们在代码片段中使用小于号（<），即使它是HTML元字符。
+要在文档注释中包含多行代码示例，请使用包含在HTML<pre>标记内的Javadoc{@code}标记。
+换句话说，在代码示例之前加上字符<pre>{@code并跟随它} </pre>。
+这样可以保留代码中的换行符，并且无需转义HTML元字符，但不需要转义符号（@），如果代码示例使用注释，则必须对其进行转义。
 
-流上的许多终端操作返回选项。 
-如果我们重写max方法来使用流，Stream的max操作会为我们生成一个Optional（尽管我们必须传入一个显式比较器）：
+最后，请注意在doc评论中使用“this list”。
+按照惯例，“this”一词指的是在实例方法的doc注释中使用方法时调用方法的对象。
 
-    // Returns max val in collection as Optional<E> - uses stream
-    public static <E extends Comparable<E>>
-            Optional<E> max(Collection<E> c) {
-        return c.stream().max(Comparator.naturalOrder());
-    }
+如第15项所述，当您设计一个继承类时，您必须记录其自用模式，因此程序员知道覆盖其方法的语义。
+应使用在Java 8中添加的@implSpec标记来记录这些自用模式。
+回想一下，普通的doc注释描述了方法与其客户之间的契约;相反，@ implSpec注释描述了方法及其子类之间的契约，允许子类继承方法或通过super调用它时依赖于实现行为。
+以下是它在实践中的表现：
 
+```java
+/**
+* Returns true if this collection is empty.
+*
+* @implSpec
+* This implementation returns {@code this.size() == 0}.
+*
+* @return true if this collection is empty
+*/
+public boolean isEmpty() { ... }
 
-那么如何选择返回一个Optional而不是返回一个null或抛出一个异常呢？ 
-Optionals在精神上类似于检查异常（第71项），因为它们迫使API的用户面对可能没有返回值的事实。 
-抛出未经检查的异常或返回null允许用户忽略此可能性，并可能产生可怕的后果。 
-但是，抛出已检查的异常需要在客户端中添加额外的样板代码。
+```
 
-如果方法返回一个Optional，则客户端可以选择在方法无法返回值时要采取的操作。 您可以指定默认值：
+从Java 9开始，除非传递命令行开关-tag“implSpec：a：Implementation Requirements：”，否则Javadoc实用程序仍会忽略@implSpec标记。 
 
-    // Using an optional to provide a chosen default value
-    String lastWordInLexicon = max(words).orElse("No words...");
+希望这将在随后的版本中得到补救。 不要忘记，您必须采取特殊操作来生成包含HTML元字符的文档，例如小于号（<），大于号（>）和符号（＆）。 将这些字符放入文档中的最佳方法是用{@literal}标记将它们包围起来，这样就可以禁止处理HTML标记和嵌套的Javadoc标记。 它类似于{@code}标记，除了它不以代码字体呈现文本。 例如，这个Javadoc片段：
 
-或者您可以抛出任何适当的异常。 
-请注意，我们传入异常工厂而不是实际异常。 
-除非实际抛出异常，否则这将避免创建异常的开销：
+```java
+* A geometric series converges if {@literal |r| < 1}.
+```
 
-    // Using an optional to throw a chosen exception
-    Toy myToy = max(toys).orElseThrow(TemperTantrumException::new);
+会生成文档：“如果| r | < 1 ，几何系列会收敛.“ {@literal}标记可能只放在小于号的位置，而不是整个不等式，并且使用相同的结果文档，但文档注释在源代码中的可读性较差。**这说明了doc注释在源代码和生成的文档中都应该是可读的一般原则。**如果您无法实现这两者，则生成的文档的可读性将胜过源代码的可读性。
 
-如果你可以证明一个optional是非空的，那么你可以从Optional中获取值，而不指定当optional是空的时要采取的操作，但如果你错了，你的代码将抛出NoSuchElementException：
+每个文档注释的第一个“句子”（如下定义）将成为注释所属元素的摘要描述。例如，第255页上的doc注释中的摘要描述是“返回此列表中指定位置的元素。”摘要描述必须单独用于描述其汇总的元素的功能。为避免混淆，**类或接口中的两个成员或构造函数不应具有相同的摘要描述**。特别注意过载，使用相同的第一句通常很自然（但在文档评论中是不可接受的）。
 
-    // Using optional when you know there’s a return value
-    Element lastNobleGas = max(Elements.NOBLE_GASES).get();
+如果预期的摘要描述包含句点，请小心，因为句点可能会提前终止描述。例如，以“大学学位”开头的文档评论，例如B.S.，M.S。或博士“将导致摘要描述”大学学位，如BS，MS“问题是摘要描述在第一个句点结束，后面是空格，制表符或行终止符（或第一个块标记） [Javadoc的参考]。这里，缩写“M.S.”中的第二个句点后跟一个空格。最好的解决方案是使用{@literal}标记包围违规期和任何相关文本，因此源代码中的空格后面不再有空格：
 
-有时您可能会遇到这样的情况：获取默认值很昂贵，并且您希望避免这种成本，除非有必要。
-对于这些情况，Optional提供了一种方法，该方法接受Supplier <T>并仅在必要时调用它。
-这个方法叫做orElseGet，但也许它应该被称为orElseCompute，因为它与名称以compute开头的三个Map方法密切相关。
-有几种可选方法可用于处理更专业的用例：filter，map，flatMap和ifPresent。
+```
+/**
+* A college degree, such as B.S., {@literal M.S.} or Ph.D.
+*/
+public class Degree { ... }
+```
 
-在Java 9中，添加了另外两个方法：或者ifPresentOrElse。
-如果上述基本方法与您的用例不相符，请查看这些更高级方法的文档，看看它们是否能完成这项工作。
+说摘要描述是文档评论中的第一句话有点误导。 公约规定它很少应该是一个完整的句子。 对于方法和构造函数，摘要描述应该是描述该方法执行的操作的动词短语（包括任何对象）。 例如：
 
-如果这些方法都不符合您的需求，Optional提供了isPresent（）方法，可以将其视为安全阀。
-如果Optional包含值，则返回true;如果为空，则返回false。您可以使用此方法在可选结果上执行您喜欢的任何处理，但请确保明智地使用它。 
-isPresent的许多用途可以有利地被上面提到的方法之一取代。生成的代码通常更短，更清晰，更具惯用性。
+- ArrayList(int initialCapacity) —Constructs an empty list with the specified initial capacity.
+- Collection.size() —Returns the number of elements in this collection.
 
-例如，请考虑此代码段，它打印进程父进程的进程ID，如果进程没有父进程，则为N/A. 
-该代码段使用Java 9中引入的ProcessHandle类：
+如这些示例所示，使用第三人称声明时而不是第二人命令。
 
-    Optional<ProcessHandle> parentProcess = ph.parent();
-    System.out.println("Parent PID: " + (parentProcess.isPresent() ?
-        String.valueOf(parentProcess.get().pid()) : "N/A"));
+对于类，接口和字段，摘要描述应该是描述由类或接口的实例或字段本身表示的事物的名词短语。 例如：
 
-上面的代码片段可以替换为使用Optional的map函数的代码片段：
+- Instant —An instantaneous point on the time-line.
+- Math.PI —The double value that is closer than any other to pi, the ratio of the circumference of a circle to its diameter.
 
-    System.out.println("Parent PID: " +
-        ph.parent().map(h -> String.valueOf(h.pid())).orElse("N/A"));
+总而言之，文档注释是记录API的最佳，最有效的方法。 对于所有导出的API元素，它们的使用应被视为必需的。 采用符合标准惯例的一致风格。 请记住，文档注释中允许使用任意HTML，并且必须转义HTML元字符。
 
-使用流进行编程时，发现自己使用Stream <Optional <T >>并要求包含非空选项中的所有元素的Stream <T>以便继续进行并不罕见。
-如果你正在使用Java 8，那么这里是如何弥合差距：
-
-    streamOfOptionals
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-
-在Java 9中，Optional配备了stream（）方法。 
-此方法是一个适配器，它将Optional变为包含元素的Stream（如果在Optional中存在，或者如果它为空则为none）。 
-结合Stream的flatMap方法（第45项），此方法为上面的代码片段提供了简洁的替代：
-
-    streamOfOptionals.
-        .flatMap(Optional::stream)
-
-并非所有返回类型都受益于Optional。
-**容器类型（包括集合，映射，流，数组和选项）不应包含在选项中。**
-您应该只返回一个空的List <T>（第54项），而不是返回一个空的Optional <List <T >>。
-返回空容器将消除客户端代码处理Optional的需要。 
-ProcessHandle类确实有arguments方法，它返回Optional <String []>，但是这个方法应该被视为一个不能被模拟的异常。
-
-那么什么时候应该声明一个方法来返回Optional <T>而不是T？
-通常，如果可能无法返回结果，则应声明返回Optional <T>的方法，如果未返回结果，则客户端必须执行特殊处理。
-也就是说，返回Optional <T>并非没有成本。 
-Optional是必须分配和初始化的对象，从Optional中读取值需要额外的间接。
-**这使得选项不适合在某些性能关键的情况下使用。特定方法是否属于此类别只能通过仔细测量来确定**（第67项）。
-
-返回包含装箱基元类型的Optional与返回基元类型相比非常昂贵，因为Optional具有两个级别的装箱而不是零。
-因此，库设计人员认为适合为基本类型int，long和double提供Optional <T>的类似物。
-这些Optional类型是OptionalInt，OptionalLong和OptionalDouble。
-它们包含Optional <T>中的大多数但不是全部方法。
-**因此，您永远不应该返回它们包含Optional的装箱基元类型**，可能的例外是“次要基元类型”，布尔，字节，字符，短和浮点数。
-
-到目前为止，我们已经讨论了返回选项并在返回后处理它们。
-我们还没有讨论其他可能的用途，这是因为Optional的大多数其他用途都是可疑的。
-例如，您永远不应该使用选项作为map值。
-如果这样做，您有两种方法可以从map中表示键的逻辑缺失：键可以不在map中，也可以存在并映射到空的Optional。
-这代表了不必要的复杂性，具有很大的混淆和错误的可能性。
-**通常来讲，将Optional用作集合或数组中的键，值或元素几乎从不合适。**
-
-这留下了一个无法回答的大问题。
-是否适合在实例字段中存储Optional？通常它是一种“难闻的气味”：它表明也许你应该有一个包含可选字段的子类。
-但有时它可能是合理的。
-考虑第2项中我们的NutritionFacts类的情况.AdamitionFacts实例包含许多不需要的字段。
-对于这些字段的每种可能组合，您都不能拥有子类。
-此外，这些字段具有原始类型，这使得直接表达缺席变得尴尬。 
-NutritionFacts的最佳API将为每个可选字段从getter返回一个Optional，因此将这些选项作为字段存储在对象中是很有意义的。
-
-总之，如果您发现自己编写的方法无法始终返回值，并且您认为方法的用户每次调用它时都考虑这种可能性，那么您应该返回一个Optional。
-但是，您应该意识到返回选项会产生真正的性能后果;对于性能关键的方法，最好返回null或抛出异常。
-最后，在其他返回值数量少于1的情况下，应尽量少的使用 optional。
 
 
 
