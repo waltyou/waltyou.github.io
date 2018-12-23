@@ -24,8 +24,8 @@ tags: [Java,Effective Java]
 
 {:.no_toc}
 
-[TOC]
-
+* 目录
+{:toc}
 ------
 
 如第45项所述，某些任务最好用流完成，其他任务最好用迭代完成。 

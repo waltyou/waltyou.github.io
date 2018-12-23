@@ -25,8 +25,8 @@ tags: [Java,Effective Java]
 
 {:.no_toc}
 
-[TOC]
-
+* 目录
+{:toc}
 ------
 
 ## 场景

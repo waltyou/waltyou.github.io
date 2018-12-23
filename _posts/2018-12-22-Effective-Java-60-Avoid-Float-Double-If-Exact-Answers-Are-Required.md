@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 《Effective Java》学习日志（八）60:避免使用float和double，除非真的需要
-date: 2018-12-23 22:15:04
+date: 2018-12-22 22:15:04
 author: admin
 comments: true
 categories: [Java]
@@ -26,8 +26,8 @@ tags: [Java,Effective Java]
 
 {:.no_toc}
 
-[TOC]
-
+* 目录
+{:toc}
 ------
 
 float和double类型主要用于科学和工程计算。 
