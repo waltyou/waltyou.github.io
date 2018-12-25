@@ -18,7 +18,8 @@ tags: [Big Data, Spark, Mastering Apache Spark]
 
 {:.no_toc}
 
-[TOC]
+* 目录
+{:toc}
 
 ------
 
