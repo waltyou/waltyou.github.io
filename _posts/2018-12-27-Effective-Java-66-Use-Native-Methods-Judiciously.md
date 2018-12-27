@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 《Effective Java》学习日志（八）66:谨慎地使用本地方法
-date: 2018-12-277 19:47:04
+date: 2018-12-27 19:47:04
 author: admin
 comments: true
 categories: [Java]
