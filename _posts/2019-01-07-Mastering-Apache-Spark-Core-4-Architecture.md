@@ -241,16 +241,15 @@ run(): Unit
 
 `run`创建一个闭包Serializer。
 
+`run` 通知 `ExecutorBackend` 这个taskId 已经为 `TaskState.RUNNING` 状态了。
 
+`run`计算`startGCTime`。
 
+`run`更新依赖关系。
 
+`run`反序列化任务（使用上下文类加载器）并设置其`localProperties`和`TaskMemoryManager`。 run设置任务内部引用以保存反序列化的任务。
 
-
-
-
-
-
-
+如果启用了killed flag，则`run`会抛出TaskKilledException。
 
 
 
