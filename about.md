@@ -10,7 +10,8 @@ permalink: /about/
 
 * Java programming development.
 * Web Crawler.
-* Data processing.
+* Big Data Processing.
+* AI / ML .
 
 ### Hobby:
 

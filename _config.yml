@@ -1,15 +1,13 @@
 # Site settings
-title: Walt You / 四月蓝天 - 编程
-name: 四月蓝天 - Walt You
+title: Walt You - 知行合一
+name: Walt You - 知行合一
 url: "http://waltyou.github.io"
 email: waltyou@163.com
-description: 四月蓝天 / Walt You - 编程
+description: Walt You - 知行合一
 baseurl: "" # the subpath of your site, e.g. /blog/
 github_username: waltyou # Github ID
-baidushare_id: 111 #  百度分享 ID
 baidutongji_id: d601aa59a7cce69b0847dcc1deb3eb53 # 百度统计 ID
 google-analytics_id: UA-116533568-1 # google analytics id
-rss_url: "/feed.xml"  # RSS 订阅 URL
 logo_image: "/images/logo.png"  # LOGO 图片地址
 # Build settings
 gems: [jekyll-paginate]
