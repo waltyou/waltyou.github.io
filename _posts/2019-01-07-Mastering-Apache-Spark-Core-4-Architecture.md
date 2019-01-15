@@ -251,8 +251,54 @@ run(): Unit
 
 如果启用了killed flag，则`run`会抛出TaskKilledException。
 
+在debug 级别的日中中将会显示：
 
+```java
+DEBUG Executor: Task [taskId]'s epoch is [task.epoch]
+```
 
+`run` 给`MapOutputTracker` 通知task的epoch。
 
+`run` 记录任务开始时间。
 
+`run` 开始运行任务（把`taskId`当作`taskAttemptId`，从`taskDescription`中拿到 `attemptNumber` ，把 `metricsSystem` 作为当前的 **MetricsSystem**）。
 
+在任务运行完成之后（在监视的块中的最后一个数据块），run 通知 `BlockManager` 释放所有这个任务的所有锁（通过taskId）。锁稍后用于锁泄露检查。
+
+`run` 然后会请求 `TaskMemoryManager` 来释放所有获取的内存 (这个将有助于找到内存泄漏)。如果发现了内存泄露（也就是释放的内存大于0），同时`spark.unsafe.exceptionOnMemoryLeak`被设置为true（默认为false），而且在运行中task也没有抛出异常，`run` 就会报告一个 `SparkException`：
+
+```java
+Managed memory leak detected; size = [freedMemory] bytes, TID = [taskId]
+```
+
+  否则，如果`spark.unsafe.exceptionOnMemoryLeak`为false，就会打印出ERROR信息：
+
+```java
+ERROR Executor: Managed memory leak detected; size = [freedMemory] bytes, TID = [taskId]
+```
+
+如果锁泄露被发现，而且`spark.storage.exceptionOnPinLeak`设置为true，打印SparkException：
+
+```java
+[releasedLocks] block locks were not released by TID = [taskId]:
+[releasedLocks separated by comma]
+```
+
+否则就是ERROR日志信息。
+
+在“被监视”块之后，运行将当前时间记录为任务的完成时间（作为taskFinish）。
+
+如果task在运行时被kill，那么它就会抛出一个`TaskKilledException` 。
+
+`run` 创造出一个序列器来序列化结果，同时记录所花费的时间。
+
+`run` 记录task的指标：
+
+- executorDeserializeTime
+- executorDeserializeCpuTime
+- executorRunTime
+- executorCpuTime
+- jvmGCTime
+- resultSerializationTime
+
+`run`收集任务中使用的内部和外部累加器的最新值。
