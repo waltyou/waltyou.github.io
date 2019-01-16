@@ -229,6 +229,8 @@ TaskRunner在创建时采用以下内容：
 run(): Unit
 ```
 
+##### 初始化
+
 执行时，`run` 初始化threadId作为当前线程标识符（使用Java的Thread）。
 
 `run` 然后将当前线程的名称设置为threadName（使用Java的线程）。
@@ -261,7 +263,11 @@ DEBUG Executor: Task [taskId]'s epoch is [task.epoch]
 
 `run` 记录任务开始时间。
 
+##### 开始运行
+
 `run` 开始运行任务（把`taskId`当作`taskAttemptId`，从`taskDescription`中拿到 `attemptNumber` ，把 `metricsSystem` 作为当前的 **MetricsSystem**）。
+
+##### 结束运行后
 
 在任务运行完成之后（在监视的块中的最后一个数据块），run 通知 `BlockManager` 释放所有这个任务的所有锁（通过taskId）。锁稍后用于锁泄露检查。
 
@@ -290,6 +296,8 @@ ERROR Executor: Managed memory leak detected; size = [freedMemory] bytes, TID = 
 
 如果task在运行时被kill，那么它就会抛出一个`TaskKilledException` 。
 
+##### 更新指标与输出结果
+
 `run` 创造出一个序列器来序列化结果，同时记录所花费的时间。
 
 `run` 记录task的指标：
@@ -302,3 +310,31 @@ ERROR Executor: Managed memory leak detected; size = [freedMemory] bytes, TID = 
 - resultSerializationTime
 
 `run`收集任务中使用的内部和外部累加器的最新值。
+
+`run`创建一个DirectTaskResult（带有序列化结果和累加器的最新值）。
+
+`run`序列化DirectTaskResult并获取字节缓冲区的限制。
+
+`run`在将结果发送到ExecutorBackend之前选择正确的序列化版本的结果。
+
+## Workers
+
+Workers（也称为**slaves**）是指那些正在运行Spark的实例，executors在其中执行任务。它们是Spark中的计算节点。
+
+工作程序接收在线程池中运行的序列化任务。
+
+它托管一个本地块管理器，为Spark集群中的其他workers 提供块。workers 使用他们的Block Manager实例进行相互通信。
+
+解释Spark中的任务执行并理解Spark的底层执行模型。
+
+创建SparkContext时，每个worker都会启动一个执行程序。这是一个单独的进程（JVM），它也会加载你的jar。执行程序连接回驱动程序。现在驱动程序可以发送命令，如flatMap，map和reduceByKey。当驱动程序退出时，执行程序关闭。
+
+不会为每个步骤启动新进程。构建SparkContext时，将在每个worker上启动一个新进程。
+
+executor 反序列化命令（这是可能的，因为它已经加载了你的jar），并在分区上执行它。
+
+简而言之，Spark中的应用程序分三步执行：
+
+1. 创建RDD图，即RDD的DAG（有向无环图）以表示整个计算。
+2. 创建阶段图，即基于RDD图的逻辑执行计划的阶段DAG。通过在随机边界处打破RDD图来创建阶段。
+3. 根据计划，在worker上安排和执行任务。
