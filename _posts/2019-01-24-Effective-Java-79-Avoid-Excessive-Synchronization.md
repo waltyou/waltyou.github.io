@@ -20,10 +20,10 @@ tags: [Java,Effective Java]
 ------
 
 ## 目录
-
 {:.no_toc}
 
-[TOC]
+* 目录
+{:toc}
 
 ------
 
