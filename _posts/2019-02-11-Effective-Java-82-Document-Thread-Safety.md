@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 《Effective Java》学习日志（九）82:在文档中记录线程安全
-date: 2019-01-11 10:43:00
+date: 2019-02-11 10:43:00
 author: admin
 comments: true
 categories: [Java]
