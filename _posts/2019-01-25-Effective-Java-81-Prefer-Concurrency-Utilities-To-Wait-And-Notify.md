@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（九）81:偏爱使用并发工具来wait和notify
+title: 《Effective Java》学习日志（十）81:偏爱使用并发工具来wait和notify
 date: 2019-01-25 09:45:04
 author: admin
 comments: true

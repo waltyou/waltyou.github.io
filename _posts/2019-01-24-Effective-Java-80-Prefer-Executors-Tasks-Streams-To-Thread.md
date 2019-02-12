@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（九）80:比起Thread，偏爱executor、tasks、Streams
+title: 《Effective Java》学习日志（十）80:比起Thread，偏爱executor、tasks、Streams
 date: 2019-01-24 15:45:04
 author: admin
 comments: true

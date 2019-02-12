@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（九）79:避免过度使用同步
+title: 《Effective Java》学习日志（十）79:避免过度使用同步
 date: 2019-01-24 14:45:04
 author: admin
 comments: true

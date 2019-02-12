@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（九）78:同步对共享可变数据的访问
+title: 《Effective Java》学习日志（十）78:同步对共享可变数据的访问
 date: 2019-01-15 09:45:04
 author: admin
 comments: true

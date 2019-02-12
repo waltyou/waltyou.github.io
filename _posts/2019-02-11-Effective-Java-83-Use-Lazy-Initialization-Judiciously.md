@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《Effective Java》学习日志（九）83:谨慎的延迟初始化
+title: 《Effective Java》学习日志（十）83:谨慎的延迟初始化
 date: 2019-02-11 13:55:00
 author: admin
 comments: true
