@@ -5,7 +5,7 @@ date: 2019-02-21 17:48:00
 author: admin
 comments: true
 categories: [Java]
-tags: [Java,Effective Java]
+tags: [Java,Design Patterns]
 ---
 
 设计模式在软件设计中很重要，来学习一下。
