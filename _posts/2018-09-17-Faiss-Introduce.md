@@ -5,7 +5,7 @@ date: 2018-09-17 16:29:04
 author: admin
 comments: true
 categories: [Faiss]
-tags: [Image Search]
+tags: [Faiss, Image Search]
 ---
 
 Faiss 是 FaceBook 开源的一个项目，主要为了图片相似性搜索。来看看。

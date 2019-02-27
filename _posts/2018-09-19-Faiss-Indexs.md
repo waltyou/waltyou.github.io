@@ -5,7 +5,7 @@ date: 2018-09-19 09:29:04
 author: admin
 comments: true
 categories: [Faiss]
-tags: [Image Search]
+tags: [Faiss, Image Search]
 ---
 
 在上一篇，我们知道了 Index 是 Faiss 最重要的一部分，来详细了解它们。

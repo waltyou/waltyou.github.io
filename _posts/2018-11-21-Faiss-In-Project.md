@@ -5,7 +5,7 @@ date: 2018-11-21 17:49:04
 author: admin
 comments: true
 categories: [Faiss]
-tags: [Image Search]
+tags: [Faiss, Image Search]
 ---
 
 在今年九月接触了Faiss，从刚开始的一头雾水，到最后顺利在项目中使用，经历了许多曲折。

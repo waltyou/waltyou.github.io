@@ -5,7 +5,7 @@ date: 2018-09-21 09:49:04
 author: admin
 comments: true
 categories: [Faiss]
-tags: [Image Search]
+tags: [Faiss, Image Search]
 ---
 
 来了解一下 Faiss 中的线程与异步调用。
