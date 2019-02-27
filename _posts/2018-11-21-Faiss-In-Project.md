@@ -51,6 +51,7 @@ tags: [Faiss, Image Search]
 直接用 docker。
 
 Faiss docker 选择：https://hub.docker.com/r/plippe/faiss-docker/
+
 Opencv docker 选择： https://hub.docker.com/r/valian/docker-python-opencv-ffmpeg/
 
 注意：因为后面的faiss-web-service docker 里的python版本是2.7， 所以上面这些最好也是python2。
@@ -59,7 +60,8 @@ Opencv docker 选择： https://hub.docker.com/r/valian/docker-python-opencv-ffm
 ## 1. 提取图片向量
 
 这个步骤选择性很多，因为有太多图片特征提取算法供我们选择了。
-另外这一步其实是Faiss不关心的一步，它只关心构建索引。
+
+另外，提取图片特征向量这一步其实 Faiss 是不关心的，它只关心构建索引。
 
 附上自己做的一些调查。
 [![](/images/posts/image-feature-extration-algorithm.png)](/images/posts/image-feature-extration-algorithm.png)
@@ -166,7 +168,7 @@ scores, neighbors = index.search(siftfeature, k=topN)
 
 # 总结
 
-后续代码可以在github上看到： [waltyou/faiss-web-service](https://github.com/waltyou/faiss-web-service)。
+代码可以在github上看到： [waltyou/faiss-web-service](https://github.com/waltyou/faiss-web-service)。
 
 ---
 
