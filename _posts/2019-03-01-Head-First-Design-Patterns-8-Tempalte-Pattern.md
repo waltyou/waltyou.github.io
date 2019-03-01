@@ -1,5 +1,5 @@
 ---
-doulayout: post
+layout: post
 title: 《HeadFirst设计模式》学习日志（八）:模板方法模式
 date: 2019-03-01 09:49:00
 author: admin
