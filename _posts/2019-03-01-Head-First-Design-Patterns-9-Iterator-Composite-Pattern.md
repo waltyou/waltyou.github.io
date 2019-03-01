@@ -1,13 +1,12 @@
 ---
-doulayout: post
-title: 《HeadFirst设计模式》学习日志（九）:	迭代器与组合模式
-date: 2019-03-01 14:17:00
+layout: post
+title: 《HeadFirst设计模式》学习日志（九）:迭代器与组合模式
+date: 2019-03-01 16:58:00
 author: admin
 comments: true
 categories: [Java]
 tags: [Java,Design Patterns]
 ---
-
 
 
 <!-- more -->
