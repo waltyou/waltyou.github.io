@@ -151,3 +151,54 @@ id | v
 select id, v from test lateral view explode(split(values,',')) adtable as v;  
 
 ```
+
+# 使用 Split 函数的单行变多行
+
+## 1. 准备
+
+有时候，我们会有类似下面的表：
+
+| id   | values      |
+| ---- | ----------- |
+| 1    | aaa,bbb,ccc |
+
+但是我们想得到如下的表：
+
+| id   | v    |
+| ---- | ---- |
+| 1    | aaa  |
+| 1    | bbb  |
+| 1    | ccc  |
+
+## 2. 语句
+
+```sql
+select id, v from test lateral view explode(split(values,',')) adtable as v;  
+```
+
+# 组内排序后合并
+
+## 1. 准备
+
+输入表：
+
+| id   | v    |
+| ---- | ---- |
+| 1    | cccc |
+| 1    | aaaa |
+| 1    | bbbb |
+
+预期的输出表:
+
+| id   | values         |
+| ---- | -------------- |
+| 1    | aaaa,bbbb,cccc |
+
+这里想要它们先排序后再进行拼接操作。
+
+## 2. 语句
+
+```sql
+SELECT id, CONCAT_WS(",", SORT_ARRAY(COLLECT_SET(v))) as values from t GROUP BY id
+```
+
