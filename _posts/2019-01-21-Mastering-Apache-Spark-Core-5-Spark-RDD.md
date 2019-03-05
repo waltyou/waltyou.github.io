@@ -71,7 +71,7 @@ val r20 = Seq(r11, r12, r13).foldLeft(r10)(_ union _)
 
 ## Partitions
 
-**partion** （又名 split）是大型分布式数据集的逻辑块。Spark使用 Partitions 来管理数据，这些 Partitions 有助于并行化分布式数据处理，只需最少的网络流量即可在执行程序。
+**partition** （又名 split）是大型分布式数据集的逻辑块。Spark使用 Partitions 来管理数据，这些 Partitions 有助于并行化分布式数据处理，只需最少的网络流量即可在执行程序。
 默认情况下，Spark会尝试从靠近它的节点将数据读入RDD。由于Spark通常访问分布式分区数据，为了优化转换操作，它创建了用于保存数据块的分区。
 
 默认情况下，为每个HDFS分区创建一个分区。
