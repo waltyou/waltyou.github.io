@@ -67,4 +67,25 @@ val r13 = r01.keyBy(_ / 20)
 val r20 = Seq(r11, r12, r13).foldLeft(r10)(_ union _)
 ```
 
-逻辑执行计划从最早的RDD（不依赖于其他RDD或引用缓存数据的RDD）开始，以产生结果的action动作的RDD结束。
+**逻辑执行计划**从最早的RDD（不依赖于其他RDD或引用缓存数据的RDD）开始，以产生结果的action动作的RDD结束。
+
+## Partitions
+
+**partion** （又名 split）是大型分布式数据集的逻辑块。Spark使用 Partitions 来管理数据，这些 Partitions 有助于并行化分布式数据处理，只需最少的网络流量即可在执行程序。
+默认情况下，Spark会尝试从靠近它的节点将数据读入RDD。由于Spark通常访问分布式分区数据，为了优化转换操作，它创建了用于保存数据块的分区。
+
+默认情况下，为每个HDFS分区创建一个分区。
+
+当一个阶段执行时，您可以在Spark UI中看到给定阶段的分区数。
+
+可以使用 `rdd.partitions.size` 方法来查看 rdd 的分区数目。
+
+每当发生 shuffle 时，分区就会在节点之间重新分配。
+
+初始化 rdd 的时候，也可以指定分区数目：`sc.textFile(path, partition)`，但是它只能用于未压缩的数据。面对压缩数据，我们需要在读取完成之后，进行重分区。
+
+```scala
+repartition(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T]
+```
+
+以上方法会触发 shuffle 操作。
