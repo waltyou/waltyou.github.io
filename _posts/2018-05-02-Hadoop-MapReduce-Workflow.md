@@ -267,6 +267,34 @@ Sorting 更好的帮助了reducer来判断是否要启动一个新的reduce task
 
 当reducer数目被set为0时，shuffling和sorting完全不会执行。
 
+Shuffle又细分为两个阶段：map-shuffle 和 reduce-shuffler。
+
+#### Map-Shuffle
+
+写入之前先进行分区Partition，用户可以自定义分区（就是继承Partitioner类），然后定制到job上，如果没有进行分区，框架会使用 默认的分区（HashPartitioner）对key去hash值之后，然后在对reduceTaskNum进行取模（目的是为了平衡reduce的处理能力），然后决定由那个reduceTask来处理。
+
+将分完区的结果<key,value,partition>开始序列化成字节数组，开始写入缓冲区。
+
+随着map端的结果不端的输入缓冲区，缓冲区里的数据越来越多，缓冲区的默认大小是100M,当缓冲区大小达到阀值时 默认是0.8【spill.percent】（也就是80M）,开始启动溢写线程，锁定这80M的内存执行溢写过程，内存 —>磁盘，此时map输出的结果继续由另一个线程往剩余的20M里写，两个线程相互独立，彼此互不干扰。
+
+溢写spill线程启动后，开始对序列化的字节数组进行排序（先对分区号排序，然后在对key进行排序），默认顺序是自然排序。
+
+如果客户端自定义了 Combiner 之后，将相同的key的value相加。
+
+每次溢写都会在磁盘上生成一个一个的小文件，因为最终的结果文件只有一个,所以需要将这些溢写文件归并到一起，这个过程叫做 **Merge**。
+
+集合里面的值是从不同的溢写文件中读取来的。这时候Map-Shuffle就算是完成了。
+
+一个MapTask端只生成一个结果文件。
+
+#### Reduce-Shuffle
+
+当MapTask完成任务数超过总数的 5% 后，开始调度执行ReduceTask任务，然后 ReduceTask 默认启动5个copy线程到完成的MapTask任务节点上分别copy一份属于自己的数据（使用Http的方式）。
+
+这些拷贝的数据会首先保存到内存缓冲区中，当达到一定的阀值的时候，开始启动内存到磁盘的 Merge （溢写过程），一直运行到map端没有数据生成，最后启动磁盘到磁盘的 Merge 方式生成最终的那个文件。在溢写过程中，然后锁定80M的数据，然后在延续Sort过程，然后在 group(分组）里，将相同的key放到一个集合中，然后在进行Merge。
+
+最后就开始 reduceTask，这个文件交给 reduced() 方法进行处理，执行相应的业务逻辑。
+
 ### 9）Reducer
 
 Reducer会拿到一个由mapper输出的键值对集合，然后对它们分别运行reduce函数。
@@ -344,3 +372,4 @@ Hadoop提供的OutputFormat实例可以用来将文件写入HDFS或者本地文�
 2. [Hadoop Map/Reduce执行流程详解](http://zheming.wang/blog/2015/05/19/3AFF5BE8-593C-4F76-A72A-6A40FB140D4D/)
 3. [Partitioner (Apache Hadoop Main 2.4.1 API) - Apache™ HadoopL](https://hadoop.apache.org/docs/r2.4.1/api/org/apache/hadoop/mapreduce/Partitioner.html)
 4. [How to: Job Execution Framework MapReduce V1 & V2](https://mapr.com/blog/how-job-execution-framework-mapreduce-v1-v2/)
+5. [MapReduce详解及shuffle阶段](https://www.cnblogs.com/ELBOR-LIU/p/7446825.html)
