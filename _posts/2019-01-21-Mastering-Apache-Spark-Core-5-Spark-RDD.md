@@ -120,7 +120,24 @@ Shuffle 还会在磁盘上生成大量中间文件。从 Spark 1.3 开始，这�
 
 可以通过调整各种配置参数来调整 Shuffle 行为。
 
+## Checkpointing
 
+**Checkpointing** 是截断RDD Lineage Graph ，并将其保存到可靠的文件系统（如 HDFS 或本地文件系统）的过程。
+
+有两类 checkpointing：
+
+- **reliable**：在Spark Core 中，RDD checkpointing将实际的中间RDD数据保存到可靠的分布式文件系统，例如， HDFS。
+- **local**：在Spark Streaming或GraphX中 -  RDD checkpointing 存放在本地文件系统。
+
+开发者在决定使用 checkpointing 时，可以使用 `RDD.checkpoint()` 方法。在使用 checkpointing 之前，Spark开发人员必须使用`SparkContext.setCheckpointDir(directory：String)`方法设置检查点目录。
+
+### Reliable Checkpointing
+
+在集群模式下，传入 `setCheckpointDir`方法的参数，必须是 HDFS 的路径。因为 driver 或许会从它的本地文件系统恢复checkpointing的数据，但是这是不对的，因为数据都存储在各个executor的机器上。
+
+在调用 `RDD.checkpoint()`后，RDD 会被保存在之前设置的目录下，然后这个RDD所有的父类RDD就会被移除掉。必须在对此RDD执行任何作业之前，调用这个函数。
+
+> 强烈建议在内存中保留 checkpointed RDD，否则将其保存在文件中将需要重新计算。
 
 
 
