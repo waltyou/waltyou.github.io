@@ -142,6 +142,36 @@ runJob 向 DAGScheduler 提交一个动作作业并等待结果。
 
 在内部，runJob 执行 submitJob，然后等待直到使用 JobWaiter 得到结果。
 
+### DAGScheduler Event Bus
 
+eventProcessLoop 是 DAGScheduler的事件总线，Spark（通过submitJob）向其发布作业以安排执行。稍后，TaskSetManager会回到 DAGScheduler，以使用相同的“通信通道”通知任务的状态。
+
+它允许Spark在发布时释放当前线程，并让事件循环在一个单独的线程上处理事件 - 异步。
+
+### submitStage
+
+```scala
+submitStage(stage: Stage)
+```
+
+submitStage 是 DAGScheduler 用于提交输入阶段或其缺失父项的内部方法（如果在输入阶段之前还没有计算任何 stage）。
+
+submitStage 以递归方式提交任何缺少的 stage 父依赖。
+
+在内部，submitStage 首先找到需要该阶段的最早创建的作业ID。
+
+submitStage 检查 stage 的状态，并且如果状态在内部注册表中不是等待、运行或失败的记录时，它会继续检查，否则它直接退出。
+
+但是，如果 stage 缺少父阶段，则submitStage将提交所有父阶段，并且这个 stage 将记录在内部 waitingStages注册表中。
+
+## 故障恢复- 重试 stage
+
+如果 TaskScheduler 报告任务因前一阶段的 map 输出文件丢失而失败，则DAGScheduler会重新提交丢失的阶段。 这是通过带有FetchFailed的CompletionEvent或ExecutorLost事件检测到的。 DAGScheduler将等待一小段时间以查看其他节点或任务是否失败，然后为所有丢失的 stage 重新提交 TaskSets ，以计算丢失的任务。
+
+请注意，stage 的旧尝试中的任务仍然正在运行。
+
+stage对象跟踪多个StageInfo对象以传递给Spark侦听器或Web UI。
+
+可以通过latestInfo访问最近阶段尝试的最新StageInfo。
 
 ## 未完待续。。。
