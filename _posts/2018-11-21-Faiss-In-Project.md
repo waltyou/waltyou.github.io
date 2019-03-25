@@ -12,6 +12,8 @@ tags: [Faiss, Image Search]
 
 这次来总结一下。
 
+[English Version](../Faiss-In-Project-English/)
+
 <!-- more -->
 
 ---
@@ -26,17 +28,17 @@ tags: [Faiss, Image Search]
 
 ## 1. 再问Faiss是什么？
 
-撇开具体定义不管，理解新事物的最好方式就是类别自己熟悉的事物。
+撇开具体定义不管，理解新事物的最好方式就是类比自己熟悉的事物。
 
 比如，Faiss 就可以类比为一个可以设置**索引**的**数据库**。
 
-索引是干什么的？ 更快的读取，数据库是干什么的？增删改查。数据库里存的什么？对于Faiss来讲就是巨多的向量。
+索引是干什么的？ 更快的读取，数据库是干什么的？增删改查。数据库里存的什么？通常来讲是许多记录，但对于Faiss来讲就是巨多的向量。
 
 只是在 Faiss 中没有数据库存储介质这一层的概念，全部都是 Index。
 
 ## 2. Index 在 Faiss 中是什么角色？
 
-还是类比数据库的索引，为了更快的查数据，我们可以学字典一样，以首字母建立索引，也可以像谷歌一样，使用倒排索引（inverted index）。
+还是类比数据库的索引，为了更快的查数据，我们可以学字典一样，以首字母建立索引，也可以像早期的谷歌一样，使用倒排索引（inverted index）。
 
 不同的索引方式，有不同的优缺点，Faiss 已经全部实现好了。
 如果只是为了使用，可以暂时忽略它们的实现原理，只需要了解各自特点以及自己的使用场景即可。
@@ -51,8 +53,6 @@ tags: [Faiss, Image Search]
 直接用 docker。
 
 Faiss docker 选择：https://hub.docker.com/r/plippe/faiss-docker/
-
-Opencv docker 选择： https://hub.docker.com/r/valian/docker-python-opencv-ffmpeg/
 
 注意：因为后面的faiss-web-service docker 里的python版本是2.7， 所以上面这些最好也是python2。
 如果想使用python3，可以用一个python3的faiss docker 作为基础镜像，自己安装opencv和flask。
@@ -152,7 +152,7 @@ f.close()
 ```
 如果你选择需要训练的Index类型，请先训练它再添加向量。
 
-## 3. 查询Index
+## 3. 查询 Index
 
 ```python
 scores, neighbors = index.search(siftfeature, k=topN)
@@ -160,15 +160,13 @@ scores, neighbors = index.search(siftfeature, k=topN)
 
 ## 4. 构建 API 服务
 
-主要是参考：https://github.com/plippe/faiss-web-service
+主要是参考 [plippe/faiss-web-service](https://github.com/plippe/faiss-web-service)。
 
-去github上看一看它的代码就可以了。
-
----
+------
 
 # 总结
 
-代码可以在github上看到： [waltyou/faiss-web-service](https://github.com/waltyou/faiss-web-service)。
+项目的完整代码可以在github上看到： [waltyou/faiss-web-service](https://github.com/waltyou/faiss-web-service)。
 
 ---
 

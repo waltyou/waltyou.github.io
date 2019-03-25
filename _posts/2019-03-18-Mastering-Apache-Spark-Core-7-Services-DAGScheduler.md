@@ -240,10 +240,46 @@ shuffle 边界引入了一个障碍，在这里 stage/tasks 必须等待上一st
 
 Tasks 稍后提交给Task Scheduler（通过`taskScheduler.submitTasks`）。
 
+### findMissingPartitions
 
+stage 的抽象类定义如下：
 
+```scala
+abstract class Stage {
+  def findMissingPartitions(): Seq[Int]
+}
+```
 
+Stage.findMissingPartitions() 可以获取那些 missing partitions 的 id，这些 missing partitions 是指那些 ActiveJob 知道它们还没有完成的 partitions 。
 
+ResultStage 通过查询 ActiveJob 来了解未完成的分区ID（numPartitions）（使用ActiveJob.finished布尔数组）。
 
+[![](/images/posts/resultstage-findMissingPartitions.png)](/images/posts/resultstage-findMissingPartitions.png)
 
-## 未完待续。。。
+在上图中，partition 1 和 2 没有完成，因为在 finished 的布尔数组里，它们对应的是 F (false)。
+
+### ShuffleMapStage
+
+ShuffleMapStage（也称为 shuffle map阶段或简称map阶段）是 **physical execution DAG** 中与 ShuffleDependency 对应的中间阶段。
+
+当 ShuffleMapStage 被执行时，它保存 **map output files** ，这些文件后面会被reduce tasks 获取。当所有的 map output files 都可用时，ShuffleMapStage 就会被认为是 **available** (or **ready**)。
+
+输出位置可能会丢失，即 partitions 尚未计算或丢失。
+
+ShuffleMapStage 使用 outputLocs 和 _numAvailableOutputs 内部注册表来跟踪可用的 shuffle map 输出的数量。
+
+ShuffleMapStage是阶段DAG中其他后续阶段的输入，因此它也被称为 **shuffle dependency’s map side** 。
+
+一个 ShuffleMapStage 可能在 shuffle 操作之前，包含多个 **pipelined operations**， 比如 map 和 filter。
+
+单个 ShuffleMapStage 可以在不同的作业中共享。
+
+### ResultStage
+
+ResultStage 是作业的最后一个阶段，它在目标RDD的一个或多个分区上应用函数来计算操作的结果。
+
+[![](/images/posts/dagscheduler-job-resultstage.png)](/images/posts/dagscheduler-job-resultstage.png)
+
+会给每个 partition 一组 partition 的 ids 以及 一个函数 `func: (TaskContext, Iterator[_]) ⇒ _`。
+
+[![](/images/posts/dagscheduler-resultstage-partitions.png)](/images/posts/dagscheduler-resultstage-partitions.png)
