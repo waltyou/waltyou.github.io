@@ -121,18 +121,8 @@ DAGScheduler被告知由于FetchFailed异常导致任务失败。
 
 
 
+## 未完待续。。。
 
 
 
-
-
-
-
-
-
-
-
-
-
-[![](/images/posts/rdd-job-partitions.png)](/images/posts/rdd-job-partitions.png)
 
