@@ -64,6 +64,8 @@ ExecutorLost传达以下信息：
 
 注意：当DAGScheduler被告知任务因FetchFailed异常而失败时，也会调用handleExecutorLost。
 
+[![](/images/posts/dagscheduler-handleExecutorLost.png)](/images/posts/dagscheduler-handleExecutorLost.png)
+
 ### GettingResultEvent
 
 TaskSetManager 通知 DAGScheduler（通过taskGettingResult）任务已完成并且远程获取结果。
@@ -102,7 +104,28 @@ MapStageSubmitted传达以下信息：
 4. JobListener通知阶段的状态
 5. 执行的属性
 
+```scala
+handleMapStageSubmitted(
+  jobId: Int,
+  dependency: ShuffleDependency[_, _, _],
+  callSite: CallSite,
+  listener: JobListener,
+  properties: Properties): Unit
+```
 
+handleMapStageSubmitted 为输入 `ShuffleDependency` 和 `jobId` 查找或创建一个新的`ShuffleMapStage`。
+
+handleMapStageSubmitted 创建一个 `ActiveJob`（带有输入jobId，callSite，listener和properties 以及ShuffleMapStage）。
+
+handleMapStageSubmitted 清除RDD分区位置的内部缓存。
+
+handleMapStageSubmitted 在 jobIdToActiveJob 和 activeJobs 内部注册表中注册新作业，并使用最终的 ShuffleMapStage 注册。（ShuffleMapStage可以注册多个ActiveJobs。）
+
+handleMapStageSubmitted 查找输入 jobId 的所有已注册阶段并收集其最新的 StageInfo。
+
+最终，handleMapStageSubmitted 将 SparkListenerJobStart 消息发布到 LiveListenerBus并提交 ShuffleMapStage。
+
+如果`ShuffleMapStage`已经可用，则 handleMapStageSubmitted 标记作业已完成。
 
 ### ResubmitFailedStages
 
@@ -117,11 +140,6 @@ DAGScheduler被告知由于FetchFailed异常导致任务失败。
 要求DAGScheduler取消TaskSet。
 
 
-
-
-
-
-## 未完待续。。。
 
 
 
