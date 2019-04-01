@@ -110,6 +110,44 @@ run 取消设置任务的TaskContext。
 - KILLED
 - LOST
 
+### ShuffleMapTask
+
+ShuffleMapTask 是一个计算 `MapStatus` 的 Task，即将RDD分区中计算记录的结果写入shuffle系统，并返回有关BlockManager 的信息和结果shuffle块的估计大小。
+
+当 DAGScheduler 为 ShuffleMapStage 提交缺少的任务时，专门创建 ShuffleMapTask 。
+
+### ResultTask
+
+ResultTask 是一个对RDD分区中的记录执行函数的 Task。
+
+当 DAGScheduler 为 ResultStage 提交缺少的任务时，将专门创建 ResultTask。
+
+ResultTask 是使用 broadcast variable 创建的，其中包含RDD和执行它的函数以及分区。
+
+## FetchFailedException
+
+Task 运行时可能抛出FetchFailedException异常（并且ShuffleBlockFetcherIterator无法设法获取shuffle块）。
+
+`FetchFailedException` 包含以下内容：
+
+- BlockManager的唯一标识符（作为BlockManagerId）
+- `shuffleId`
+- `mapId`
+- `reduceId`
+- 一条简短的异常 `message`
+- `cause` - root Throwable对象
+
+报告 FetchFailedException时，TaskRunner 会捕获它并通知 ExecutorBackend（具有TaskState.FAILED任务状态）。
+
+FetchFailedException 的根本原因通常是因为 executor（使用用于shuffle块的BlockManager）丢失（即不再可用），原因是：
+
+1. 可能抛出 `OutOfMemoryError`（也称为OOMed）或其他一些未处理的异常。
+2. 使用 Spark应用程序的执行程序管理工作程序的集群管理器，例如YARN，强制执行容器内存限制，并最终因内存使用过多而决定终止执行程序。
+
+您应该使用 Web UI，Spark History Server或特定于群集的工具（如针对Hadoop YARN的yarn logs -applicationId）查看Spark应用程序的日志。
+
+解决方案通常是调整Spark应用程序的内存。
+
 
 
 
