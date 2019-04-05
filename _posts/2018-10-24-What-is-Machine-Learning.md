@@ -147,6 +147,10 @@ E.A.Feigenbaum等人认为，机器必须拥有知识才能拥有智能，并且
 常见的回归算法包括：最小二乘法（Ordinary Least Square），逻辑回归（Logistic Regression），逐步式回归（Stepwise Regression），
 多元自适应回归样条（Multivariate Adaptive Regression Splines）以及本地散点平滑估计（Locally Estimated Scatterplot Smoothing）
 
+线性回归详细介绍看[这里](../Linear-Regression/).
+
+逻辑回归详细介绍看[这里](../Logistic-Regression/).
+
 ### 基于实例的算法
 
 [![](/images/posts/knn.jpg)](/images/posts/knn.jpg)
@@ -156,6 +160,8 @@ E.A.Feigenbaum等人认为，机器必须拥有知识才能拥有智能，并且
 
 常见的算法包括 k-Nearest Neighbor(KNN), 学习矢量量化（Learning Vector Quantization， LVQ），
 以及自组织映射算法（Self-Organizing Map ， SOM）
+
+knn 详细介绍看[这里](../KNN/).
 
 ### 正则化方法
 
@@ -174,7 +180,11 @@ E.A.Feigenbaum等人认为，机器必须拥有知识才能拥有智能，并且
 
 常见的算法包括：分类及回归树（Classification And Regression Tree， CART）， ID3 (Iterative Dichotomiser 3)， C4.5， 
 Chi-squared Automatic Interaction Detection(CHAID), Decision Stump, 随机森林（Random Forest）， 
-多元自适应回归样条（MARS）以及梯度推进机（Gradient Boosting Machine， GBM）
+多元自适应回归样条（MARS）以及梯度推进机（Gradient Boosting Machine， GBM）。
+
+决策树详细介绍看[这里](../Decision-Tree/).
+
+随机森林详细介绍看[这里](../Random-Forest/).
 
 ### 贝叶斯方法
 
@@ -193,7 +203,9 @@ Chi-squared Automatic Interaction Detection(CHAID), Decision Stump, 随机森林
 基于核的算法把输入数据映射到一个高阶的向量空间， 在这些高阶向量空间里， 有些分类或者回归问题能够更容易的解决。 
 
 常见的基于核的算法包括：支持向量机（Support Vector Machine， SVM）， 径向基函数（Radial Basis Function ，RBF)， 
-以及线性判别分析（Linear Discriminate Analysis ，LDA)等
+以及线性判别分析（Linear Discriminate Analysis ，LDA)等。
+
+SVM 详细介绍看[这里](../SVM/).
 
 ### 聚类算法
 
@@ -204,6 +216,8 @@ Chi-squared Automatic Interaction Detection(CHAID), Decision Stump, 随机森林
 所以的聚类算法都试图找到数据的内在结构，以便按照最大的共同点将数据进行归类。
 
 常见的聚类算法包括 k-Means算法以及期望最大化算法（Expectation Maximization， EM）。
+
+k-Means 详细介绍看[这里](../K-Means/).
 
 ### 关联规则学习
 
@@ -222,7 +236,9 @@ Chi-squared Automatic Interaction Detection(CHAID), Decision Stump, 随机森林
 人工神经网络是机器学习的一个庞大的分支，有几百种不同的算法。（其中深度学习就是其中的一类算法，我们会单独讨论）。
 
 重要的人工神经网络算法包括：感知器神经网络（Perceptron Neural Network）, 反向传递（Back Propagation）， 
-Hopfield网络，自组织映射（Self-Organizing Map, SOM）, 学习矢量量化（Learning Vector Quantization， LVQ）
+Hopfield网络，自组织映射（Self-Organizing Map, SOM）, 学习矢量量化（Learning Vector Quantization， LVQ）。
+
+神经网络详细介绍看[这里](../Neural-Network/).
 
 ### 深度学习
 
