@@ -125,7 +125,7 @@ from userMoney
 where temp.rank < 3;
 
 ```
---- 
+---
 
 # 使用 Split 函数的单行变多行
 
@@ -202,3 +202,18 @@ select id, v from test lateral view explode(split(values,',')) adtable as v;
 SELECT id, CONCAT_WS(",", SORT_ARRAY(COLLECT_SET(v))) as values from t GROUP BY id
 ```
 
+# 创建 Partition 或 bucket
+
+## partition
+
+```sql
+create table state_part(District string,Enrolments string) PARTITIONED BY(state string);
+```
+
+## bucket
+
+```sql
+create table state_part(District string,Enrolments string) clustered by Enrolments into 4 buckets row format delimited fields terminated by ',';
+```
+
+详细参考[这里](https://www.guru99.com/hive-partitions-buckets-example.html)。
