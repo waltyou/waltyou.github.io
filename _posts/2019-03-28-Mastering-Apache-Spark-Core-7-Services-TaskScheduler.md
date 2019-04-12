@@ -101,7 +101,7 @@ run 请求MemoryManager通知任何等待执行内存的任务被释放唤醒并
 
 run 取消设置任务的TaskContext。
 
-### Task 状态：
+### Task 状态
 
 - LAUNCHING
 - RUNNING
@@ -110,13 +110,15 @@ run 取消设置任务的TaskContext。
 - KILLED
 - LOST
 
-### ShuffleMapTask
+### Task分类
+
+#### ShuffleMapTask
 
 ShuffleMapTask 是一个计算 `MapStatus` 的 Task，即将RDD分区中计算记录的结果写入shuffle系统，并返回有关BlockManager 的信息和结果shuffle块的估计大小。
 
 当 DAGScheduler 为 ShuffleMapStage 提交缺少的任务时，专门创建 ShuffleMapTask 。
 
-### ResultTask
+#### ResultTask
 
 ResultTask 是一个对RDD分区中的记录执行函数的 Task。
 
@@ -124,7 +126,7 @@ ResultTask 是一个对RDD分区中的记录执行函数的 Task。
 
 ResultTask 是使用 broadcast variable 创建的，其中包含RDD和执行它的函数以及分区。
 
-## FetchFailedException
+### 运行时异常
 
 Task 运行时可能抛出FetchFailedException异常（并且ShuffleBlockFetcherIterator无法设法获取shuffle块）。
 
@@ -148,10 +150,35 @@ FetchFailedException 的根本原因通常是因为 executor（使用用于shuff
 
 解决方案通常是调整Spark应用程序的内存。
 
+## Task的提交与调度
 
+### TaskSet
 
+`TaskSet` 是一个 stage 中既独立又还未计算的任务的集合，也就是说这些任务的计算结果现在都还不可用。
 
+当 `DAGScheduler`  被请求提交miss 的 task 时，taskset 就会被创建。
 
+### TaskSetManager
 
+TaskSetManager是一个Schedulable，用于管理TaskSet任务的调度。
 
-## 未完待续。。。。
+当请求 TaskSchedulerImpl 创建一个 TaskSet（当为给定的TaskSet提交任务时）时，将单独创建TaskSetManager。
+
+先了解两个概念：
+
+- Schedulable 是管理 schedulableQueue 的可调度实体的抽象，并且可以 getSortedTaskSetQueue。
+
+- Pool是一个Schedulable实体，表示TaskSetManagers树，即它包含TaskSetManagers或其Pools的集合。
+
+### Scheduling Mode 
+
+`spark.scheduler.mode` 这个属性定义一个策略来对任务进行排序以便执行。 
+
+Spark中的TaskScheduler合约的唯一实现 -  `TaskSchedulerImpl`  - 使用 spark.scheduler.mode 设置来配置仅用于设置rootPool属性的scheduMode（FIFO是默认值）。 它在TaskSchedulerImpl初始化时发生。
+
+有三种可接受的调度模式：
+
+- `FIFO` ，它没有 pools 的概念，只有一个高 level 的未命名 pool，其元素是TaskSetManager对象
+- `FAIR` ，具有可调度（子）池的层次结构，其中 rootPool 位于顶部。
+- None 未使用
+
