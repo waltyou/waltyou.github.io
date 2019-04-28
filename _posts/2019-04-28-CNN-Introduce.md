@@ -63,6 +63,7 @@ CNN，全称 convolution neural network，卷积神经网络。
 3. 输出层
 
 卷积过程：
+
 [![](/images/posts/CNN-kernel-mv.gif)](/images/posts/CNN-kernel-mv.gif) 
 
 # 参考
