@@ -120,11 +120,11 @@ tags: [Machine Learning]
 代入数据：
 
     net_h1 = 0.15 * 0.05 + 0.2 * 0.1 + 0.35 * 1 = 0.3775
-    
+
 这里假设[激励函数](https://blog.csdn.net/tyhj_sf/article/details/79932893)用logistic函数(也就是在逻辑回归中的那个sigmoid函数)，计算得隐含层神经元h1的输出：
 
 [![](/images/posts/neural-network-equation.svg)](/images/posts/neural-network-equation.svg)
- 
+
 同样的方法，可以得到隐含层神经元h2的输出为：
 
     net_h2 = 0.596884378
@@ -136,15 +136,15 @@ tags: [Machine Learning]
 代入数据：
     
     net_O1 = 1.105905967
-    
+
 输出层神经元O1的输出，经由sigmoid函数转换为：
 
     out_O1 = 0.75136507
-    
+
 同样的方法，可以得到输出层神经元O2的输出为：
 
     out_O2 = 0.772928465
-    
+
 ## 统计误差
 
 假如误差公式为：
@@ -176,10 +176,9 @@ tags: [Machine Learning]
 
 它表示了对于 w_5 这个参数对于最终误差的影响。
 
+反向传播的思想总体来讲，就是相当于重新训练了一个神经网络，只不过它的训练方向是从右到左，而前向传播的训练反向是从左到右。
 
----
-
-## 未完待续。。。。
+反向传播依托的基石就是数学求偏导的一个特性，叫做 chain rule。正因为借助了chain rule，反向传播才得以实现。
 
 
 
