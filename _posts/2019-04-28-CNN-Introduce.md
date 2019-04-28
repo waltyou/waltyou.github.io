@@ -5,7 +5,7 @@ date: 2019-04-28 15:48:04
 author: admin
 comments: true
 categories: [Machine Learning]
-tags: [Machine Learning，Deep Learning]
+tags: [Machine Learning, Deep Learning]
 ---
 
 神经网络
@@ -61,6 +61,9 @@ CNN，全称 convolution neural network，卷积神经网络。
    2. 池化层（pooling layer）
    3. 全连接层（fully-connected layer）
 3. 输出层
+
+卷积过程：
+[![](/images/posts/CNN-kernel-mv.gif)](/images/posts/CNN-kernel-mv.gif) 
 
 # 参考
 
