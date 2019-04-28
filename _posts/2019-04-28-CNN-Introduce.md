@@ -8,10 +8,6 @@ categories: [Machine Learning]
 tags: [Machine Learning, Deep Learning]
 ---
 
-神经网络
-
-在神经网络
-
 CNN，卷积神经网络，是属于深度学习范畴的一个算法框架，它在图片处理方面很有建树，来了解一下。
 
 <!-- more -->
