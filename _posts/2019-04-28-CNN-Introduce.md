@@ -51,21 +51,59 @@ CNN，全称 convolution neural network，卷积神经网络。
 
 # 结构
 
+## 0. Overview
+
 1. 输入层 input layer
 2. 隐含层
    1. 卷积层 （convolutional layer）
    2. 池化层（pooling layer）
-   3. 全连接层（fully-connected layer）
+   3. Flatten 层
+   4. 全连接层（fully-connected layer）
 3. 输出层
 
-卷积过程：
+输入输出层，没什么好说的。我们直接来看隐含层。
+
+隐含层中的全连接层就相当于一个正常的全连接神经网络，不过它的输入是池化层的输出。而卷积层、池化层，这两层通常都是会重复出现的，如下图：
+
+[![](/images/posts/CNN-Architecture.png)](/images/posts/CNN-Architecture.png) 
+
+着重来看一下隐含层的前三部分。
+
+## 1. 卷积层
+
+卷积层的实现，其实就是实现了核心思想的前两条。
+
+它主要是做一件事情：将输入通过多个卷积核（kernel）（或者叫做filter），生成 result maps。
+
+比较形象的过程可以看下图：
 
 [![](/images/posts/CNN-kernel-mv.gif)](/images/posts/CNN-kernel-mv.gif) 
+
+最左边的就是一个输入，第二个的就是一个卷积核（其实就是一个matrix），最右边的就是卷积核的输出们。
+
+卷积核每次只关心和它同样大小的输入，然后矩阵内积后，产生出一个输出。接着，移动卷积核观察的区域，依次产生所有输出。最后，我们就得到一个新的矩阵。
+
+每个卷积核都会生成一个矩阵作为输出。一个卷积层可能有多个卷积核。
+
+## 2. 池化层
+
+池化层做的事情，对应了核心思想的第三条。
+
+在尝试学习内核之前，它会将卷积图像中的像素区域合并在一起（缩小图像）。 
+
+[![](/images/posts/CNN-poolfig.gif)](/images/posts/CNN-poolfig.gif) 
+
+
+## 3. Flatten 层 
+
+它做的事情比较简单，就是把一个矩阵拉平，变为一个高维向量，作为全连接层的输入。
+
 
 # 参考
 
 1. [Convolutional Neural Networks - Basics](https://mlnotebook.github.io/post/CNN1/)
+2. [知乎：能否对卷积神经网络工作原理做一个直观的解释？](https://www.zhihu.com/question/39022858)
 
 
 
-## 未完待续。。。
+# 未完待续。。。
