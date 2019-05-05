@@ -105,5 +105,3 @@ CNN，全称 convolution neural network，卷积神经网络。
 2. [知乎：能否对卷积神经网络工作原理做一个直观的解释？](https://www.zhihu.com/question/39022858)
 
 
-
-# 未完待续。。。
