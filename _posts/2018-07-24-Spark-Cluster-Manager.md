@@ -13,8 +13,8 @@ Spark 的 Cluster Manager 有三种类型： Spark Standalone cluster, YARN mode
 <!-- more -->
 
 ---
-## 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}

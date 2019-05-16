@@ -4,39 +4,24 @@
 {% include head.html %}
 {% seo %}
 
-<body>
+  <body>
 
-{% include header.html %}
+    {% include header.html %}
 
-<div class="container">
-    <div class="row">
-        <div class="col-sm-8 blog-main white_background">
-            {{ content }}
-        </div>
+        {{ content }}
 
-        <div class="col-sm-3 col-sm-offset-1 blog-sidebar">
-            {% include right.html %}
-
-        </div>
-    </div>
-</div>
-
-<hr/>
-{% include footer.html %}
-
-<a id="goToTop" href="#">
-    <i class="fa fa-chevron-up fa-3x"></i>
-</a>
-
-</body>
-
-<script src="/scripts/jquery-1.11.2.min.js"></script>
-<script src="/scripts/nprogress.js"></script>
-<script src="/scripts/bootstrap.min.js"></script>
-<script src="/scripts/main.js"></script>
-
-{% if site.google-analytics_id %}
-{% include google-analytics.html %}
-{% endif %}
+    {% include footer.html %}
+    {% include backToTop.html %}
+    <script src="{{ " /js/main.js " | prepend: site.baseurl }}" charset="utf-8"></script>
+    <script src="{{ " /js/smooth-scroll.min.js " | prepend: site.baseurl }}" charset="utf-8"></script>
+    <script type="text/javascript">
+      smoothScroll.init({
+        speed: 500, // Integer. How fast to complete the scroll in milliseconds
+        easing: 'easeInOutCubic', // Easing pattern to use
+        offset: 20, // Integer. How far to offset the scrolling anchor location in pixels
+      });
+    </script>
+    <!-- <script src="{{ " /js/scroll.min.js " | prepend: site.baseurl }}" charset="utf-8"></script> -->
+  </body>
 
 </html>

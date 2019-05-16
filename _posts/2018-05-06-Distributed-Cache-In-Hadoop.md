@@ -14,8 +14,8 @@ Hadoop中的MapReduce有个一个很实用的机制，叫做分布式缓存（Di
 
 <!-- more -->
 ---
-## 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}

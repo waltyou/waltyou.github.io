@@ -17,7 +17,7 @@ Here is a summary.  [中文版](../Faiss-In-Project/).
 
 ---
 ## TOC
-{:.no_toc}
+
 
 * 目录
 {:toc}

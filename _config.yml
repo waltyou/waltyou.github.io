@@ -1,25 +1,42 @@
+# Welcome to Jekyll!
+#
+# This config file is meant for settings that affect your whole blog, values
+# which you are expected to set up once and rarely need to edit after that.
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'jekyll serve'. If you change this file, please restart the server process.
+
 # Site settings
 title: Walt You - 知行合一
-name: Walt You - 知行合一
-url: "http://waltyou.github.io"
-email: waltyou@163.com
-description: Walt You - 知行合一
-baseurl: "" # the subpath of your site, e.g. /blog/
-github_username: waltyou # Github ID
-baidutongji_id: d601aa59a7cce69b0847dcc1deb3eb53 # 百度统计 ID
-google-analytics_id: UA-116533568-1 # google analytics id
-logo_image: "/images/logo.png"  # LOGO 图片地址
-# Build settings
-gems: [jekyll-paginate]
-highlighter: rouge
+brief-intro: 
+baseurl: "" # the subpath of your site, e.g. /blog
+url: "https://waltyou.github.io/" # the base hostname & protocol for your site
+
 permalink: /:title/
-paginate: 8
-paginate_path: page/:num
-# 目录深度
+
+# other links
+github_username:  waltyou
+email: waltyou@136.com
+
+
+google_analytics_id: UA-116533568-1 # google 分析追踪i
+# Build settings
+markdown: kramdown
+
 kramdown:
-  toc_levels: 1..2
-# seo
-plugins:
-  - jekyll-seo-tag
-  - jekyll-sitemap
- 
+  input: GFM
+  syntax_highlighter: rouge
+
+# port
+# port: 1234
+
+# url
+category_dir: category/
+tag_dir: tag/
+
+# excerpt
+excerpt_separator: "<!-- more -->"
+
+# paginate
+plugins: [jekyll-paginate, jekyll-seo-tag, jekyll-sitemap]
+paginate: 6
+

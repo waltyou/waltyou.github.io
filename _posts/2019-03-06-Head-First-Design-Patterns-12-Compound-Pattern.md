@@ -17,8 +17,8 @@ tags: [Java,Design Patterns]
 
 ------
 
-## 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}

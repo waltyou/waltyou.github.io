@@ -14,8 +14,8 @@ tags: [Java,Java8]
 学习资料主要参考： 《Java 8 In Action》、《Java 8实战》，以及其源码：[Java8 In Action](https://github.com/java8/Java8InAction)
 
 ---
-# 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}

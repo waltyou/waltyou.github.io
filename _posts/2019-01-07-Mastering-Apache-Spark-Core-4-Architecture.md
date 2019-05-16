@@ -14,11 +14,6 @@ Spark 使用 **master/worker **结构。
 
 <!-- more -->
 
-------
-
-## 目录
-{:.no_toc}
-
 * 目录
 {:toc}
 

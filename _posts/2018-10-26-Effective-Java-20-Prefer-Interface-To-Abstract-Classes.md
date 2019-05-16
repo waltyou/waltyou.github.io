@@ -16,8 +16,8 @@ Java 有两种机制来定义多实现的类：接口与抽象类。但接口优
 学习资料主要参考： 《Effective Java Third Edition》，作者：Joshua Bloch
 
 ---
-## 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}

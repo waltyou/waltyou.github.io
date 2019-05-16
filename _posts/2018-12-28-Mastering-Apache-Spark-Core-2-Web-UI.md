@@ -12,10 +12,6 @@ Web UI（也称为Application UI或webUI或Spark UI）是Spark应用程序的Web
 
 <!-- more -->
 
-------
-
-## 目录
-{:.no_toc}
 
 * 目录
 {:toc}

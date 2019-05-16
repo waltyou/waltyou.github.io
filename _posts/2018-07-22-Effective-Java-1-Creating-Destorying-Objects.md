@@ -16,8 +16,8 @@ tags: [Java, Effective Java]
 学习资料主要参考： 《Effective Java Third Edition》，作者：Joshua Bloch
 
 ---
-## 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}

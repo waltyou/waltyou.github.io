@@ -12,8 +12,8 @@ Mapreduce 作为hadoop的计算框架层， 是hadoop的核心之一。
 
 <!-- more -->
 ---
-## 目录
-{:.no_toc}
+
+
 
 * 目录
 {:toc}
