@@ -212,20 +212,19 @@ abstract class OnlineBanking {
 
 这个抽象类构建了一个模板，所有的子类都要实现makeCustomerHappy，来面对差异化的需求。
 
-
 2. 改写后
-    首先添加一个重载的新方法，它多传入一个Consumer接口作为参数
-    ```java
-    public void processCustomer(int id, Consumer<Customer> makeCustomerHappy){
-        Customer c = Database.getCustomerWithId(id);
-        makeCustomerHappy.accept(c);
-    }
-    ```
-    传入lambda
-    ```java
-    new OnlineBankingLambda().processCustomer(1337, (Customer c) ->
-        System.out.println("Hello " + c.getName());
-    ```
+首先添加一个重载的新方法，它多传入一个Consumer接口作为参数
+```java
+public void processCustomer(int id, Consumer<Customer> makeCustomerHappy){
+    Customer c = Database.getCustomerWithId(id);
+    makeCustomerHappy.accept(c);
+}
+```
+传入lambda
+```java
+new OnlineBankingLambda().processCustomer(1337, (Customer c) ->
+    System.out.println("Hello " + c.getName());
+```
 
 ### 3）观察者模式
 某些事件发生时(比如状态转变),如果一个对象(通常我们称之为主题Subject)需要自动地通知其他多个对象(称为观察者Observer)。
