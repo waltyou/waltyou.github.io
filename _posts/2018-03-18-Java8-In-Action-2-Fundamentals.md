@@ -18,8 +18,6 @@ tags: [Java,Java8]
 
 ---
 
-
-
 * 目录
 {:toc}
 ---
@@ -32,8 +30,6 @@ tags: [Java,Java8]
 
 ---
 # 行为参数化
-
-<br>
 
 ## 三个问号
 ### 1. Why
@@ -50,7 +46,7 @@ tags: [Java,Java8]
 
 Example 1：用一个Comparator排序Apple，使用Java 8中List默认的sort方法。
 
-```
+```java
 // java.util.Comparator
 public interface Comparator<T> {
     public int compare(T o1, T o2);
@@ -69,7 +65,7 @@ inventory.sort(
 
 Example 2：用Runnable执行代码块。
 
-```
+```java
 // java.lang.Runnable
 public interface Runnable{
     public void run();
@@ -86,7 +82,7 @@ Thread t = new Thread(() -> System.out.println("Hello world"));
 
 Example 3：GUI事件处理。
 
-```
+```java
 Button button = new Button("Send");
 // 匿名类写法
 button.setOnAction(new EventHandler<ActionEvent>() {
@@ -100,8 +96,6 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 ```
 ---
 # 匿名函数lambda
-
-<br>
 
 ## 三个问号
 
@@ -125,11 +119,11 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 参数列表 + 箭头 + 主体
 
 基本写法
-```
+```java
 (parameters) -> expression
 ```
 当主体中出现控制流语句，如return等，要使此Lambda有效，需要使花括号
-```
+```java
 (parameters) -> { statements; }
 ```
 
@@ -151,12 +145,11 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
     3. Function.apply： (T) -> R
 
 2. **函数描述符**：函数式接口的抽象方法的签名基本上就是Lambda表达式的签名。如下：
-    ```
+    ```java
     () -> void
     (Apple) -> int
     (Apple, Apple) -> boolean
     ```
-<br>
 
 ## 实现细节
 
@@ -165,12 +158,8 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
     2. 特殊的void兼容规则：如果一个Lambda的主体是一个语句表达式 它就和一个返回void的函数描述符兼容。
 2. 类型推断：编译器可以了解Lambda表达式的参数类型，这样就可
     以在Lambda语法中省去标注参数类型。
-    ```
-    int portNumber = 1337; 
-    Runnable r = () -> System.out.println(portNumber); 
-    ```
 3. 使用局部变量：
-    ```
+    ```java
     int portNumber = 1337; 
     Runnable r = () -> System.out.println(portNumber); 
     ```
@@ -184,7 +173,7 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 4. 方法引用（method reference）
 
     目标引用放在分隔符 :: 前, 方法的名称放在后面。
-    ```
+    ```java
     inventory.sort(comparing(Apple::getWeight));
     ```
 
@@ -193,21 +182,19 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
     1. 指向静态方法的方法引用: Integer::parseInt
     2. 指向任意类型实例方法的方法引用: String::length
     3. 指向现有对象的实例方法的方法引用: expensiveTransaction::getValue
-    ```
+    ```java
     //改写
     Function<String, Integer> stringToInteger = (String s) -> Integer.parseInt(s);
     Function<String, Integer> stringToInteger = Integer::parseInt;
-    ```
-    ```
+    
     BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
     BiPredicate<List<String>, String> contains = List::contains;
     ```
     构造函数引用： 
-    ```
+    ```java
     Supplier<Apple> c1 = Apple::new;
     Apple a1 = c1.get();
-    ```
-    ```
+    
     Function<Integer, Apple> c2 = Apple::new;
     Apple a2 = c2.apply(110);
     ```
@@ -216,7 +203,7 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 
     1. 比较器复合
 
-    ```
+    ```java
     Comparator<Apple> c = Comparator.comparing(Apple::getWeight);
     // 逆序
     inventory.sort(comparing(Apple::getWeight).reversed());
@@ -228,7 +215,7 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 
     2. 谓词复合：negate、and和or
 
-    ```
+    ```java
     //取非
     Predicate<Apple> notRedApple = redApple.negate();
     //and操作
@@ -240,11 +227,11 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
         .or(a -> "green".equals(a.getColor()));
     ```
 
-    *注意：从左向右确定优先级，如a.or(b).and(c)可以看做 (a || b) && c*
+    注意：从左向右确定优先级，如a.or(b).and(c)可以看做 (a || b) && c
 
     3. 函数复合:Function提供了andThen(), compose()
 
-    ```
+    ```java
     Function<Integer, Integer> f = x -> x + 1; 
     Function<Integer, Integer> g = x -> x * 2; 
     // expect: (2 + 1) * 2 = 4
