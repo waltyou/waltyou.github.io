@@ -5,7 +5,7 @@ date: 2019-05-16 21:48:04
 author: admin
 comments: true
 categories: [Java]
-tags: [Java 8]
+tags: [Java8]
 ---
 
 Java 8 中，对 HashMap 做了一些优化，就是会在链表过长的时候，将链表转为红黑树。
