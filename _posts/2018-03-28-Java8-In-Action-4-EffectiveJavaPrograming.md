@@ -107,7 +107,7 @@ tags: [Java,Java8]
     如果需要在代码中频繁的判断一个对象的状态，而只是为了**传递参数**、**调用该对象的某个方法**，可以实现一个新的方法，以lambda作为参数，**在新方法中进行判断**。这样子，代码会更易读，结构更清晰，封装性也更好。
     
 2. 环绕执行
-    
+   
     定义：业务代码千差万别，但是准备与清理阶段一致。
 
     用法：将业务代码用lambda重写。
@@ -162,7 +162,7 @@ tags: [Java,Java8]
     }
     ```
 2. 接口实现类的实现与调用
- 
+
     实现
     ```java
     public class IsAllLowerCase implements ValidationStrategy {
@@ -200,17 +200,19 @@ tags: [Java,Java8]
 
 1.改写前
 
-    ```java
-    abstract class OnlineBanking {
-        public void processCustomer(int id){
-            Customer c = Database.getCustomerWithId(id);
-            makeCustomerHappy(c);
-        }
-
-        abstract void makeCustomerHappy(Customer c);
+```java
+abstract class OnlineBanking {
+    public void processCustomer(int id){
+    Customer c = Database.getCustomerWithId(id);
+    makeCustomerHappy(c);
     }
-    ```
-    这个抽象类构建了一个模板，所有的子类都要实现makeCustomerHappy，来面对差异化的需求。
+    abstract void makeCustomerHappy(Customer c;
+}
+```
+
+这个抽象类构建了一个模板，所有的子类都要实现makeCustomerHappy，来面对差异化的需求。
+
+
 2. 改写后
     首先添加一个重载的新方法，它多传入一个Consumer接口作为参数
     ```java
@@ -379,7 +381,7 @@ public class ProductFactory {
 }
 ```
 2. 改写后
- 
+
 ```java
 public class ProductFactory {
     final static Map<String, Supplier<Product>> map = new HashMap<>();
@@ -586,7 +588,6 @@ B和C继承了A，也同时继承了A的默认方法，所以会打印：“Hell
 1. B中提供了更加具体的实现，所以会调用B中的方法
 2. B和C优先级相同，需要显式调用
 3. 需要在D中实现hello方法，否则无法通过编译
-
 
 ---
 # 用Optional代替null
@@ -993,7 +994,7 @@ supplyAsync方法接受一个生产者（Supplier）作为参数，返回一个C
     ```
     
 3. 验证 findPrices 的正确性和执行性能
- 
+
     ```java
     long start = System.nanoTime();
     System.out.println(findPrices("myPhone27S"));
@@ -1003,7 +1004,7 @@ supplyAsync方法接受一个生产者（Supplier）作为参数，返回一个C
     
     输出：
     > [BestPrice price is 123.26, LetsSaveBig price is 169.47, MyFavoriteShop price
-        is 214.13, BuyItAll price is 184.74]
+    >     is 214.13, BuyItAll price is 184.74]
     >
     > Done in 4032 msecs
 
@@ -1025,7 +1026,7 @@ public List<String> findPrices(String product) {
 ```
 输出：
 > [BestPrice price is 123.26, LetsSaveBig price is 169.47, MyFavoriteShop price
-is 214.13, BuyItAll price is 184.74]
+> is 214.13, BuyItAll price is 184.74]
 >
 > Done in 1180 msecs
 
@@ -1057,8 +1058,8 @@ public List<String> findPrices(String product) {
 
 输出：
 > [BestPrice price is 123.26, LetsSaveBig price is 169.47, MyFavoriteShop price
-is 214.13, BuyItAll price is 184.74]
-> 
+> is 214.13, BuyItAll price is 184.74]
+>
 > Done in 2005 msecs
 
 结果还没有并行流好！
@@ -1437,7 +1438,7 @@ int day = Instant.now()； // 当前时刻的时间戳
 当我们需要获取两个Temporal对象之间的距离时，该怎么做呢？
 
 1. Duration.between
-    
+   
     对与两个LocalTimes对象、两个LocalDateTimes对象，或者两个Instant对象之间的duration，可调用**Duration.between**方法。
     ```java
     Duration d1 = Duration.between(time1, time2); 
@@ -1457,7 +1458,7 @@ int day = Instant.now()； // 当前时刻的时间戳
                                     LocalDate.of(2014, 3, 18));
     ```
 3. Duration和Period类其他的工厂类
-    
+   
     ```java
     Duration threeMinutes = Duration.ofMinutes(3); 
     Duration threeMinutes = Duration.of(3, ChronoUnit.MINUTES); 
@@ -1506,21 +1507,21 @@ LocalDate date3 = date2.with(lastDayOfMonth());
 
 #### TemporalAdjuster类中的工厂方法
 
-方法名 | 描述
----|---
-dayOfWeekInMonth | 创建一个新的日期，它的值为同一个月中每一周的第几天
-firstDayOfMonth | 创建一个新的日期，它的值为当月的第一天
-firstDayOfNextMonth | 创建一个新的日期，它的值为下月的第一天
-firstDayOfNextYear | 创建一个新的日期，它的值为明年的第一天
-firstDayOfYear | 创建一个新的日期，它的值为当年的第一天
-firstInMonth | 创建一个新的日期，它的值为同一个月中，第一个符合星期几要求的值
-lastDayOfMonth | 创建一个新的日期，它的值为当月的最后一天
-lastDayOfNextMonth | 创建一个新的日期，它的值为下月的最后一天
-lastDayOfNextYear | 创建一个新的日期，它的值为明年的最后一天
-lastDayOfYear | 创建一个新的日期，它的值为今年的最后一天
-lastInMonth | 创建一个新的日期，它的值为同一个月中，最后一个符合星期几要求的值
-next/previous | 创建一个新的日期，并将其值设定为日期调整后或者调整前，第一个符合指定星期几要求的日期
-nextOrSame/previousOrSame | 创建一个新的日期，并将其值设定为日期调整后或者调整前，第一个符合指定星期几要求的日期，如果该日期已经符合要求，直接返回该对象
+| 方法名                    | 描述                                                         |
+| ------------------------- | ------------------------------------------------------------ |
+| dayOfWeekInMonth          | 创建一个新的日期，它的值为同一个月中每一周的第几天           |
+| firstDayOfMonth           | 创建一个新的日期，它的值为当月的第一天                       |
+| firstDayOfNextMonth       | 创建一个新的日期，它的值为下月的第一天                       |
+| firstDayOfNextYear        | 创建一个新的日期，它的值为明年的第一天                       |
+| firstDayOfYear            | 创建一个新的日期，它的值为当年的第一天                       |
+| firstInMonth              | 创建一个新的日期，它的值为同一个月中，第一个符合星期几要求的值 |
+| lastDayOfMonth            | 创建一个新的日期，它的值为当月的最后一天                     |
+| lastDayOfNextMonth        | 创建一个新的日期，它的值为下月的最后一天                     |
+| lastDayOfNextYear         | 创建一个新的日期，它的值为明年的最后一天                     |
+| lastDayOfYear             | 创建一个新的日期，它的值为今年的最后一天                     |
+| lastInMonth               | 创建一个新的日期，它的值为同一个月中，最后一个符合星期几要求的值 |
+| next/previous             | 创建一个新的日期，并将其值设定为日期调整后或者调整前，第一个符合指定星期几要求的日期 |
+| nextOrSame/previousOrSame | 创建一个新的日期，并将其值设定为日期调整后或者调整前，第一个符合指定星期几要求的日期，如果该日期已经符合要求，直接返回该对象 |
 
 #### TemporalAdjuster接口
 
@@ -1588,7 +1589,7 @@ java.time.format包提供了格式化以及解析日期、时间对象的功能�
     String s2 = date.format(DateTimeFormatter.ISO_LOCAL_DATE);
     ```
 2. 使用工厂方法parse
-    
+   
     通过解析代表日期或时间的字符串重新创建该日期对象。
     ```java
     LocalDate date1 = LocalDate.parse("20140318", 
@@ -1609,7 +1610,7 @@ java.time.format包提供了格式化以及解析日期、时间对象的功能�
     LocalDate date2 = LocalDate.parse(formattedDate, formatter);
     ```
 4. 创建一个本地化的DateTimeFormatter
-    
+   
     ofPattern方法也提供了一个重载的版本，使用它你可以创建某个Locale的格式器
     ```
     DateTimeFormatter italianFormatter = 
@@ -1703,6 +1704,3 @@ JapaneseDate japaneseDate = JapaneseDate.from(date);
 Chronology japaneseChronology = Chronology.ofLocale(Locale.JAPAN); 
 ChronoLocalDate now = japaneseChronology.dateNow();
 ```
-
-
-
