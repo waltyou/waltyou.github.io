@@ -15,9 +15,6 @@ tags: [Java,Java8]
 
 学习资料主要参考： 《Java 8 In Action》、《Java 8实战》，以及其源码：[Java8 In Action](https://github.com/java8/Java8InAction)
 
----
-
-
 
 * 目录
 {:toc}
@@ -72,7 +69,7 @@ tags: [Java,Java8]
 - 一个中间操作链,形成一条流的流水线;
 - 一个终端操作,执行流水线,并能生成结果。
 
-```
+```java
 dishes.stream()
     .filter(d -> d.getCalories() < 400)
     .sorted(comparing(Dish::getCalories))
@@ -107,12 +104,12 @@ Java 8 提供了很多现有的方法来面对不同的需求，以下是一些�
     将流中所有元素反复结合起来。
 
     1. 元素求和
-    ```
+    ```java
     int sum = numbers.stream().reduce(0, Integer::sum);
     Optional<Integer> sum = numbers.stream().reduce(Integer::sum);
     ```
     2. 最大值，最小值
-    ```
+    ```java
     Optional<Integer> max = numbers.stream().reduce(Integer::max);
     Optional<Integer> min = numbers.stream().reduce(Integer::min);
     ```
@@ -123,7 +120,7 @@ Java 8 提供了很多现有的方法来面对不同的需求，以下是一些�
 
     1. 映射到数值流: mapToInt、mapToDouble 和 mapToLong
     2. 转换回对象流
-    ```
+    ```java
     IntStream intStream = menu.stream().mapToInt(Dish::getCalories);
     Stream<Integer> stream = intStream.boxed();
     ```
@@ -133,19 +130,19 @@ Java 8 提供了很多现有的方法来面对不同的需求，以下是一些�
 6. 构建流 Building streams
 
     1. 由值创建流： 
-    ```
+    ```java
     Stream<String> stream = Stream.of("Java 8 ", "Lambdas ", "In ", "Action");
     stream.map(String::toUpperCase).forEach(System.out::println);
     //空流
     Stream<String> emptyStream = Stream.empty();
     ```
     2. 由数组创建流
-    ```
+    ```java
     int[] numbers = {2, 3, 5, 7, 11, 13};
     int sum = Arrays.stream(numbers).sum();
     ```
     3. 由文件生成流
-    ```
+    ```java
     long uniqueWords = Files
 				.lines(Paths.get("data.txt"),
 						Charset.defaultCharset())
@@ -153,7 +150,7 @@ Java 8 提供了很多现有的方法来面对不同的需求，以下是一些�
 				.count();
     ```
     4. 由函数生成流:创建无限流
-    ```
+    ```java
     // iterate
     Stream.iterate(0, n -> n + 2)
         .limit(10)
@@ -188,7 +185,7 @@ Java 8 提供了很多现有的方法来面对不同的需求，以下是一些�
 3. BinaryOperator，如加法
 
 例子：
-```
+```java
 int totalCalories = menu.stream().collect(reducing(
     0,                      // 归约操作的起始值
     Dish::getCalories,      // 获取或操作对象的属性数值(转换函数)
@@ -202,7 +199,7 @@ int totalCalories = menu.stream().collect(reducing(
 ### 2. 分组 Collectors.groupingBy
 
 #### 一级分组
-```
+```java
 Map<Dish.Type, List<Dish>> dishesByType =
 menu.stream().collect(groupingBy(Dish::getType));
 // 自定义分组
@@ -219,7 +216,7 @@ Map<CaloricLevel, List<Dish>> dishesByCaloricLevel = menu.stream()
 
 ```
 #### 多级分组
-```
+```java
 menu.stream().collect(
             groupingBy(Dish::getType,
                     groupingBy((Dish dish) -> {
@@ -234,7 +231,7 @@ menu.stream().collect(
 #### 与 groupingBy 联合使用的其他收集器
 
 有时候在groupBy的时候，我们还想做一下其他操作，比如设定返回类型，或者只取对象中的某个属性。
-```
+```java
 // summingInt
 Map<Dish.Type, Integer> totalCaloriesByType =
     menu.stream().collect(groupingBy(Dish::getType,
@@ -270,7 +267,7 @@ Map<Dish.Type, Dish> mostCaloricByType =
 
 与groupby的区别：需要一个谓词（返回一个布尔值的函数）
 
-```
+```java
 Map<Boolean, List<Dish>> partitionedMenu =
     menu.stream().collect(partitioningBy(Dish::isVegetarian));
 //二级分区
@@ -284,7 +281,7 @@ menu.stream().collect(partitioningBy(Dish::isVegetarian,
 ### 5. Collector 接口
 
 #### 基本定义：
-```
+```java
 public interface Collector<T, A, R> {
     Supplier<A> supplier();
     BiConsumer<A, T> accumulator();
@@ -318,7 +315,7 @@ public interface Collector<T, A, R> {
 必要时，可以根据自己需求实现收集器， 来避免一些不必要的操作（如装箱拆箱），这样子可以获取更好的性能。
 
 例子如下：
-```
+```java
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.Collector;
@@ -368,7 +365,7 @@ java 8 中提供了现成的并行处理流，即parallelStream。
 #### 并行流与顺序流的转换
 
 对顺序流调用parallel方法，对并行流调用sequential方法。在合适的时候顺序流与并行流相互转换，可以提高效率。
-```
+```java
 stream.parallel()
     .filter(...)
     .sequential()
@@ -503,7 +500,7 @@ Thread pool 默认期望它们所有执行的任务都是不相关的，可以�
 
 描述：一种自动机制来拆分流。新的接口“可分迭代器”（splitable iterator）
 
-```
+```java
 public interface Spliterator<T> {
     boolean tryAdvance(Consumer<? super T> action);
     Spliterator<T> trySplit();
