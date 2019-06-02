@@ -44,8 +44,40 @@ count ++；
 
 这种由于执行时序而出现不正确的情况，学名叫做：竞态条件。
 
-## 竞态条件
+## 1. 竞态条件
 
 当某个计算的正确性取决于多个线程的交替执行时序时，就会发生竞态条件。
 
-最常见的竞态条件类型就是“先检查后执行（Check-then-Act）”。
+最常见的竞态条件类型就是“先检查后执行（Check-then-Act）”，即通过一个可能失效的观测结果来决定下一步的动作。
+
+一个常见的例子就是单例模式中单例的初始化。
+
+```java
+@NotThreadSafe
+public class LazyInitRace{
+	private ExpensiveObject instance = null;
+	
+	public ExpensiveObject getInstance(){
+		if(instance == null){
+			instance = new ExpensiveObject();
+		}
+		return instance;
+	}
+}
+```
+
+以上代码，就存在一个竞态条件，因为有可能会有两个线程同时进行 instance 是否为 null 判断的情况，那么这两个线程都可能创建一个新的 instance  的。
+
+## 2. 复合操作
+
+所谓复合操作就是指包含了一组以原子方式执行的操作。
+
+# 加锁机制
+
+## 1. 内置锁
+
+关键字： **synchronized** 。
+
+同步代码块，包含两个部分：1，作为锁的对象引用，2，作为这个锁保护的代码块。
+
+以 synchronized 来修饰的方法，它持有的锁就是方法调用所在的对象；静态的 synchronized 方法的锁，是 Class 对象。
