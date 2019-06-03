@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java 并发编程实战（零）： 总览与介绍
+title: Java 并发编程实战-学习日志（零）： 总览与介绍
 date: 2019-05-29 15:18:04
 author: admin
 comments: true

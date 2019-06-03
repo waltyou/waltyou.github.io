@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java 并发编程实战-学习笔记（一）1：线程安全
+title: Java 并发编程实战-学习日志（一）1：线程安全
 date: 2019-05-29 15:18:04
 author: admin
 comments: true

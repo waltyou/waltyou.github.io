@@ -31,18 +31,17 @@ tags: [Java,Java8]
 ---
 # 行为参数化
 
-## 三个问号
-### 1. Why
+## 1. Why
 
 应对不断变化的需求，避免啰嗦，而且不打破DRY（Don’t Repeat Yourself）规则。
 
-### 2. What
+## 2. What
 
 简单讲：把方法（你的代码）作为参数传递给另一个方法。
 
 复杂讲： 让方法接受多种行为（或战略）作为参数，并在内部使用，来完成不同的行为。
 
-### 3. How
+## 3. How
 
 Example 1：用一个Comparator排序Apple，使用Java 8中List默认的sort方法。
 
@@ -95,15 +94,14 @@ button.setOnAction(new EventHandler<ActionEvent>() {
 button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 ```
 ---
+
 # 匿名函数lambda
 
-## 三个问号
-
-### 1. Why
+## 1. Why
 
 匿名类太啰嗦
 
-### 2. What
+## 2. What
 
 简单讲：匿名函数。
 
@@ -127,118 +125,129 @@ button.setOnAction((ActionEvent event) -> label.setText("Sent!!"));
 (parameters) -> { statements; }
 ```
 
-### 3. How
+## 3. How
 
 使用lambda之前，需要了解两个概念：**函数式接口** 和**函数描述符**。
 
-1. **函数式接口**： 只定义一个抽象方法的接口。
+### 函数式接口
 
-    如：Runable和Comparator。
+只定义一个抽象方法的接口。如：Runable和Comparator。
 
-    lambda其实可以看作是函数式接口的实例。
+lambda其实可以看作是函数式接口的实例。
 
-    **@FunctionalInterface**：标注用于表示该接口会设计成一个函数式接口。
+**@FunctionalInterface**：标注用于表示该接口会设计成一个函数式接口。
 
-    Java 8 提供了一些新的函数式接口， 位置：java.util.function
-    1. Predicate.test: (T) -> boolean
-    2. Consumer.accept： (T) -> void
-    3. Function.apply： (T) -> R
+Java 8 提供了一些新的函数式接口， 位置：java.util.function
+1. Predicate.test: (T) -> boolean
+2. Consumer.accept： (T) -> void
+3. Function.apply： (T) -> R
 
-2. **函数描述符**：函数式接口的抽象方法的签名基本上就是Lambda表达式的签名。如下：
-    ```java
-    () -> void
-    (Apple) -> int
-    (Apple, Apple) -> boolean
-    ```
+### 函数描述符
 
-## 实现细节
+函数式接口的抽象方法的签名基本上就是Lambda表达式的签名。如下：
+```java
+() -> void
+(Apple) -> int
+(Apple, Apple) -> boolean
+```
 
-1. 类型检查：上下文中Lambda表达式需要的类型称为目标类型
-    1. 同样的Lambda，不同的函数式接口
-    2. 特殊的void兼容规则：如果一个Lambda的主体是一个语句表达式 它就和一个返回void的函数描述符兼容。
-2. 类型推断：编译器可以了解Lambda表达式的参数类型，这样就可
-    以在Lambda语法中省去标注参数类型。
-3. 使用局部变量：
-    ```java
-    int portNumber = 1337; 
-    Runnable r = () -> System.out.println(portNumber); 
-    ```
-    注意：
-    Lambda可以没有限制地捕获（也就是在其主体中引用）实例变量和静态变量。但局部变量必须显式声明为final，或事实上是final。
-    
-    原因：
-    1）局部变量保存在栈上，并且隐式表示它们仅限于其所在线程，如果允许捕获可改变的局部变量，就会引发造成线程不安全新的可能性；
-    2）不鼓励你使用改变外部变量的典型命令式编程模式
+## 4. 实现细节
 
-4. 方法引用（method reference）
+###  类型检查
 
-    目标引用放在分隔符 :: 前, 方法的名称放在后面。
-    ```java
-    inventory.sort(comparing(Apple::getWeight));
-    ```
+上下文中Lambda表达式需要的类型称为目标类型
+1. 同样的Lambda，不同的函数式接口
+2. 特殊的void兼容规则：如果一个Lambda的主体是一个语句表达式 它就和一个返回void的函数描述符兼容。
 
-    方法引用主要有三类:
+###  类型推断
 
-    1. 指向静态方法的方法引用: Integer::parseInt
-    2. 指向任意类型实例方法的方法引用: String::length
-    3. 指向现有对象的实例方法的方法引用: expensiveTransaction::getValue
-    ```java
-    //改写
-    Function<String, Integer> stringToInteger = (String s) -> Integer.parseInt(s);
-    Function<String, Integer> stringToInteger = Integer::parseInt;
-    
-    BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
-    BiPredicate<List<String>, String> contains = List::contains;
-    ```
-    构造函数引用： 
-    ```java
-    Supplier<Apple> c1 = Apple::new;
-    Apple a1 = c1.get();
-    
-    Function<Integer, Apple> c2 = Apple::new;
-    Apple a2 = c2.apply(110);
-    ```
+编译器可以了解Lambda表达式的参数类型，这样就可以在Lambda语法中省去标注参数类型。
 
-5. 复合Lambda表达式 (因为引入了默认方法)
+###  使用局部变量：
+```java
+int portNumber = 1337; 
+Runnable r = () -> System.out.println(portNumber); 
+```
 
-    1. 比较器复合
+注意：
+Lambda可以没有限制地捕获（也就是在其主体中引用）实例变量和静态变量。但局部变量必须显式声明为final，或事实上是final。
 
-    ```java
-    Comparator<Apple> c = Comparator.comparing(Apple::getWeight);
-    // 逆序
-    inventory.sort(comparing(Apple::getWeight).reversed());
-    // 比较器链
-    inventory.sort(comparing(Apple::getWeight)
-        .reversed()
-        .thenComparing(Apple::getCountry))
-    ```
+原因：
+1）局部变量保存在栈上，并且隐式表示它们仅限于其所在线程，如果允许捕获可改变的局部变量，就会引发造成线程不安全新的可能性；
+2）不鼓励你使用改变外部变量的典型命令式编程模式
 
-    2. 谓词复合：negate、and和or
+### 方法引用（method reference）
 
-    ```java
-    //取非
-    Predicate<Apple> notRedApple = redApple.negate();
-    //and操作
-    Predicate<Apple> redAndHeavyApple = 
-        redApple.and(a -> a.getWeight() > 150);
-    //and + or操作
-    Predicate<Apple> redAndHeavyAppleOrGreen = 
-        redApple.and(a -> a.getWeight() > 150)
-        .or(a -> "green".equals(a.getColor()));
-    ```
+目标引用放在分隔符 :: 前, 方法的名称放在后面。
+```java
+inventory.sort(comparing(Apple::getWeight));
+```
 
-    注意：从左向右确定优先级，如a.or(b).and(c)可以看做 (a || b) && c
+方法引用主要有三类:
+1. 指向静态方法的方法引用: Integer::parseInt
+2. 指向任意类型实例方法的方法引用: String::length
+3. 指向现有对象的实例方法的方法引用: expensiveTransaction::getValue
 
-    3. 函数复合:Function提供了andThen(), compose()
+```java
+//改写
+Function<String, Integer> stringToInteger = (String s) -> Integer.parseInt(s);
+Function<String, Integer> stringToInteger = Integer::parseInt;
 
-    ```java
-    Function<Integer, Integer> f = x -> x + 1; 
-    Function<Integer, Integer> g = x -> x * 2; 
-    // expect: (2 + 1) * 2 = 4
-    // f(g(x))
-    System.out.println(f.andThen(g).apply(1));
-    // expect: 1 * 2 + 1 = 3
-    // g(f(x))
-    System.out.println(f.compose(g).apply(1));
-    ```
-    *复合Lambda表达式可以用来创建各种转型流水线。*
+BiPredicate<List<String>, String> contains = (list, element) -> list.contains(element);
+BiPredicate<List<String>, String> contains = List::contains;
+```
+
+构造函数引用： 
+```java
+Supplier<Apple> c1 = Apple::new;
+Apple a1 = c1.get();
+
+Function<Integer, Apple> c2 = Apple::new;
+Apple a2 = c2.apply(110);
+```
+
+### 复合Lambda表达式 (因为引入了默认方法)
+
+#### 1. 比较器复合
+
+```java
+Comparator<Apple> c = Comparator.comparing(Apple::getWeight);
+// 逆序
+inventory.sort(comparing(Apple::getWeight).reversed());
+// 比较器链
+inventory.sort(comparing(Apple::getWeight)
+    .reversed()
+    .thenComparing(Apple::getCountry))
+```
+
+#### 2. 谓词复合
+
+negate、and和or
+
+```java
+//取非
+Predicate<Apple> notRedApple = redApple.negate();
+//and操作
+Predicate<Apple> redAndHeavyApple = 
+redApple.and(a -> a.getWeight() > 150);
+//and + or操作
+Predicate<Apple> redAndHeavyAppleOrGreen = 
+redApple.and(a -> a.getWeight() > 150).or(a -> "green".equals(a.getColor()));
+```
+
+从左向右确定优先级.
+
+#### 3. 函数复合
+Function提供了andThen(), compose()
+
+```java
+Function<Integer, Integer> f = x -> x + 1; 
+Function<Integer, Integer> g = x -> x * 2; 
+// expect: (2 + 1) * 2 = 4
+// f(g(x))
+System.out.println(f.andThen(g).apply(1));
+// expect: 1 * 2 + 1 = 3
+// g(f(x))
+System.out.println(f.compose(g).apply(1));
+```
+*复合Lambda表达式可以用来创建各种转型流水线。*
