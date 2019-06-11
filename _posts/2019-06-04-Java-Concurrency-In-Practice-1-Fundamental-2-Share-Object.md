@@ -108,7 +108,78 @@ while(!asleep){
 
 # 发布与逸出
 
+## 1. 发布
 
+“发布 publish” 一个对象的意思是指，使对象能够在当前作用域之外的代码中使用。
+
+```java
+public static Set<Secret> knownSecrets;
+public void initialize() {
+	knownSecrets = new HashSet<Secret>();
+}
+```
+
+可以是以下几种情况：
+
+1. 将对象的引用保存到一个公有的静态变量中，以便任何类和线程都能看到该对象；
+2. 发布某个对象的时候，在该对象的非私有域中引用的所有对象都会被发布；
+3. 发布一个内部的类实例，内部类实例关联一个外部类引用。
+
+## 2. 逸出
+
+“逸出”是指某个不应该发布的对象被公布。
+
+```java
+class UnsafeStates {
+    private String[] states = new String[] {
+    	"AK", "AL" ...
+    };
+    public String[] getStates() { return states; }
+}
+```
+
+某个对象逸出后，你必须假设有某个类或线程可能会误用该对象，所以要封装。
+
+不要在构造过程中使this引用逸出。常见错误：在构造函数中启动一个线程。
+
+### 例子
+
+错误使用方式：隐式地使 this 引用逸出
+
+```java
+public class ThisEscape {
+    public ThisEscape(EventSource source) {
+        source.registerListener(
+            new EventListener() {
+                public void onEvent(Event e) {
+                	doSomething(e);
+            }
+        });
+    }
+}
+```
+
+正确使用方式
+
+```java
+public class SafeListener {
+    private final EventListener listener;
+    
+    private SafeListener() {
+        listener = new EventListener() {
+            public void onEvent(Event e) {
+                doSomething(e);
+            }
+        };
+    }
+    
+    public static SafeListener newInstance(EventSource source) {
+        SafeListener safe = new SafeListener();
+        source.registerListener(safe.listener);
+        return safe;
+    }
+}
+```
 
 
 
