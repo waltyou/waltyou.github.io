@@ -159,7 +159,7 @@ public class ThisEscape {
 }
 ```
 
-正确使用方式
+使用工厂方法来防止 this 引用在构造函数中逸出：
 
 ```java
 public class SafeListener {
@@ -180,6 +180,106 @@ public class SafeListener {
     }
 }
 ```
+
+# 线程封闭
+
+数据只在单个线程中使用，不去共享数据，这就叫做线程封闭。
+
+## 1. Ad-hoc 线程封闭
+
+Ad-hoc线程封闭是指：维护线程封闭性的职责完全由程序实现来承担。
+
+它是非常脆弱的，因为没有一种语言特性，能将对象封闭到目标线程上。事实上，对线程封闭对象的引用都保存在公有变量中。
+
+## 2. 栈封闭
+
+在栈封闭中，只能通过局部变量才能访问对象。
+
+比如如下代码中的 `numPairs` 变量就是一个栈封闭的对象，它既是基础类型，又是局部变量。
+
+```java
+public int loadTheArk(Collection<Animal> candidates) {
+    SortedSet<Animal> animals;
+    int numPairs = 0;
+    Animal candidate = null;
+    // animals confined to method, don't let them escape!
+    animals = new TreeSet<Animal>(new SpeciesGenderComparator());
+    animals.addAll(candidates);
+    for (Animal a : animals) {
+        if (candidate == null || !candidate.isPotentialMate(a))
+        	candidate = a;
+        else {
+            ark.load(new AnimalPair(candidate, a));
+            ++numPairs;
+            candidate = null;
+        }
+    }
+    return numPairs;
+}
+```
+
+## 3. ThreadLocal类
+
+维护线程封闭更规范方法是使用 ThreadLocal 这个类，它能使线程中的某个值与保存值的对象关联起来。
+
+它也提供 `get()` 和 `set()` 方法，这些方法为每个使用该变量的线程都存有一份独立的副本，因此`get`总是返回由当前执行线程在调用`set`时设置的最新值。
+
+ThreadLocal对象通常用于防止对可变的单实例变量（Singleton）或全局变量进行共享。
+
+如 JDBC 的Connection对象，为了防止共享，所以通常将JDBC的连接保存到ThreadLocal对象中，每个线程都会拥有属于自己的连接。
+
+```java
+private static ThreadLocal<Connection> connectionHolder = new ThreadLocal<Connection>() {
+    public Connection initialValue() {
+    	return DriverManager.getConnection(DB_URL);
+    }
+};
+
+public static Connection getConnection() {
+	return connectionHolder.get();
+}
+```
+
+ThreadLocal 也不能太过滥用，因为它会降低代码的可重用性，并在类之间引入隐含的耦合性。
+
+# 不变性
+
+> 不变的对象一定是线程安全的。
+
+当满足以下这些条件的时候，对象才是不可变的：
+
+- 对象创建以后其状态就不能被修改；
+- 对象的所有域都是 final 类型；
+- 对象是正确创建的（在对象的创建期间，this引用没有逸出）。
+
+
+
+## 1. Final 域
+
+final 类型的域是不能修改的，这样可以确保初始化过程中的安全性，从而可以不受限制地访问不可变对象，并在共享这些对象时无需同步。
+
+> 正如“除非需要更高的可见性，否则所有的域都应该声明为私有域”，也应遵守 “除非需要某个域是需要变化的，否则应将其声明为 final 域”。
+
+## 2. 示例
+
+```java
+@Immutable
+class OneValueCache {
+    private final BigInteger lastNumber;
+    private final BigInteger[] lastFactors;
+    public OneValueCache(BigInteger i,BigInteger[] factors) {
+        lastNumber = i;
+        lastFactors = Arrays.copyOf(factors, factors.length);
+    }
+    public BigInteger[] getFactors(BigInteger i) {
+        if (lastNumber == null || !lastNumber.equals(i))
+        	return null;
+        else
+        	return Arrays.copyOf(lastFactors, lastFactors.length);
+    }
+}
+```
+
 
 
 
