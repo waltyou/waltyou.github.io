@@ -260,7 +260,9 @@ final 类型的域是不能修改的，这样可以确保初始化过程中的�
 
 > 正如“除非需要更高的可见性，否则所有的域都应该声明为私有域”，也应遵守 “除非需要某个域是需要变化的，否则应将其声明为 final 域”。
 
-## 2. 示例
+## 2. 示例：使用volatile 类型来发布不可变对象
+
+对数值及其因数分解结果进行缓存的不可变容器类：
 
 ```java
 @Immutable
@@ -280,8 +282,114 @@ class OneValueCache {
 }
 ```
 
+使用指向不可变容器对象的 volatile 类型引用以缓存最新的结果：
+
+```java
+@ThreadSafe
+public class VolatileCachedFactorizer implements Servlet {
+    
+    private volatile OneValueCache cache = new OneValueCache(null, null);
+    
+    public void service(ServletRequest req, ServletResponse resp) {
+        BigInteger i = extractFromRequest(req);
+        BigInteger[] factors = cache.getFactors(i);
+        if (factors == null) {
+            factors = factor(i);
+            cache = new OneValueCache(i, factors);
+        }
+        encodeIntoResponse(resp, factors);
+    }
+}
+```
+
+> 注意: 
+>
+> 经自己测试，以上的方法只能保证 `OneValueCache` 中的 `lastNumber` 与 `lastFactors`是线程安全且一直一致的，因为它们会在构造方法中一起设置好后，才产生新的 OneValueCache 对象。但是这个代码无法保证，相同内容的 `OneValueCache` 被重复创建。
 
 
 
+# 安全发布
 
-## 未完待续。。。
+## 1. 不正确的发布：正确的对象被破坏
+
+我们不能指望一个尚未完全创建的对象拥有完整性。
+
+在没有足够同步的情况下发布对象（不要这么做）：
+
+```java
+// Unsafe publication
+public Holder holder;
+public void initialize() {
+    holder = new Holder(42);
+}
+```
+
+由于未被正确发布，因此这个类可以出现故障：
+
+```java
+public class Holder {
+    private int n;
+    
+    public Holder(int n) { this.n = n; }
+    
+    public void assertSanity() {
+        if (n != n)
+        	throw new AssertionError("This statement is false.");
+    }
+}
+```
+
+故障可能有如下几种：
+
+1. 除了发布线程外，其他线程看到的 Holder 是一个空引用或者之前的旧值
+2. 某个线程第一次读取 n 时得到的是失效值，而再次读取时会得到一个更新值，所以 `assertSanity` 会抛出 `AssertionError` 。
+
+## 2. 不可变对象与初始化安全性
+
+任何线程都可以在不需要额外同步的情况下，安全地访问不可变对象，即使在发布这些对象时没有使用同步。
+
+## 3. 安全发布的常用模式
+
+要安全的发布一个对象，对象的引用以及对象的状态必须同时对其它线程可见。一个正确构造的对象可以通过以下方式来安全地发布：
+
+- 在静态初始化函数中初始化一个对象引用。
+- 将对象的引用保存到volatile类型的于或者AtomicReferance对象中。
+- 将对象的引用保存到某个正确构造对象的final类型域中。
+- 将对象的引用保存到一个由锁保护的域中。
+
+## 4. 事实不可变对象
+
+如果对象从技术上来看是可变的，但其状态在发布后不会再改变，那么把这种对象成为“事实不可变对象”。
+
+使用这些对象，不仅可以简化开发过程，也能减少同步而提高性能。
+
+> 在没有额外的同步的情况下，任何线程都可以安全地使用被安全发布的事实不可变对象。
+
+## 5. 可变对象
+
+对象的发布需求取决于它的可变性：
+
+1. 不可变对象可以通过任意机制来发布
+2. 事实不可变对象必须通过安全的发布机制来发布
+3. 可变对象必须通过安全的发布机制来发布，并且必须是线程安全的或者有某个锁保护起来
+
+## 6. 安全地共享对象
+
+并发编程中共享对象的一些使用策略：
+
+### 线程封闭
+
+线程封闭的对象只能由一个线程拥有，对象被封闭在该线程中，并且只能由这个线程修改。
+
+### 只读共享
+
+在没有额外同步的情况下，共享的只读对象可以有多个线程并发访问，但任何线程都不能修改它。共享的只读对象包括不可变对象和事实不可变对象。
+
+### 线程安全共享
+
+线程安全的对象在其内部实现同步，因此多个线程可以通过对象的公有接口进行访问而不需要进一步的同步。
+
+### 保护对象
+
+被保护的对象只能通过持有特定的锁来访问。保护对象包括封装在其他安全对象中的对象，以及已发布的并且有某个特定的锁保护的对象。
+
