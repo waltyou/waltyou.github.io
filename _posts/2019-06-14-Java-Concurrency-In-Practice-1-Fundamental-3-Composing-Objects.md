@@ -76,6 +76,50 @@ public class PersonSet {
 
 > 封闭机制更易于构造线程安全的类，因为当封闭类的状态时，在分析类的线程安全性时就无须检测整个程序。
 
+## 1. Java 监视器模式
+
+```java
+public class PrivateLock {
+    
+    private final Object myLock = new Object();
+    @GuardedBy("myLock") Widget widget;
+    
+    void someMethod() {
+        synchronized(myLock) {
+            // Access or modify the state of widget
+        }
+    }
+} 
+```
+使用私有对象锁，比起使用对象的内置锁，有许多优点。
+
+- 私有的锁对象可以将锁封装起来，使客户代码无法得到锁，但客户代码可以通过公有方法来访问锁，以便参与到同步策略
+- 如果客户代码错误地获得了另一个对象的锁，那么可能会产生活跃性问题
+- 要想验证某个公有访问的锁在程序中是否被正确的使用，需要检查整个程序，而私有锁只需检查单个类即可
+
+## 2. 示例：车辆追踪
+
+每台车由一个 string 对象来标识，并且拥有一个相应的位置坐标。`VehicleTracker` 封装了车辆的标识和位置。整个模型包含一个视图线程，和多个执行更新操作的线程。
+
+视图线程会读取车辆的名字和位置，并显示出来：
+
+```java
+Map<String, Point> locations = vehicles.getLocations();
+for (String key : locations.keySet()){
+    renderVehicle(key, locations.get(key)); 
+}
+```
+
+执行更新操作的线程会修改车辆的位置：
+
+```java
+void vehicleMoved(VehicleMovedEvent evt) {
+	Point loc = evt.getNewLocation();
+	vehicles.setLocation(evt.getVehicleId(), loc.x, loc.y);
+}
+```
+
+
 
 
 ## 未完待续。。。。。。
