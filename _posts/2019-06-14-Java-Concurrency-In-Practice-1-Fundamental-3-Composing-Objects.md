@@ -175,6 +175,52 @@ public class MutablePoint {
 
 
 
+# 线程安全性的委托
+
+在组合对象中，如果每个组件都已经是线程安全的，是否需要再加一个额外的“线程安全层“？答案是：需要视情况而定。
+
+## 1. 示例：基于委托的车辆追踪器
+
+构建一个线程安全的 Point 类。
+
+```java
+@Immutable
+public class Point {
+    public final int x, y;
+    public Point(int x, int y) {
+        this.x = x;
+        this.y = y;
+    }
+} 
+```
+
+将线程安全委托给 ConcurrentHashMap：
+
+```java
+@ThreadSafe
+public class DelegatingVehicleTracker {
+    private final ConcurrentMap<String, Point> locations;
+    private final Map<String, Point> unmodifiableMap;
+    public DelegatingVehicleTracker(Map<String, Point> points) {
+        locations = new ConcurrentHashMap<String, Point>(points);
+        unmodifiableMap = Collections.unmodifiableMap(locations);
+    }
+    public Map<String, Point> getLocations() {
+        return unmodifiableMap;
+    }
+    public Point getLocation(String id) {
+        return locations.get(id);
+    }
+    public void setLocation(String id, int x, int y) {
+        if (locations.replace(id, new Point(x, y)) == null)
+            throw new IllegalArgumentException(
+            "invalid vehicle name: " + id);
+    }
+} 
+```
+
+
+
 
 
 
