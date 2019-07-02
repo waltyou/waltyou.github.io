@@ -219,9 +219,67 @@ public class DelegatingVehicleTracker {
 } 
 ```
 
+## 2. 独立的状态变量
 
+将线程安全性委托给多个状态变量，这些变量都是各自独立的，所以不存在线程安全问题。
 
+```java
+public class VisualComponent { 
+    private final List<KeyListener> keyListeners = new CopyOnWriteArrayList<KeyListener>();
+    private final List<MouseListener> mouseListeners = new CopyOnWriteArrayList<MouseListener>();
 
+    public void addKeyListener(KeyListener listener) {
+        keyListeners.add(listener);
+    }
 
+    public void addMouseListener(MouseListener listener) {
+        mouseListeners.add(listener);
+    }
 
-## 未完待续。。。。。。
+    public void removeKeyListener(KeyListener listener) {
+        keyListeners.remove(listener);
+    }
+
+    public void removeMouseListener(MouseListener listener) {
+        mouseListeners.remove(listener);
+    }
+} 
+```
+
+## 3. 当委托失效时
+
+以下是一个不好的例子：
+
+```java
+public class NumberRange {
+    // INVARIANT: lower <= upper
+    private final AtomicInteger lower = new AtomicInteger(0);
+    private final AtomicInteger upper = new AtomicInteger(0);
+    public void setLower(int i) {
+        // Warning -- unsafe check-then-act
+        if (i > upper.get())
+            throw new IllegalArgumentException(
+            "can't set lower to " + i + " > upper");
+        lower.set(i);
+    }
+    public void setUpper(int i) {
+        // Warning -- unsafe check-then-act
+        if (i < lower.get())
+            throw new IllegalArgumentException(
+            "can't set upper to " + i + " < lower");
+        upper.set(i);
+    }
+    public boolean isInRange(int i) {
+        return (i >= lower.get() && i <= upper.get());
+    }
+} 
+```
+
+以上的代码中，使用了两个 AtomicInteger 来管理状态，但是它们之间包含了一个约束条件：第一个要小于第二个。
+
+此时，NumberRange 就不是线程安全的，这时就需要加锁了。
+
+## 4. 发布底层的状态变量
+
+如果一个状态变量是线程安全的，并且没有任何不变性条件来约束它的值，在变量的操作上也不存在任何不允许的状态转换，那么就可以安全地发布这个变量。
+
