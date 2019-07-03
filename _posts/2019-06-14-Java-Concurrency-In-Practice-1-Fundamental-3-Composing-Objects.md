@@ -13,9 +13,9 @@ tags: [Java, Concurrency, Java Concurrency In Practice]
 
 <!-- more -->
 
-[TOC]
-
-------
+* 目录
+{:toc}
+---
 
 # 设计线程安全的类
 
