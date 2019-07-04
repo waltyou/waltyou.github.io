@@ -40,7 +40,46 @@ public static Object deleteLast(Vector list){
 
 ### 迭代
 
+```java
+for (int i = 0; i < vector.size(); i++)
+  doSomething(vector.get(i));
+```
+
+上面的代码在多线程情况下，可能会抛出 ArrayIndexOutOfBoundsException。
+
+
+
+## 2. 迭代器与 ConcurrentModificationException
+
 对容器进行迭代的标准方式是使用迭代器Iterator。然而在设计同步容器的迭代器时并没有考虑并发修改问题，如果在对同步容器进行迭代的过程中有线程修改了容器，那么就会失败。并且它们的表现行为是“及时失败”的。这意味着当它们发现容器在迭代过程中被修改时，就会抛出ConcurrentMondificationException异常。
+
+```java
+List<Widget> widgetList = Collections.synchronizedList(new ArrayList<Widget>());
+...
+// May throw ConcurrentModificationException
+for (Widget w : widgetList)
+  doSomething(w);
+```
+
+## 3. 隐藏迭代器
+
+```Java
+public class HiddenIterator {
+  @GuardedBy("this")
+  private final Set<Integer> set = new HashSet<Integer>();
+  public synchronized void add(Integer i) { set.add(i); } 
+  public synchronized void remove(Integer i) { set.remove(i); }
+  
+  public void addTenThings() { 
+    Random r = new Random();
+    for (int i = 0; i < 10; i++)
+			add(r.nextInt());
+		System.out.println("DEBUG: added ten elements to " + set);
+  }
+}
+```
+
+上面代码在 System.out.println 时就可能产生异常，因为 set 的 toString 方法会对set 进行迭代。
 
 
 
