@@ -81,7 +81,7 @@ public class HiddenIterator {
 
 上面代码在 System.out.println 时就可能产生异常，因为 set 的 toString 方法会对set 进行迭代。
 
-
+> 正如封装对象的状态有助于维持不变性条件一样，封装对象的同步机制同样有助于确保实施同步策略。
 
 ### 未完待续。。。。。
 
