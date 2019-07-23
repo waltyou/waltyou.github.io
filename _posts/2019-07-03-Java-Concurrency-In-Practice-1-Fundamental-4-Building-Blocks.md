@@ -63,7 +63,7 @@ for (Widget w : widgetList)
 
 ## 3. 隐藏迭代器
 
-```Java
+```java
 public class HiddenIterator {
 
   private final Set<Integer> set = new HashSet<Integer>();
