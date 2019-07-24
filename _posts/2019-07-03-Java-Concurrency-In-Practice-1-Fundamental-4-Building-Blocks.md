@@ -231,9 +231,40 @@ public class TestHarness {
 }
 ```
 
+## 2. FutureTask
 
+FutureTask 也可以用做闭锁。FutureTask表示的计算是通过Callable 来实现的， 相当于一种可生成结果的Runnable, 并且可以处于以下3 种状态：
+1. 等待运行(Waiting to run)
+2. 正在运行(Running) 
+3. 运行完成(Completed)
 
-
+```java
+public class Preloader {
+  private final FutureTask<ProductInfo> future = 
+    FutureTask<ProductInfo>(new Callable<ProductInfo>() { 
+      public ProductInfo call() throws DataLoadException {
+        return loadProductInfo(); 
+      }
+    });
+  
+  private final Thread thread = new Thread(future);   
+  
+  public void start() { thread.start(); }
+  
+  public ProductInfo get()
+    				throws DataLoadException, InterruptedException {
+    try {
+      return future.get();
+    } catch (ExecutionException e) {
+      Throwable cause = e.getCause();
+      if (cause instanceof DataLoadException)
+        throw (DataLoadException) cause;
+      else
+        throw launderThrowable(cause);
+    }
+  }
+}
+```
 
 
 
