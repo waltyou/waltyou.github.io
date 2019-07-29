@@ -304,8 +304,67 @@ public class BoundedHashSet<T> {
 }
 ```
 
+## 4. 栅栏
 
+闭锁是一次性对象， 一且进入终止状态， 就不能被重置。
 
+栅栏(Barrier) 类似于闭锁， 它能阻塞一组线程直到某个事件发生[CPJ 4,4.3]。栅栏与闭锁的关键区别在于， 所有线程必须同时到达栅栏位置， 才能继续执行。闭锁用于等待事件， **而栅栏用于等待其他线程**。栅栏用于实现一些协议， 例如几个家庭决定在某个地方集合： “所有人6:00 在麦当劳碰头， 到了以后要等其他人， 之后再讨论下一步要做的事情。”
+
+CyclicBarrier 可以使一定数量的参与方反复地在栅栏位置汇集， 它在井行迭代算法中非常有用：这种算法通常将一个问题拆分成一系列相互独立的子问题。 当线程到达栅栏位置时将调用await 方法， 这个方法将阻塞直到所有线程都到达棚栏位置。如果所有线程都到达了栅栏位，那么栅栏将打开， 此时所有线程都被释放， 而栅栏将被重置以便下次使用。
+
+```java
+public class CellularAutomata {
+    private final Board mainBoard;
+    private final CyclicBarrier barrier;
+    private final Worker[] workers;
+
+    public CellularAutomata(Board board) {
+        this.mainBoard = board;
+        int count = Runtime.getRuntime().availableProcessors();
+        this.barrier = new CyclicBarrier(count,
+                new Runnable() {
+                    public void run() {
+                        mainBoard.commitNewValues();
+                    }});
+        this.workers = new Worker[count];
+        for (int i = 0; i < count; i++)
+            workers[i] = new Worker(mainBoard.getSubBoard(count, i));
+    }
+
+    private class Worker implements Runnable {
+        private final Board board;
+
+        public Worker(Board board) { this.board = board; }
+        public void run() {
+            while (!board.hasConverged()) {
+                for (int x = 0; x < board.getMaxX(); x++)
+                    for (int y = 0; y < board.getMaxY(); y++)
+                        board.setNewValue(x, y, computeValue(x, y));
+                try {
+                    barrier.await();
+                } catch (InterruptedException ex) {
+                    return;
+                } catch (BrokenBarrierException ex) {
+                    return;
+                }
+            }
+        }
+
+        private int computeValue(int x, int y) {
+            // Compute the new value that goes in (x,y)
+            return 0;
+        }
+    }
+
+    public void start() {
+        for (int i = 0; i < workers.length; i++)
+            new Thread(workers[i]).start();
+        mainBoard.waitForConvergence();
+    }
+}
+```
+
+另一种形式的栅栏是Exchanger, 它是一种两方(Two-Party)栅栏，各方在栅栏位置上交换数据[CPJ 3.4.3]。当两方执行不对称的操作时，Exchanger会非常有用，例如当一个线程向缓冲区写入数据，而另一个线程从缓冲区中读取数据。这些线程可以使用Exchanger来汇合，并将满的缓冲区与空的缓冲区交换。当两个线程通过Exchanger交换对象时，这种交换就把这两个对象安全地发布给另一方。
 
 
 
