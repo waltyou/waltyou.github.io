@@ -73,7 +73,7 @@ public class HiddenIterator {
   public void addTenThings() { 
     Random r = new Random();
     for (int i = 0; i < 10; i++)
-	add(r.nextInt());
+			add(r.nextInt());
     System.out.println("DEBUG: added ten elements to " + set);
   }
 }
@@ -126,6 +126,8 @@ CopyOnWriteArrayList 用于替代同步list。
 
 
 
+---
+
 # 阻塞队列和生产者 - 消费者模式
 
 **阻塞队列提供了可阻塞的put 和take方法， 以及支持定时的offer和poll方法**。如果队列已经满了， 那么put方法将阻塞直到有空间可用；如果队列为空， 那么take方法将会阻塞直到有元素可用。队列可以是有界的也可以是无界的， 无界队列永远都不会充满， 因此无界队列上的put方法也永远不会阻塞。
@@ -166,6 +168,8 @@ Java 6 增加了两种容器类型， Deque (发音为 "deck") 和 BIockingDeque
 
 
 
+---
+
 # 阻塞方法与中断方法
 
 线程可能会阻塞或暂停执行， 原因有多种：等待I/O操作结束， 等待获得一个锁， 等待从Thread.sleep 方法中醒来， 或是等待另一个线程的计算结果。 **当线程阻塞时， 它通常被挂起，并处于某种阻塞状态** (BLOCKED、 WAITING或 TIMED_WAITING)。阻塞操作与执行时间很长的普通操作的差别在于，**被阻塞的线程必须等待某个不受它控制的事件发生后才能继续执行**， 例如等待 I/0 操作完成， 等待某个锁变成可用， 或者等待外部计算的结束。 **当某个外部事件发生时， 线程被置回 RUNNABLE状态，并可以再次被调度执行。**
@@ -182,6 +186,8 @@ Java 6 增加了两种容器类型， Deque (发音为 "deck") 和 BIockingDeque
 2. 恢复中断。有时候不能抛出lnterruptedException, 例如当代码是Runnable 的一部分时。在这些情况下， 必须捕获InterruptedException, 并通过调用当前线程上的interrupt 方法恢复中断状态， 这样在调用栈中更高层的代码将看到引发了一个中断。
 
 
+
+---
 
 # 同步工具类
 
@@ -366,9 +372,43 @@ public class CellularAutomata {
 
 另一种形式的栅栏是Exchanger, 它是一种两方(Two-Party)栅栏，各方在栅栏位置上交换数据[CPJ 3.4.3]。当两方执行不对称的操作时，Exchanger会非常有用，例如当一个线程向缓冲区写入数据，而另一个线程从缓冲区中读取数据。这些线程可以使用Exchanger来汇合，并将满的缓冲区与空的缓冲区交换。当两个线程通过Exchanger交换对象时，这种交换就把这两个对象安全地发布给另一方。
 
+## 5. 构建高效且可伸缩的结果缓存
+
+几乎所有的服务器应用程序都会使用某种形式的缓存。重用之前的计算结果能降低延迟， 提高吞吐量，但却需要消耗更多的内存。
+
+```java
+public class Memoizer3 <A, V> implements Computable<A, V> {
+    private final Map<A, Future<V>> cache
+            = new ConcurrentHashMap<A, Future<V>>();
+    private final Computable<A, V> c;
+
+    public Memoizer3(Computable<A, V> c) {
+        this.c = c;
+    }
+
+    public V compute(final A arg) throws InterruptedException {
+        Future<V> f = cache.get(arg);
+        if (f == null) {
+            Callable<V> eval = new Callable<V>() {
+                public V call() throws InterruptedException {
+                    return c.compute(arg);
+                }
+            };
+            FutureTask<V> ft = new FutureTask<V>(eval);
+            f = ft;
+            cache.put(arg, ft);
+            ft.run(); // call to c.compute happens here
+        }
+        try {
+            return f.get();
+        } catch (ExecutionException e) {
+            throw LaunderThrowable.launderThrowable(e.getCause());
+        }
+    }
+}
+```
 
 
-### 未完待续。。。。。
 
 
 
