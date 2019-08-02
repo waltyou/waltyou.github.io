@@ -8,8 +8,6 @@ categories: [Java]
 tags: [Java, Concurrency, Java Concurrency In Practice]
 ---
 
-这一章主要介绍 Java 中有用的并发模块。
-
 大多数并发应用程序都是围绕“任务执行”来构造的：任务通常是一些抽象且离散的工作单元。
 
 <!-- more -->
@@ -72,7 +70,69 @@ public class ThreadPerTaskWebServer {
 
 代码如上，但是千万不要这么做，因为可能会创建过多线程，使得程序崩溃。
 
+## 3. 无限制创建线程的不足
 
+1. 线程生命周期的开销非常高
+2. 资源消耗
+3. 稳定性: 在可创建线程的数量上存在一个限制，这个限制值随着平台的不同而不同并受到多个因素制约，包括JVM启动参数，Thread构造函数中请求的栈大小，以及底层操作系统对线程的限制等。
+
+---
+
+# Executor框架
+
+java.util.concurrent提供了一种灵活的线程池作为Executor框架的一部分。
+
+```java
+public interface Executor{
+	void execute(Runnable command)
+}
+```
+
+Executor基于生产者-消费者模式，提交任务的操作相当于生产者，执行任务的线程则相当于消费者。
+
+## 1. 基于Executor的web服务器
+
+如下所示，定义了一个固定长度的线程池。
+
+```java
+public class TaskExecutionWebServer {
+    private static final int NTHREADS = 100;
+    private static final Executor exec
+            = Executors.newFixedThreadPool(NTHREADS);
+
+    public static void main(String[] args) throws IOException {
+        ServerSocket socket = new ServerSocket(80);
+        while (true) {
+            final Socket connection = socket.accept();
+            Runnable task = new Runnable() {
+                public void run() {
+                    handleRequest(connection);
+                }
+            };
+            exec.execute(task);
+        }
+    }
+
+    private static void handleRequest(Socket connection) {
+        // request-handling logic here
+    }
+}
+```
+
+
+
+## 2. 执行策略
+
+将任务提交和执行解耦开来，可以为某任务指定和修改执行策略。
+
+在执行策略中包括了“what 、where、When、How” 等方面，包括： 
+
+1. 在什么（what）线程中执行任务？ 
+2. 任务按照什么（what）顺序执行（FIFO、FIFO、优先级）？ 
+3. 有多少个（how many）任务能并发执行？ 
+4. 在队列中有多少个（how many）任务在等待执行？ 
+5. 如果系统由于过载而需要绝句一个任务，那么应该选择（which）哪个任务？另外，如何通（how）知应用程序有任务被拒绝？ 
+6. 在执行一个任务之前或之后，应该进行哪些（what）动作？
 
 
 
