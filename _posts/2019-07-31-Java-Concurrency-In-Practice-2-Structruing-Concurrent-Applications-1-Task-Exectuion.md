@@ -12,6 +12,8 @@ tags: [Java, Concurrency, Java Concurrency In Practice]
 
 <!-- more -->
 
+---
+
 * 目录
 {:toc}
 ---

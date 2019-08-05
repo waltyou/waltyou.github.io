@@ -16,8 +16,6 @@ Here is a summary.  [中文版](../Faiss-In-Project/).
 <!-- more -->
 
 ---
-## TOC
-
 
 * 目录
 {:toc}
