@@ -164,5 +164,31 @@ public class TaskExecutionWebServer {
 
 newScheduledThreadPool创建了一个固定长度的线程池，而且以延迟或者定时的方式来执行任务，类似Timer。
 
+
+
+## 4. Executor 的生命周期
+
+当用完一个线程池时，需要将线程池关闭，否则JVM将无法退出。
+
+关闭线程池有两种方法：
+
+- shutdown： 此方法是平缓的关闭方式，不再接受新的任务，等待以已经启动的任务结束，当所有的任务完成，线程池中的线程死亡。
+- shutdownNow：暴力关闭方式，取消尚未开始的任务并试图中断正在运行的线程。
+
+ExecutorService的生命周期有三种：运行、关闭、终止。Executor初始创建时处于运行状态，执行shutdown之后进入关闭状态，等所有任务都完成后进入终止状态。可以调用 awaitTermination 等待 ExecutorService 到达终止状态，或者使用 isTerminated 轮询状态。
+
+使用线程池的一般逻辑：
+
+1. 调用Executors类的静态方法newCachedThreadPool或者newFixedThreadPoo
+2. 调用submit提交任务（Runnable或Callable对象）
+3. 如果想要取消一个任务，或者提交Callable对象，要保存好返回的Future对象
+4. 当不再提交新任务时，调用shutdown。
+
+
+
+
+
+
+
 ### 未完待续。。。。。。
 
