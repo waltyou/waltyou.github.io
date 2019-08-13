@@ -170,6 +170,18 @@ newScheduledThreadPool创建了一个固定长度的线程池，而且以延迟�
 
 当用完一个线程池时，需要将线程池关闭，否则JVM将无法退出。
 
+```java
+public interface ExecutorService {
+    void shutdown();
+    List<Runnable> shutdownNow();
+    boolean isShutdown();
+    boolean isTerminated();
+    boolean awaitTermination (long timeout, TimeUnit unit) throws InterruptedException;
+
+    //.....一些其他用于任务提交的便利方法.
+}
+```
+
 关闭线程池有两种方法：
 
 - shutdown： 此方法是平缓的关闭方式，不再接受新的任务，等待以已经启动的任务结束，当所有的任务完成，线程池中的线程死亡。
@@ -185,6 +197,14 @@ ExecutorService的生命周期有三种：运行、关闭、终止。Executor初
 4. 当不再提交新任务时，调用shutdown。
 
 
+
+## 5. 延迟任务与周期任务
+
+通过ScheduledThreadPoolExecutor来代替Timer,TimerTask。
+
+- Timer基于绝对时间，ScheduledThreadPoolExecutor基于相对时间。
+- Timer执行所有定时任务只能创建一个线程，若某个任务执行时间过长，容易破坏其他TimerTask的定时精确性。
+- Timer不捕获异常，Timetask抛出未检查的异常会终止定时器线程，已经调度但未执行的TimerTask将不会再执行，新的任务也不会被调度，出现"线程泄漏"
 
 
 
