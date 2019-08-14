@@ -206,7 +206,113 @@ ExecutorService的生命周期有三种：运行、关闭、终止。Executor初
 - Timer执行所有定时任务只能创建一个线程，若某个任务执行时间过长，容易破坏其他TimerTask的定时精确性。
 - Timer不捕获异常，Timetask抛出未检查的异常会终止定时器线程，已经调度但未执行的TimerTask将不会再执行，新的任务也不会被调度，出现"线程泄漏"
 
+以下是错误的例子：
 
+```java
+public class OutOfTime {
+    public static void main(String[] args) throws InterruptedException {
+        Timer timer = new Timer();
+        timer.schedule(new ThrowTask(), 1); //第一个任务抛出异常
+        Thread.sleep(1000); 
+        timer.schedule(new ThrowTask(), 1); //第二个任务将不能再执行, 并抛出异常Timer already cancelled.
+        Thread.sleep(5000);
+        System.out.println("end.");
+    }
+    
+    static class ThrowTask extends TimerTask{
+
+        @Override
+        public void run() {
+            throw new RuntimeException("test timer's error behaviour");
+        }
+    }
+}
+```
+
+
+
+# 找出可利用的并行性
+
+## 1. 携带结果的任务Callable与Future
+
+Runnable的缺陷：不能返回一个值，或抛出一个异常。
+
+Callable和Runnable都描述抽象的计算任务，Callable可以返回一个值，并可以抛出一个异常。
+
+```java
+public interface Callable<V> {
+	V call() throws Exception;
+}
+```
+
+Future表示了一个任务的生命周期，提供了相应的方法判断是否完成或被取消以及获取执行结果：
+
+```java
+public interface Future<V> {
+  boolean cancel(boolean mayInterruptIfRunning);
+  boolean isCancelled();
+  boolean isDone();
+  V get() throws Exception;
+  V get(long timeout, TimeUnit unit);
+}
+```
+
+- get方法：若任务完成，返回结果或抛出ExecutionException；若任务取消，抛出CancellationException；若任务没完成，阻塞等待结果
+- ExecutorService的submit方法提交一个Callable任务，并返回一个Future来判断执行状态并获取执行结果
+- 安全发布过程：将任务从提交线程穿个执行线程，结果从计算线程到调用get方法的线程
+
+异构任务并行化中存在的局限：
+
+> 只有大量相互独立且同构的任务可以并发进行处理时，才能体现出性能的提升。
+
+## 2. 为任务设定时限
+
+如果超出期望执行时间，将不要其结果。可以通过使用 `Future.get` 来实现。
+
+```java
+public class RenderWithTimeBudget {
+    private static final Ad DEFAULT_AD = new Ad();
+    private static final long TIME_BUDGET = 1000;
+    private static final ExecutorService exec = Executors.newCachedThreadPool();
+
+    Page renderPageWithAd() throws InterruptedException {
+        long endNanos = System.nanoTime() + TIME_BUDGET;
+        Future<Ad> f = exec.submit(new FetchAdTask());
+        // Render the page while waiting for the ad
+        Page page = renderPageBody();
+        Ad ad;
+        try {
+            // Only wait for the remaining time budget
+            long timeLeft = endNanos - System.nanoTime();
+            ad = f.get(timeLeft, NANOSECONDS);
+        } catch (ExecutionException e) {
+            ad = DEFAULT_AD;
+        } catch (TimeoutException e) {
+            ad = DEFAULT_AD;
+            f.cancel(true);
+        }
+        page.setAd(ad);
+        return page;
+    }
+
+    Page renderPageBody() { return new Page(); }
+
+
+    static class Ad {
+    }
+
+    static class Page {
+        public void setAd(Ad ad) { }
+    }
+
+    static class FetchAdTask implements Callable<Ad> {
+        public Ad call() {
+            return new Ad();
+        }
+    }
+
+}
+```
 
 
 
