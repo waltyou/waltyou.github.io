@@ -267,7 +267,9 @@ public interface Future<V> {
 
 ## 2. 为任务设定时限
 
-如果超出期望执行时间，将不要其结果。可以通过使用 `Future.get` 来实现。
+如果超出期望执行时间，将不要其结果。
+
+### Future.get
 
 ```java
 public class RenderWithTimeBudget {
@@ -314,7 +316,13 @@ public class RenderWithTimeBudget {
 }
 ```
 
+### invokeAll()
+
+线程池支持通过invokeAll()可以一次批量提交多个callable。这个方法传入一个callable的集合，然后返回一个future的列表。该方法会阻塞直到所有callable执行完成。
+
+### invokeAny()
+
+与invokeAll相对应的，线程池还提供了一个invokeAny()方法，该方法将会阻塞直到第一个callable完成然后返回这一个callable的结果。
 
 
-### 未完待续。。。。。。
 
