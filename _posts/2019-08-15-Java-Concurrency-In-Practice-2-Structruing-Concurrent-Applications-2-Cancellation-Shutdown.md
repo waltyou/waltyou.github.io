@@ -104,6 +104,67 @@ public class PrimeGeneratorTest {
 
 - 通常，中断是实现取消的最合理方式。
 
+```java
+public class PrimeProducer extends Thread {
+    private final BlockingQueue<BigInteger> queue;
+
+    PrimeProducer(BlockingQueue<BigInteger> queue) {
+        this.queue = queue;
+    }
+
+    public void run() {
+        try {
+            BigInteger p = BigInteger.ONE;
+            while (!Thread.currentThread().isInterrupted())
+                queue.put(p = p.nextProbablePrime());
+        } catch (InterruptedException consumed) {
+            /* Allow thread to exit */
+        }
+    }
+
+    public void cancel() {
+        interrupt();
+    }
+}
+```
+
+## 2. 中断策略
+
+中断策略规定线程如何解释某个中断请求——当发现中断请求时，应该做哪些工作，哪些工作单元对于中断来说是原子操作，以及以多快的速度来响应中断。
+
+最合理的中断策略是以某种形式的线程级取消操作或者服务级取消操作：尽快退出，必要时进行清理，通知某个所有者该线程已经退出。此外还可以建立其他的中断策略，例如暂停服务或重新开始服务。
+
+区分任务和线程对中断的反应非常重要。一个中断请求可以有一个或者多个接受者——中断线程池中的某个工作者线程，同时意味着“取消当前任务”和“关闭工作者线程”。
+
+线程应该只能由其所有者中断，所有者可以将线程的中断策略信息封装到某个合适的取消机制中，例如关闭方法。
+
+> 由于每个线程拥有各自的中断策略，因此除非你知道中断对该线程的含义，否则就不应该中断这个线程。
+
+
+
+## 3. 响应中断
+
+在调用可中断的阻塞函数时，例如Thread.sleep或BolckingQueue.put等，有两种实用策略可以处理InterruptedException:
+
+- 传递异常
+- 恢复中断状态
+
+将InterruptedException传递给调用者：
+
+```java
+BlockingQueue<Task> queue;
+public Task getNextTask() throws InterruptedException{
+    return queue.take();
+}
+```
+
+如果不想或者无法传递InterruptedException(或许通过Runnable来定义任务)，那么需要寻找另一种方式来保存中断请求。一种标准的方法就是通过再次调用interrupt来恢复中断状态。
+
+> 只有实现了线程中断策略的代码才可以屏蔽中断请求，在常规的任务和库代码中都不应该屏蔽中断请求。
+
+对于不支持取消但仍可以调用可中断阻塞方法的操作，他们必须在循环中调用这些方法，并在发现中断后重新尝试。在这种情况下，他们应该在本地保存中断状态，并在返回前回复状态而不是在捕获InterruptedException时恢复状态。如果过早的设置中断状态，就可能引起无限循环，因为大多数可中断的阻塞方法都会在入口处检查中断状态，并且当发现该状态已被设置时会立即抛出InterruptedException(通常，可中断的方法会在阻塞或进行重要的工作前首先检查中断，从而尽快的响应中断)。
+
+
 
 
 
