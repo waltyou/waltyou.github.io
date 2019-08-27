@@ -164,6 +164,57 @@ public Task getNextTask() throws InterruptedException{
 
 对于不支持取消但仍可以调用可中断阻塞方法的操作，他们必须在循环中调用这些方法，并在发现中断后重新尝试。在这种情况下，他们应该在本地保存中断状态，并在返回前回复状态而不是在捕获InterruptedException时恢复状态。如果过早的设置中断状态，就可能引起无限循环，因为大多数可中断的阻塞方法都会在入口处检查中断状态，并且当发现该状态已被设置时会立即抛出InterruptedException(通常，可中断的方法会在阻塞或进行重要的工作前首先检查中断，从而尽快的响应中断)。
 
+## 4.  示例： 计时运行
+
+```java
+private static final ScheduledExecutorService cancelExec = ...;
+public static void timedRun(Runnable r,long timeout,TimeUnit unit) {
+    final Thread taskThread = Thread.currentThread();
+    cancelExec.schedule(new Runnable(){
+        public void run(){
+            taskThread.interrupt();
+        }
+    },timeout,unit);
+    r.run();
+}
+```
+
+这是一种非常简单的方法，然而却破坏了以下规则：**在中断线程之前，应该了解它的中断策略**。由于timedRun可以从任意一个线程中调用，因此它无法知道这个调用线程的中断策略。如果任务在超时之前完成，那么中断timedRun所在线程的取消任务将在timedRun返回到调用者后启动。
+
+而且，如果任务不响应中断，那么timedRun会在任务结束时才返回，此时可能已经超过了指定的时限。
+
+```java
+public static void timedRun(final Runnable r,long timeout,TimeUnit unit) 
+  throws InterruptedException{
+    class RethrowableTask implements Runnable{
+        private volatile Throwable t;
+        public void run(){
+            try{
+                r.run();
+            } catch(Throwable t){
+                this.t = t;
+            }
+        }
+        void rethrow(){
+            if(t != null) {
+                throw launderThrowable(t);
+            }
+        }    
+    }
+    
+    RethrowableTask task = new RethrowableTask();
+    final Thread taskThread = new Thread(task);
+    taskThread.start();
+    cancelExec.schedule(new Runnable(){
+          public void run() {
+              taskThread.interrupt();
+          }
+      },timeout,unit);
+    taskThread.join(unit.toMillis(timeout));
+    task.rethrow();
+}
+```
+
 
 
 
