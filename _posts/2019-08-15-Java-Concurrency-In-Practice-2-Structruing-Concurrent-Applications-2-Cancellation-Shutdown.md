@@ -217,6 +217,37 @@ public static void timedRun(final Runnable r,long timeout,TimeUnit unit)
 
 
 
+## 4. 通过 Future 来实现取消
+
+`ExecutorService.submit` 返回一个Future来描述任务。
+
+Future有一个cancel方法，该方法带有一个boolean类型的参数`mayInterruptIfRunning`，表示取消操作是否成功(这只是表示任务是否能够接收中断，而不是表示任务能否检测并处理中断)。如果该参数为true并且任务当前正在某个线程中运行，那么这个线程能被中断。如果这个参数为false，那么意味着“若任务还没有启动，那就不要启动它”，这种方式应该用于那些不处理中断的任务中。
+
+除非你清楚线程的中断策略，否则不要中断线程。当尝试取消某个任务时，不宜直接中断线程池。
+
+```java
+public static void timeRun(Runnable r,long timeout,TimeUnit unit) throws InterruptedException{
+    Future<?> task = taskExec.submit(r);
+    try{
+        task.get(timeout,unit);
+    } catch(TimeoutException e){
+        //接下来任务将被取消
+    } catch(ExecutionException e){
+        throw launderThrowable(e.getCauese());
+    } finally {
+        //如果任务已经结束，那么执行取消操作也不会带来任何影响
+        //如果任务正在运行，那么将被打断
+        task.cancel(true);
+    }
+}
+```
+
+> 当Future.get抛出InterruptedException或TimeoutException 时，如果你知道不再需要结果，那么就可以调用Future.cancel取消任务。
+
+
+
+
+
 
 
 
