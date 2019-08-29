@@ -246,6 +246,59 @@ public static void timeRun(Runnable r,long timeout,TimeUnit unit) throws Interru
 
 
 
+## 5. 处理不可中断的阻塞
+
+并非所有的可阻塞方法或者阻塞机制都能响应中断；如果一个线程由于执行同步的Socket I/O或者等待获得内置锁而阻塞，那么中断请求只能设置线程的中断状态，除此之外没有其他任何作用。
+
+由于执行不可中断操作而被阻塞的线程，可以使用类似于中断的手段来停止这些线程，但这要求我们必须知道线程阻塞的原因。
+
+1. java.io包中的同步Socket I/O。在服务器应用程序中，最常见的阻塞I/O形式就是对套接字进行读取和写入。虽然InputStream和OutputStream中的read和write等方法都不会响应中断，但是通过关闭底层的套接字，可以使得由于执行read或write等方法被阻塞的线程抛出一个SocketException
+2. java.io包中的同步I/O。当中断一个正在InterruptibleChannel上等待的线程时，将抛出ClosedByInterruptException并关闭链路。当关闭一个InterruptibleChannel时，将导致所有在链路操作上阻塞的线程都抛出AsynchronousCloseException。大多数的Channel都实现了InterruptibleChannel.
+3. Selector的异步I/O。如果一个线程在调用Selector.select方法时阻塞了，那么调用close或wakeup方法会使线程抛出ClosedSelectorException并提前返回。
+4. 获取某个锁。如果一个线程由于等待某个内置锁而阻塞，那么将无法响应中断。在Lock类中提供了lockInterruptibly方法，该方法允许在等待一个锁的同时仍能响应中断。
+
+下面展示的是如何封装非标准的取消操作。
+
+```java
+public class ReaderThread extends Thread{
+    private final Socket socket;
+    private final InputStream in;
+    public ReaderThread(Socket socket) throws IOException{
+        this.socket = socket;
+        this.in = socket.getInputStream();
+    }
+    
+    public void interrupt(){
+        try{
+            socket.close();
+        }catch(IOException ignored){
+            
+        }finally{
+            super.interrupt();
+        }
+        
+    }
+    
+    
+    public void run(){
+        try{
+            byte[] buf = new byte[1024];
+            while(true){
+                int count = in.read(buf);
+                if(count < 0) {
+                    break;
+                } else if(count > 0) {
+                    processBuffer(buf,count);
+                }
+            }
+        } catch(IOException e){
+            /*允许线程退出*/
+        }
+    }
+}
+
+```
+
 
 
 
