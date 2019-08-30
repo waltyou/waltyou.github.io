@@ -301,6 +301,64 @@ public class ReaderThread extends Thread{
 
 
 
+## 6. 采用newTaskFor封装非标准的取消
+
+newTaskFor是一个工厂方法，它将创建Future来代表任务。newTaskFor还能返回一个RunnableFuture接口，该接口拓展了Future和Runnable(并由FutureTask实现)。
+
+当把一个Callable提交给ExecutorService时，submit方法会返回一个Future，我们可以通过这个Future来取消任务。
+
+通过定制表示任务的Future可以改变Future.cancel的行为。例如定制的取消代码可以实现日志记录或者收集取消操作的统计信息，以及取消一些不响应中断的操作。通过改写interrupt方法，ReaderThread可以取消基于套接字的线程。同样，通过改写任务的Future，cancel方法也可以实现类似的功能。
+
+```java
+public interface CancellableTask<T> extends Callable<T>{
+    void cancel();
+    RunnableFuture<T> newTask();
+}
+
+public class CancellingExecutor extends ThreadPoolExecutor{
+    protected<T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+        if(callable instanceof CancellableTask){
+            return ((CancellableTask<T>)callable).newTask();
+        } else {
+            return super.newTaskFor(callable);
+        }
+    }
+}
+
+public abstract class SocketUsingTask<T> implements CancellableTask<T> {
+    private Socket socket;
+    protected synchronized void setSocket(Socket s){
+        socket = s;
+    }
+    
+    public synchronized void cancel(){
+        try{
+            if(socket!=null){
+                socket.close();
+            } 
+        } catch(IOException ingnored){}
+    }
+    
+    public RunnableFuture<T> newTask(){
+        return new FutureTask<T>(this){
+            public boolean cancel(boolean mayInterruptIfRunning){
+                try{
+                    SocketUsingTask.this.cancel();
+                } finally {
+                    return super.cancel(mayInterruptIfRunning);
+                }
+            }
+        };
+    }
+}
+```
+
+
+
+
+
+
+
 
 
 
