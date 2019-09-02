@@ -355,6 +355,128 @@ public abstract class SocketUsingTask<T> implements CancellableTask<T> {
 
 
 
+# 停止基于线程的服务
+
+应用程序通常会创建拥有多个线程的服务，例如线程池，并且这些服务的生命周期通常比创建它们的生命周期更长。如果应用程序准备退出，那么这些服务所拥有的线程也需要结束。由于无法通过抢占式的方法来停止线程，因此它们需要自行结束。
+
+正确的封装原则是：除非拥有某个线程，否则不能对该线程进行操控，例如，中断线程或者修改线程优先级等。
+
+> 对于持有线程的服务，主要服务的存在时间大于创建线程的方法的存在时间，那么就应该提供生命周期方法。
+
+## 1. 示例：日志服务
+
+```java
+public class LogWriter{
+    private final BlockingQueue<String> queue;
+    private final LoggerThread thread;
+    
+    public LogWriter(Writer writer){
+        this.queue = new BlokingQueue<>();
+        this.logger = new LoggerThread(write);
+    }
+    
+    public void start(){
+        logget.start();
+    }
+    
+    public void log(String msg) throws InterruptedException{
+        queue.put(msg);
+    }
+    
+    private class LoggerThread extends Thread{
+        private final PrintWriter writer;;
+        
+        public void run(){
+            try{
+                while(true){
+                    writer.println(queue.take());
+                }
+            } catch(InterruptedException ignored){
+                
+            } finally {
+                writer.close();
+            }
+            
+        }
+    }
+}
+```
+
+要停止日志线程是很容易的，因为它会反复调用take，而take能响应中断。如果日志线程修改为捕获到InterruptedException时退出，那么只需要中断日志线程就能停止服务。
+
+然而，如果只是使日志线程退出，那么还不是一种完备的关闭机制。这种直接关闭的做法会丢失那些正在等待被写入到日志的信息，不仅如此，其他线程将在调用log时被阻塞，因为日志消息队列是满的，因此这些线程将无法解除阻塞状态。
+
+另一种关闭LogWriter的方法是：设置某个“已请求关闭”标志，避免进一步提交日志消息。
+
+```java
+ public void log(String msg) throws InterruptedException{
+    if(!shutdownRequested){
+        queue.put(msg);
+    }else {
+        throw new IllegalStateException("logger is shut down");
+    }
+}
+```
+
+为LogWriter提供可靠关闭操作的方法是解决竞态条件问题，因而要使日志消息的提交操作成为原子操作。
+
+```java
+public class LogService{
+    private final BlockingQueue<String> queue;
+    private final LoggerThread loggerThread;
+    private final PrintWriter writer;
+    private boolean isShutdown;
+    private int reservations;
+    
+    public void start(){
+        loggerThread.start();
+    }
+    
+    public void stop(){
+        synchronized(this){
+            isShutdown = true;
+        }
+        loggerThread.interrupt();
+    }
+    
+    public void log(String msg) throws InterruptedException{
+        synchronized(this){
+            if(isShutdown){
+                throw new IllegalStateException(...);
+            }
+            ++reservations;
+        }
+        queue.put(msg);
+    }
+    
+    private class LoggerThread extends Thread{
+        public void run(){
+            try{
+                while(true){
+                    try{
+                        synchronized(LogService.this){
+                            if(isShutdown && reservations == 0){
+                                break;
+                            }
+                            String msg = queue.take();
+                            synchronized(LogService.this){
+                                --reservations;
+                            }
+                            writer.println(msg);                        
+                        } catch(InterruptedException e){
+                            /* retry */
+                        }
+                    } 
+
+                }
+            } finally {
+                writer.close();
+            }
+        }
+    }
+}
+```
+
 
 
 
