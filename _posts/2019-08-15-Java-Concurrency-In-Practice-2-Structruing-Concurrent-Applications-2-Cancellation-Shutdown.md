@@ -477,7 +477,34 @@ public class LogService{
 }
 ```
 
+## 2. 关闭ExecutorService
 
+在复杂程序中，通常会将ExecutorService封装在某个更高级别的服务中，并且该服务能提供其自己的生命周期方法。
+
+```java
+public class LogService{
+    private final ExecutorService exec = newSingleThreadExecutor();
+    
+    public void start();
+    
+    public void stop() throws InterruptedException {
+        try{
+            exec.shutdown();
+            exec.awaitTermination(TIMEOUT,UNIT);
+        } finally {
+            writer.close();
+        }
+    }
+    
+    public void log(String msg) {
+        try{
+            exec.execute(new WriteTask(msg));
+        } catch (RejectedExecutionException ignored) {
+            
+        }
+    }
+}
+```
 
 
 
