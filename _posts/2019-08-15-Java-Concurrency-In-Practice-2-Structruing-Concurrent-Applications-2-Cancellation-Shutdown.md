@@ -506,6 +506,75 @@ public class LogService{
 }
 ```
 
+## 3. “毒丸” 对象
+
+另一种关闭生产者-消费者服务的方式，就是使用“毒丸”对象。毒丸是指一个放在队列上的对象，其含义是：当得到足够对象时，立即停止。在FIFO队列中，“毒丸”对象确保消费者在关闭之前首先完成队列的所有工作，在提交毒丸对象之前提交的工作都会被处理，而生产者在提交了毒丸对象后，将不会提交任何工作。
+
+```java
+public class IndexingService{
+    private static final File POISON = new File("");
+    private final IndexerThread consumer = new IndexerThread();
+    private final CrawlerThread producer = new CrawlerThread();
+    private final BlockingQueue<File> queue;
+    private final File root;
+    
+    public void start(){
+        producer.start();
+        consumer.start();
+    }
+    
+    public void stop(){
+        producer.interrupt();
+    }
+    
+    public void awaitTermination() throws InterruptedException{
+        consumer.join();
+    }
+    
+    class CrawlerThread extends Thread{
+        public void run(){
+            try{
+                crawl(root);
+            } catch(InterruptedException e){
+                
+            } finally {
+                while(true) {
+                    try{
+                        queue.put(POISON);
+                        break;
+                    } catch(InterruptedException e1){
+                        /*重新尝试*/
+                    }
+                }
+            }
+        }
+        
+        private void crawl(File root) throws InterruptedException{
+            ...
+        }
+    }
+    
+    class IndexerThread extends Thread{
+        public void run(){
+            try{
+                while(true){
+                    File file = queue.take();
+                    if(file == POISON){
+                        break;
+                    } else {
+                        indexFile(file);
+                    }
+                }
+            } catch(InterruptedException consumed){
+                
+            }
+        }
+    }
+}
+```
+
+
+
 
 
 
