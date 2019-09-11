@@ -573,9 +573,34 @@ public class IndexingService{
 }
 ```
 
+## 4. 示例：只执行一次的服务
 
+如果某个方法需要处理一批任务，并且当所有任务都处理完成后才返回，那么可以通过一个私有的Executor来简化服务的生命周期管理，其中该Executor的生命周期是由这个方法来控制的(这种情况下，invokeAll和invokeAny等方法通常会起较大的作用).
 
+```java
+boolean checkMail(Set<String> hosts,long timeout,TimeUnit unit) throws InterruptedException{
+    ExecutorService exec = Executors.newCachedThreadPool();
+    final AtomicBoolean hasNewMail = new AtomicBoolean(false);
+    
+    try{
+        for(final String host : hosts){
+            exec.execute(new Runnable(){
+                public void run(){
+                    if(checkMail(host)){
+                        hasNewMail.set(true);
+                    }
+                }
+            });
+        }
+    } finally {
+        exec.shutdown();
+        exec.awaitTermination(timeout,unit);
+    }
+    return hasNewMail.get();
+}
+```
 
+checkMail能在多台主机上并行的检查新邮件。它创建了一个私有的Executor,并向每台主机提交一个任务。然后，当所有邮件检查任务都执行完成后，关闭Executor并等待结束。之所以采用AtomicBoolean是因为能从内部的Runnable中访问hasNewMail标识。
 
 
 
