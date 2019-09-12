@@ -602,6 +602,104 @@ boolean checkMail(Set<String> hosts,long timeout,TimeUnit unit) throws Interrupt
 
 checkMail能在多台主机上并行的检查新邮件。它创建了一个私有的Executor,并向每台主机提交一个任务。然后，当所有邮件检查任务都执行完成后，关闭Executor并等待结束。之所以采用AtomicBoolean是因为能从内部的Runnable中访问hasNewMail标识。
 
+## 5. shutdownNow的局限性
+
+当通过shutdownNow来强行关闭ExecutorService时，它会尝试取消正在运行的任务并返回所有已提交但尚未开始的任务，从而将这些任务写入日志或者保存起来以便之后进行处理。
+
+我们无法通过常规方法来找出哪些任务已经开始但尚未结束。这意味着我们无法在关闭过程中知道正在执行的任务的状态，除非任务本身会执行某种检查。
+
+TrackingExecutor中给出了如何在关闭过程中判断正在执行的任务。
+
+```java
+public class TrackingExecutor extends AbstractExecutorService{
+    private final ExecutorService exec;
+    private final Set<Runnable> tasksCancelledAtShutdown = Collections.synchronizedSet(new HashSet<Runnable>());
+    
+    public List<Runnable> getCancelledTasks(){
+        if(!exec.isTerminated){
+            throw new IllegalStateException(..);
+        }
+        return new ArrayList<Runnable>(tasksCancelledAtShutdown);
+    }
+    
+    public void execute(final Runnable runnable){
+        exec.execute(new Runnable(){
+            public void run(){
+                try{
+                    runnable.run();
+                } finally {
+                    if(isShutdown() && Thread.currentThread().isInterrupted()){
+                        tasksCancelledAtShutdown.add(runnable);
+                    }
+                }
+            }
+        });
+    }
+}
+```
+
+使用TrackingExecutorService来保存未完成的任务以备后续执行.
+
+```java
+public abstract class WebCrawler{
+    private volatile TrackingExecutor exec;
+    private final Set<URL> urlsToCrawl = new HashSet<URL>();
+    
+    public synchronized void start(){
+        exec = new TrackingExecutor(Executors.newCachedThreadPool());
+        for(URL url : urlsToCrawl) {
+            submitCrawlTask(url);
+        }
+        urlsToCrawl.clear();
+    }
+    
+    public synchronzied void stop() throws InterruptedException {
+        try{
+            saveUncrawled(exec.shutdownNow());
+            if(exec.awaitTermination(TIMEOUT,UNIT)){
+                saveUncrawled(exec.getCancelledTasks());
+            }
+        } finally {
+            exec = null;
+        }
+    }
+    
+    protected abstract List<URL> processPage(URL url);
+    
+    private void saveUncrawled(List<Runnable uncrawled){
+        for(Runnable task : uncrawled){
+            urlsToCrawl.add(((CrawlTask) task).getPage());
+        }
+    }
+    
+    private void submitCrawlTask(URL url){
+        exec.execute(new CrawlTask(u));
+    }
+    
+    private class CrawlTask implements Runnable{
+        private final URL url;
+        
+        public void run(){
+            for(URL link : processPage(url)){
+                if(Thread.currentThread().isInterrupted()){
+                    return;
+                }
+                submitCrawlTask(link);
+            }
+        }
+        
+        public URL getPage(){
+            return url;
+        }
+    }
+    
+}
+```
+
+在TrackingExecutor中存在一个不可避免的竞态条件，从而产生“误报”问题：一些被认为已经取消的任务实际上已经执行完成。原因在于，在任务执行最后一条指令以及线程池将任务记录为结束的两个时刻之间，线程池可能被关闭。如果任务是幂等的(Idempotent,即将任务执行两次和执行一次会得到相同的结果)，那么不会存在问题。
+
+
+
 
 
 
