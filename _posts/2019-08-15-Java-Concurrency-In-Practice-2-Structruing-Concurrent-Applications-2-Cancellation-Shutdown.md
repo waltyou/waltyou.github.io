@@ -700,6 +700,62 @@ public abstract class WebCrawler{
 
 
 
+# 处理非正常的线程终止
+
+当并发程序中的某个线程发生故障使控制台中可能会输出栈追踪信息，但是没有人会观察控制台。此外，当线程发生故障时，应用程序可能看起来仍然在工作，所以这个失败很可能被忽略。幸运的是，我们有可以监测并防止程序中“遗漏”线程的方法。
+
+导致线程死亡的最主要原因就是RuntimeException。这是unchecked异常，程序默认会在控制台输出栈追踪信息，并终止线程。
+
+典型的线程池工作者线程结构:
+
+```java
+public void run(){
+    Throwable thrown = null;
+    try{
+        while(!isInterrupted()){
+            runTask(getTaskFromWorkueue());
+        }
+    } catch (Throwable e) {
+        thrown = e;
+    } finally {
+        threadExited(this,throw);
+    }
+}
+```
+
+Thread api中同样提供了UncaughtExceptionHandler,它能检测出某个线程由于未捕获的异常而终结的情况。
+
+当一个线程由于未捕获异常而退出时，JVM会把这个事件报告给应用程序提供的UncaughtExceptionHandler异常处理器。如果没有提供任何异常处理器，那么默认的行为是将栈追踪信息输出到System.err.
+
+```java
+public interface UncaughtExceptionHandler {
+    void uncaughtException(Thread t,Throwable e);
+}
+```
+
+异常处理器如何处理未捕获异常，取决于对服务质量的需求。最常见的响应方式是将一个错误信息以及相应的栈追踪信息写入应用程序日志中。
+
+```java
+public class USHLogger implements Thread.UncaughtExceptionHandler {
+    public void uncaughtException(Thread t,Throwable e){
+        Logger logger = logger.getAnonymousLogger();
+        logger.log(Level.SEVERE,"Thread terminated with exception :" + t.getName()),e);
+    }
+}
+```
+
+> 在运行时间较长的应用程序中，通常会为所有线程的未捕获异常指定同一个异常处理器，并且该处理器至少会将异常信息记录到日志中。
+
+要为线程池中的所有线程设置一个UncaughtExceptionHandler,需要为ThreadPoolExecutor的构造函数提供一个ThreadFactory。标准线程池允许当发生未捕获异常时结束线程，但由于使用了一个try-finally代码来接收通知，因此当线程结束时，将有新的线程来代替它。如果没有提供捕获异常处理器或者其他的故障通知机制，那么任务会悄悄失败，从而导致极大的混乱。如果你希望在任务由于发送异常而失败时获得通知并且执行一些特定于任务的恢复操作，那么可以将任务封装在能捕获异常的Runnable或Callable中，或者改写ThreadPoolExecutor的afterExecute方法。
+
+令人困惑的是，只有通过execute提交的任务，才能将它抛出的异常交给未捕获异常处理器，而通过submit提交的任务，会被封装成ExecutionException抛出。
+
+
+
+
+
+
+
 
 
 
