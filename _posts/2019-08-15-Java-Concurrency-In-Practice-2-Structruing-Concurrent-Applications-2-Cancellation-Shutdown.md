@@ -353,7 +353,7 @@ public abstract class SocketUsingTask<T> implements CancellableTask<T> {
 }
 ```
 
-
+---
 
 # 停止基于线程的服务
 
@@ -698,7 +698,7 @@ public abstract class WebCrawler{
 
 在TrackingExecutor中存在一个不可避免的竞态条件，从而产生“误报”问题：一些被认为已经取消的任务实际上已经执行完成。原因在于，在任务执行最后一条指令以及线程池将任务记录为结束的两个时刻之间，线程池可能被关闭。如果任务是幂等的(Idempotent,即将任务执行两次和执行一次会得到相同的结果)，那么不会存在问题。
 
-
+---
 
 # 处理非正常的线程终止
 
@@ -750,9 +750,37 @@ public class USHLogger implements Thread.UncaughtExceptionHandler {
 
 令人困惑的是，只有通过execute提交的任务，才能将它抛出的异常交给未捕获异常处理器，而通过submit提交的任务，会被封装成ExecutionException抛出。
 
+---
 
+# JVM关闭
 
+JVM既可以正常关闭也可以强行关闭。
 
+正常关闭的触发方式有多种，包括：当最后一个“非守护“线程结束时，或者调用System.exit时，或者通过其他特定平台的方法关闭时(例如发送了SIGINT信号或键入crtl + C)。但也可以调用Runtime.halt或者在操作系统中杀死JVM进程来强行关闭JVM.
+
+## 1. 关闭钩子
+
+在正常关闭中，JVM首先调用所有已注册的关闭钩子(Shutdown hook)。关闭钩子是指通过Runtime.addShutdownHook注册的但尚未开始的线程。JVM并不能保证关闭钩子的调用顺序。在关闭应用程序线程中，如果线程仍然在运行，那么这些线程接下来和关闭进程并发执行。如果runFinalizerOnExit为true。那么JVM将运行终结器，然后再停止。JVM并不会停止或中断任何在关闭时仍然运行的应用程序线程。当JVM最终结束时，这些线程将被强行结束。如果关闭钩子或终结器没有执行完成，那么正常关闭进程“挂起”并且JVM必须被强行关闭。当强行关闭时，只是关闭JVM，而不会运行关闭钩子。
+
+关闭钩子应该是线程安全的：它们在访问共享数据时必须使用同步机制，并且小心的避免死锁，这和其他并发代码的要求相同。而且，关闭钩子不应该对应用程序的状态或者JVM的关闭原因作出任何假设。最后，关闭钩子应该尽快退出，因为它们会延迟JVM的结束时间，而用户可能希望JVM尽快终止。
+
+关闭钩子可以用于实现服务或应用程序的清理工作，例如清理临时文件。
+
+由于关闭钩子将并发执行，因此在关闭日志文件时可能导致其他需要日志服务的关闭钩子产生问题。实现这种功能的一种方式是对所有服务使用同一个关闭钩子，并且在关闭钩子中执行一系列的关闭操作。
+
+```java
+public void start(){
+    Runtime.getRuntime().addShutdownHook(new Thread(){
+        public void run(){
+            try{
+                LogService.this.stop();
+            } catch(InterruptedException ignored){
+                
+            }
+        }
+    }
+}
+```
 
 
 
