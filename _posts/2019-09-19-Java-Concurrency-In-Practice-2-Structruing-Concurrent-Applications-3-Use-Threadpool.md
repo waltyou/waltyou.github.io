@@ -34,6 +34,53 @@ Executor框架可以将任务的提交与任务的执行策略解耦开来。但
 
 > 在一些任务中，需要拥有或排除某种特定的执行策略。如果某些任务依赖于其他的任务，那么会要求线程池足够大，从而确保它们依赖任务不会被放入等待队列中或被拒绝，而采用线程封闭机制的任务需要串行执行。通过将这些需求写入文档，将来的代码维护人员就不会由于使用了某种不合适的执行策略而破坏安全性或活跃性。
 
+## 1. 线程饥饿死锁
+
+在线程池中，如果任务依赖于其他任务，那么可能产生死锁。在单线程的Executor中，如 果一个任务将另一个任务提交到同一个Executor,并且等待这个被提交任务的结果，那么通常会引发死锁。第二个任务停留在工作队列中，并等待第一个任务完成，而第一个任务又无法完 成，因为它在等待第二个任务的完成。在更大的线程池中, 只要线程池中的任务需要无限期地等待一些必须由池中其他任务才能提供的资源或条件，例如某个任务等待另一个任务的返回值或执行结果，那么除非线程池足够大，否则将发生线程饥饿死锁。 
+
+以下是线程饥饿死锁的示例。
+
+```java
+public class ThreadDeadlock {
+    ExecutorService exec = Executors.newSingleThreadExecutor();
+
+    public class LoadFileTask implements Callable<String> {
+        private final String fileName;
+
+        public LoadFileTask(String fileName) {
+            this.fileName = fileName;
+        }
+
+        public String call() throws Exception {
+            // Here's where we would actually read the file
+            return "";
+        }
+    }
+
+    public class RenderPageTask implements Callable<String> {
+        public String call() throws Exception {
+            Future<String> header, footer;
+            header = exec.submit(new LoadFileTask("header.html"));
+            footer = exec.submit(new LoadFileTask("footer.html"));
+            String page = renderBody();
+            // Will deadlock -- task waiting for result of subtask
+            return header.get() + page + footer.get();
+        }
+
+        private String renderBody() {
+            // Here's where we would actually render the page
+            return "";
+        }
+    }
+}
+```
+
+> 每当提交了一个有依赖性 Executor 任务时，要清楚地知道可能会出现线程“饥饿”死锁，因此需要在代码或配置Executor的配置文件中记录线程池的大小限制或配置限制。
+
+除了在线程池大小上的显式限制外， 还可能由于其他资源上的约束而存在一些隐式限制。如果应用程序使用一个包含10个连接的JDBC连接池， 并且每个任务需要一个数据库连接， 那么线程池就好像只有10个线程， 因为当超过10个任务时， 新的任务需要等待其他任务释放连接。
+
+
+
 
 
 
