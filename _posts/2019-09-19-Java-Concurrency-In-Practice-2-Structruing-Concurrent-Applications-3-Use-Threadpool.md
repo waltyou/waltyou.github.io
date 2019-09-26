@@ -103,5 +103,25 @@ public class ThreadDeadlock {
 
 
 
+---
+
+# 配置 ThreadPoolExecutor
+
+ThreadPoolExecutor为一些Executor提供了基本的实现，这些Executor是由 Executors 中 的newCachedThreadPool、newFixedThreadPool和newScheduledThreadExecutor等工厂方法返回的。
+
+## 1. 线程的创建与销毁
+
+线程池的基本大小(Core Pool Size)、最大大小(Maximum Pool Size)以及存活时间等因素共同负责线程的创建与销毁。 基本大小也就是线程池的目标大小， 即在没有任务执行时线程池的大小， 并且只有在工作队列满了的情况下才会创建超出这个数字的线程。 线程池的最大大小表示可同时活动的线程数最的上限。 如果某个线程的空闲时间超过了存活时间， 那么将被标记为可回收的， 并且当线程池的当前大小超过了基本大小时， 这个线程将被终止。
+
+通过调节线程池的基本大小和存活时间， 可以帮助线程池回收空闲线程占有的资源，从而使得这些资源可以用于执行其他工作。（显然， 这是种折衷： 回收空闲线程会产生额外的延迟， 因为当需求增加时， 必须创建新的线程来满足需求。）
+
+`newFixedThreadPool` 工厂方法将线程池的基本大小和最大大小设置为参数中指定的值， 而且创建的线程池不会超时。newCachedThreadPool工厂方法将线程池的最大大小设置为Integer. MAX_VALUE, 而将基本大小设置为零， 并将超时设置为1分钟， 这种方法创建出来的线 程池可以被无限扩展， 并且当需求降低时会自动收缩。其他形式的线程池可以通过显式的 ThreadPoolExecutor构造函数来构造。
+
+
+
+
+
+
+
 
 ## 未完待续。。。
