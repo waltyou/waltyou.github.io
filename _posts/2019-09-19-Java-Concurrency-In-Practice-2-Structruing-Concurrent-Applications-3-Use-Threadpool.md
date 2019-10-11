@@ -145,6 +145,52 @@ newFixedThreadPool 和 newSingleThreadExecutor在默认情况 下将使用一个
 
 只有当任务相互独立时， 为线程池或工作队列设置界限才是合理的。如果任务之间存在依赖性， 那么有界的线程池或队列就可能导致线程 ” 饥饿” 死锁问题。此时应该使用无界的线程 池， 例如newCachedThreadPool.
 
+## 3. 饱和策略
+
+当有界队列被填满后， 饱和策略开始发挥作用。ThreadPoolExecutor 的饱和策略可以通过调用setRejectedExecutionHandler 来修改。（如果某个任务被提交到一个巳被关闭的Executor时，也会用到饱和策略。） JDK提供了几种不同的RejectedExecutionHandler实现，每种实现都包含有不固的饱和策略： AbortPolicy、CallerRunsPolicy、DiscardPolicy和DiscardOldestPolicy。
+
+"中止(Abort)"策略是默认的饱和策略，该策略将抛出未检查的RejectedExecution -Exception。调用者可以捕获这个异常，然后根据需求编写自己的处理代码。
+
+当新提交的任务法保存到队列中等待执行时，“抛弃(Discard)"策略会悄悄抛弃该任务。 
+
+“抛弃最旧的（ Discard-Oldest)"策略则会抛弃下一个将被执行的任务， 然后尝试重新提交新的任务。（如果工作队列是一个优先队列， 那么 “抛弃最旧的” 策略将导致抛弃优先级最高的任务， 因此最好不要将 “抛弃最旧的＂ 饱和策略和优先级队列放在一起使用。）
+
+ “调用者运行(Caller-Runs)"策略实现了一种调节机制， 该策略既不会抛弃任务， 也不会抛出异常， 而是将某些任务回退到调用者， 从而降低新任务的流量。 它不会在线程池的某个线程中执行新提交的任务， 而是在一个调用了execute的线程中执行该任务。 我们可以将WebServer示例修改为使用有界队列和 “ 调用者运行” 饱和策略， 当线程池中的所有线程都被占用， 并且工作队列被填满后， 下一个任务会在调用execute 时在主线程中执行门 由于执行任 务需要一定的时间， 因此主线程至少在一段时间内不能提交任何任务， 从而使得工作者线程有时间来处理完正在执行的任务。在这期间， 主线程不会调用accept, 因此到达的请求将被保存 在TCP层的队列中而不是在应用程序的队列中。 如果持续过载， 那么TCP层将最终发现它的 请求队列被填满， 因此同样会开始抛弃请求。 当服务器过载时， 这种过载情况会逐渐向外蔓延开来－从线程池到工作队列到应用程序再到TCP层， 最终达到客户端， 导致服务器在高负载下实现一种平缓的性能降低。
+
+当创建 Executor 时， 可以选择饱和策略或者对执行策略进行修改。 
+
+当工作队列被填满后， 没有预定义的饱和策略来阻塞 execute 。然而， 通过使用 Semaphore（信号量）来限制任务的到达率，就可以实现这个功能。
+
+```java
+public class BoundedExecutor {
+    private final Executor exec;
+    private final Semaphore semaphore;
+
+    public BoundedExecutor(Executor exec, int bound) {
+        this.exec = exec;
+        this.semaphore = new Semaphore(bound);
+    }
+
+    public void submitTask(final Runnable command)
+            throws InterruptedException {
+        semaphore.acquire();
+        try {
+            exec.execute(new Runnable() {
+                public void run() {
+                    try {
+                        command.run();
+                    } finally {
+                        semaphore.release();
+                    }
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            semaphore.release();
+        }
+    }
+} 
+```
+
 
 
 
