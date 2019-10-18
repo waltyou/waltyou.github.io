@@ -213,9 +213,13 @@ public class BoundedExecutor {
 
 
 
+# 扩展ThreadPoolExecutor
 
+ThreadPoolExecutor 是可扩展的， 它提供了几个可以在子类化中改写的方法： beforeExecute、 afteExecute 和 terminated, 这些方法可以用于扩展 ThreadPoolExecutor 的行为。
 
+在执行任务的线程中将调用 beforeExecute 和 afterExecute 等方法， 在 这些方法中还可以添加日志、计时、监视或统计信息收集的功能。无论任务是从 run 中正常返回，还是抛出一个 异常而返回， afterExecute 都会被调用。（如果任务在完成后带有一个 Error, 那么就不会调用 after Execute。)如果 beforeExecute 抛出一个 RuntimeException, 那么任务将不被执行， 并且 afterExecute 也不会被调用。
 
+​在线程池完成关闭操作时调用 terminated, 也就是在所有任务都已经完成并且所有工作者 线程也巳经关闭后。 terminated 可以用来释放 Executor 在其生命周期里分配的各种资源， 此外还可以执行发送通知、 记录日志或者收集 finalize 统计信息等操作。
 
 
 
