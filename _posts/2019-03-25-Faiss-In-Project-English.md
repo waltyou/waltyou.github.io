@@ -49,10 +49,8 @@ Faiss has implemented many type indexes. If you just want to use them, you can t
 
 No doubt using docker
 
-Faiss docker：_https://hub.docker.com/r/plippe/faiss-docker/_
+Faiss docker：_https://hub.docker.com/r/waltyou/faiss-api-service/_
 
-> The version of python in faiss-web-service docker is 2.7, so we choose the python2 .
-> If you want to use python3，you can install opencv and flask by using the python3 faiss docker as basic image。
 
 ## 1. Extract Image Feature
 
@@ -155,7 +153,7 @@ scores, neighbors = index.search(siftfeature, k=topN)
 
 ## 4. Build API Service
 
-Mainly refer to [plippe/faiss-web-service](https://github.com/plippe/faiss-web-service)。
+Mainly refer to "plippe/faiss-web-service", you can find in github.
 
 ---
 

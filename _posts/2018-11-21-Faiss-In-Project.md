@@ -52,10 +52,9 @@ tags: [Faiss, Image Search]
 
 直接用 docker。
 
-Faiss docker 选择：https://hub.docker.com/r/plippe/faiss-docker/
+Faiss docker 选择：https://hub.docker.com/r/waltyou/faiss-api-service/
 
-注意：因为后面的faiss-web-service docker 里的python版本是2.7， 所以上面这些最好也是python2。
-如果想使用python3，可以用一个python3的faiss docker 作为基础镜像，自己安装opencv和flask。
+里面 Faiss 、Flask、OpenCv 都已经装好了。
 
 ## 1. 提取图片向量
 
@@ -160,7 +159,7 @@ scores, neighbors = index.search(siftfeature, k=topN)
 
 ## 4. 构建 API 服务
 
-主要是参考 [plippe/faiss-web-service](https://github.com/plippe/faiss-web-service)。
+主要是参考 plippe/faiss-web-service ，在它基础上，添加了提取图片特征及训练Faiss索引等模块。
 
 ------
 
