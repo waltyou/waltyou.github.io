@@ -125,7 +125,53 @@ public String getStoogeNames(){
 
 有 3 种方式可以降低锁的竞争程度：减少锁的持有时间、降低锁的请求频率、使用带有协调机制的独占锁.
 
+## 1. 减小锁的范围
 
+降低发生竞争可能性的一种有效方式，**是尽量缩短锁的持有时间**，所以可以将一些与锁无关的代码移出同步代码块，尤其是那些开销较大的操作，以及可能被阻塞的操作，例如 I/O 操作。
+
+坏的示例：
+
+```java
+@ThreadSafe
+public class AttributeStore {
+    @GuardedBy("this") private final Map<String, String>
+            attributes = new HashMap<String, String>();
+
+    public synchronized boolean userLocationMatches(String name,
+                                                    String regexp) {
+        String key = "users." + name + ".location";
+        String location = attributes.get(key);
+        if (location == null)
+            return false;
+        else
+            return Pattern.matches(regexp, location);
+    }
+}
+```
+
+好的示例：
+
+```java
+@ThreadSafe
+public class BetterAttributeStore {
+    @GuardedBy("this") private final Map<String, String>
+            attributes = new HashMap<String, String>();
+
+    public boolean userLocationMatches(String name, String regexp) {
+        String key = "users." + name + ".location";
+        String location;
+        synchronized (this) {
+            location = attributes.get(key);
+        }
+        if (location == null)
+            return false;
+        else
+            return Pattern.matches(regexp, location);
+    }
+}
+```
+
+同步代码块不能过小——一些需要采用原子方式执行的操作（例如对某个不变性条件中的多个变量进行更新）必须包含在一个同步块中。此外，同步需要一定的开销，当把一个同步代码块分解为多个同步代码块时（在确保正确性情况下），反而会对性能提升产生负面影响。（如果 JVM 执行锁粒度粗化，那么可能会将分解的同步块又重新合并）在分解同步代码块时，理想的平衡点将与平台相关，但在实际中，仅当可以将一些 "大量" 的计算或阻塞操作从同步代码块中移出时，才考虑同步代码块的大小。
 
 
 
