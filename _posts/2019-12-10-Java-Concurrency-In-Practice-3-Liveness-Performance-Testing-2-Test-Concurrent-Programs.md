@@ -73,6 +73,22 @@ tags: [Java, Concurrency, Java Concurrency In Practice]
 
 通过使用自定义的线程工厂，可以对线程的创建过程进行控制。
 
+### 6. 产生更多的交替操作
+
+由于并发代码中发生的错误一般都是低概率事件，所以在测试并发错误时需要反复地执行许多次，但有些方法可以提高发现这些错误的概率 ，在前面提到过，在多处理器系统上，如果 处理器的数量少于活动线程的数量，那么 与单处理器的系统 或者 包含多个处理器的系统相比，将能产生更多的交替行为。同样，如果在不同的处理器数量、操作系统以及处理器架构的系统上进行测试，就可以发现那些在特定运行环境中才会出现的问题。
+
+有一种有用的方法能提高交替操作的数量。以便能更有效的搜索程序的状态空间：在访问共享状态的操作中，使用**Thred.yield**将产生更多的上下文切换。当代码在访问状态的时候没有使用足够的同步，将存在一些对执行时序敏感的错误，通过在某个操作的执行过程 中调用yield方法，可以将这些错误暴露出来。这种方法需要在测试中添加一些调用并且在正式产品中删除这些调用。
+
+```java
+public synchronized void tranferCredits(Account from,Account to,int amount) {  
+    from.setBalance(from.getBalance()-amount);  
+    if (random.nextInt(1000)>THRESHOLD) {  
+        Thread.yield();  
+    }  
+    to.setBalance(to.getBalance()+amount);  
+}
+```
+
 
 
 
