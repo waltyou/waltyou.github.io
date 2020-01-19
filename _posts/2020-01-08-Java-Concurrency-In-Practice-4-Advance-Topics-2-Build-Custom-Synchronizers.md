@@ -233,4 +233,39 @@ public class BoundedBuffer <V> extends BaseBoundedBuffer<V> {
 
 注意，如果某个功能无法通过“轮询和休眠"来实现，那么条件队列也无法实现。
 
+
+
+## 使用条件队列
+
+###  1. 条件谓词 The Condition Predicate
+
+The Condition Predicate 是使某个操作成为状态依赖操作的前提条件。take方法的条件谓词是”缓存不为空“，take方法在执行之前必须首先测试条件谓词。同样，put方法的条件谓词是”缓存不满“。
+
+在条件等待中存在一种重要的三元关系，包括
+
+- 加锁
+- wait方法
+- 条件谓词
+
+条件谓词中包含多个状态变量，而状态变量由一个锁来保护，因此在测试条件谓词之前必须先持有这个锁。锁对象和条件队列对象必须是同一个对象。wait释放锁，线程挂起阻塞，等待知道超时，然后被另外一个线程中断或者被一个通知唤醒。唤醒后，wait在返回前还需要重新获取锁，当线程从wait方法中唤醒，它在重新请求锁时不具有任何特殊的优先级，和其他人一起竞争。
+
+### 2. 过早唤醒
+
+其他线程中间插足了，获取了锁，并且修改了遍历，这时候线程获取锁需要重新检查条件谓词。
+
+当然有的时候，比如一个你根本不知道为什么别人调用了notify或者notifyAll，也许条件谓词压根就没满足，但是线程还是获取了锁，然后test条件谓词，释放所，其他线程都来了这么一趟，发生这就是“谎报军情”啊。
+
+基于以上这两种情况，都必须重新测试条件谓词。
+
+```java
+void stateDependentMethod() throws InterruptedException {
+ // condition predicate must be guarded by lock
+ synchronized(lock) {  
+     while (!conditionPredicate())  //一定在循环里面做条件谓词
+         lock.wait();  //确保和synchronized的是一个对象
+     // object is now in desired state  //不要释放锁
+ }
+} 
+```
+
 ## 未完待续。。。。。
