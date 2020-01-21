@@ -253,7 +253,7 @@ The Condition Predicate 是使某个操作成为状态依赖操作的前提条�
 
 其他线程中间插足了，获取了锁，并且修改了遍历，这时候线程获取锁需要重新检查条件谓词。
 
-当然有的时候，比如一个你根本不知道为什么别人调用了notify或者notifyAll，也许条件谓词压根就没满足，但是线程还是获取了锁，然后test条件谓词，释放所，其他线程都来了这么一趟，发生这就是“谎报军情”啊。
+当然有的时候，比如一个你根本不知道为什么别人调用了notify或者notifyAll，也许条件谓词压根就没满足，但是线程还是获取了锁，然后test条件谓词，释放锁，其他线程都来了这么一趟，发生这就是“谎报军情”啊。
 
 基于以上这两种情况，都必须重新测试条件谓词。
 
@@ -267,5 +267,36 @@ void stateDependentMethod() throws InterruptedException {
  }
 } 
 ```
+
+### 3. 丢失的信号
+
+保证notify一定在wait之后。
+
+### 4. 通知
+
+调用 notify 和 notifyAll 也得持有与条件队列对象相关联的锁。调用notify，JVM Thread Scheduler在这个条件队列上等待的多个线程中选择一个唤醒，而notifyAll则会唤醒所有线程。因此一旦notify了那么就需要尽快的释放锁，否则别人都竞争等着拿锁，都会进行blocked的状态，而不是线程挂起waiting状态，竞争都了不是好事，但是这是你考了性能因素和安全性因素的一个矛盾，具体问题要具体分析。
+
+下面的方法可以进来减少竞争，但是确然程序正确的实现有些难写，所以这个折中还得自己考虑：
+
+```java
+public synchronized void alternatePut(V v) throws InterruptedException {
+        while (isFull())
+            wait();
+        boolean wasEmpty = isEmpty();
+        doPut(v);
+        if (wasEmpty)
+            notifyAll();
+    }
+```
+
+使用notify容易丢失信号，所以大多数情况下用notifyAll，比如take notify，却通知了另外一个take，没有通知put，那么这就是信号丢失，是一种“被劫持的”信号。
+
+因此只有满足下面两个条件，才能用notify，而不是notifyAll：
+
+- 所有等待线程的类型都相同
+- 单进单出
+
+
+
 
 ## 未完待续。。。。。
