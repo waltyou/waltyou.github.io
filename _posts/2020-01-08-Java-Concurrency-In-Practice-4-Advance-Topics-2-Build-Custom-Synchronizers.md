@@ -297,6 +297,62 @@ public synchronized void alternatePut(V v) throws InterruptedException {
 - 单进单出
 
 
+### 5. 示例：阀门类A Gate Class
+
+和第5章的那个TestHarness中使用CountDownLatch类似，完全可以使用wait/notifyAll做阀门。
+
+```java
+@ThreadSafe
+public class ThreadGate {
+    // CONDITION-PREDICATE: opened-since(n) (isOpen || generation>n)
+    @GuardedBy("this") private boolean isOpen;
+    @GuardedBy("this") private int generation;
+
+    public synchronized void close() {
+        isOpen = false;
+    }
+
+    public synchronized void open() {
+        ++generation;
+        isOpen = true;
+        notifyAll();
+    }
+
+    // BLOCKS-UNTIL: opened-since(generation on entry)
+    public synchronized void await() throws InterruptedException {
+        int arrivalGeneration = generation;
+        while (!isOpen && arrivalGeneration == generation)
+            wait();
+    }
+}
+```
+
+
+
+## Explicit Condition Objects
+
+Lock是一个内置锁的替代，而Condition也是一种广义的**内置条件队列**。
+
+Condition的API如下：
+
+```java
+public interface Condition {
+  void await() throws InterruptedException;
+  boolean await(long time, TimeUnit unit)throws InterruptedException;
+  long awaitNanos(long nanosTimeout) throws InterruptedException;
+  void awaitUninterruptibly();
+  boolean awaitUntil(Date deadline) throws InterruptedException;
+  void signal();
+  void signalAll();
+}
+```
+
+内置条件队列存在一些缺陷，每个内置锁都只能有一个相关联的条件队列，记住是**一个**。所以在BoundedBuffer这种类中，**多个线程可能在同一个条件队列上等待不同的条件谓词**，所以notifyAll经常通知不是同一个类型的需求。如果想编写一个带有多个条件谓词的并发对象，或者想获得除了条件队列可见性之外的更多的控制权，可以使用Lock和Condition，而不是内置锁和条件队列，这更加灵活。
+
+
+
+
+
 
 
 ## 未完待续。。。。。
