@@ -349,6 +349,62 @@ public interface Condition {
 
 内置条件队列存在一些缺陷，每个内置锁都只能有一个相关联的条件队列，记住是**一个**。所以在BoundedBuffer这种类中，**多个线程可能在同一个条件队列上等待不同的条件谓词**，所以notifyAll经常通知不是同一个类型的需求。如果想编写一个带有多个条件谓词的并发对象，或者想获得除了条件队列可见性之外的更多的控制权，可以使用Lock和Condition，而不是内置锁和条件队列，这更加灵活。
 
+一个Condition和一个lock关联，想象一个条件队列和内置锁关联一样。在Lock上调用newCondition就可以新建无数个条件谓词，这些condition是可中断的、可有时间限制的，公平的或者非公平的队列操作。
+
+下面的例子就是改造后的BoundedBuffer:
+
+```java
+@ThreadSafe
+public class ConditionBoundedBuffer <T> {
+    protected final Lock lock = new ReentrantLock();
+    // CONDITION PREDICATE: notFull (count < items.length)
+    private final Condition notFull = lock.newCondition();
+    // CONDITION PREDICATE: notEmpty (count > 0)
+    private final Condition notEmpty = lock.newCondition();
+    private static final int BUFFER_SIZE = 100;
+    @GuardedBy("lock") private final T[] items = (T[]) new Object[BUFFER_SIZE];
+    @GuardedBy("lock") private int tail, head, count;
+
+    // BLOCKS-UNTIL: notFull
+    public void put(T x) throws InterruptedException {
+        lock.lock();
+        try {
+            while (count == items.length)
+                notFull.await();
+            items[tail] = x;
+            if (++tail == items.length)
+                tail = 0;
+            ++count;
+            notEmpty.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // BLOCKS-UNTIL: notEmpty
+    public T take() throws InterruptedException {
+        lock.lock();
+        try {
+            while (count == 0)
+                notEmpty.await();
+            T x = items[head];
+            items[head] = null;
+            if (++head == items.length)
+                head = 0;
+            --count;
+            notFull.signal();
+            return x;
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+注意这里使用了signal而不是signalll，能极大的减少每次缓存操作中发生的上下文切换和锁请求次数。
+
+使用condition和内置锁和条件队列一样，必须保卫在lock里面。
+
 
 
 
