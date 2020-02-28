@@ -405,7 +405,60 @@ public class ConditionBoundedBuffer <T> {
 
 使用condition和内置锁和条件队列一样，必须保卫在lock里面。
 
+## Synchronizer剖析
 
+看似ReentrantLock和Semaphore功能很类似，每次只允许一定的数量线程通过，到达阀门时
+
+- 可以通过 lock或者acquire
+- 等待，阻塞住了
+- 取消tryLock，tryAcquire
+- 可中断的，限时的
+- 公平等待和非公平等待
+
+下面的程序是使用Lock做一个Mutex, 也就是持有一个许可的Semaphore。
+
+```java
+@ThreadSafe
+public class SemaphoreOnLock {
+    private final Lock lock = new ReentrantLock();
+    // CONDITION PREDICATE: permitsAvailable (permits > 0)
+    private final Condition permitsAvailable = lock.newCondition();
+    @GuardedBy("lock") private int permits;
+
+    SemaphoreOnLock(int initialPermits) {
+        lock.lock();
+        try {
+            permits = initialPermits;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    // BLOCKS-UNTIL: permitsAvailable
+    public void acquire() throws InterruptedException {
+        lock.lock();
+        try {
+            while (permits <= 0)
+                permitsAvailable.await();
+            --permits;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void release() {
+        lock.lock();
+        try {
+            ++permits;
+            permitsAvailable.signal();
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+```
+
+实际上很多J.U.C下面的类都是基于AbstractQueuedSynchronizer (AQS)构建的，例如CountDownLatch, ReentrantReadWriteLock, SynchronousQueue,and FutureTask（java7之后不是了）。AQS解决了实现同步器时设计的大量细节问题，例如等待线程采用FIFO队列操作顺序。AQS不仅能极大极少实现同步器的工作量，并且也不必处理竞争问题，基于AQS构建只可能在一个时刻发生阻塞，从而降低上下文切换的开销，提高吞吐量。在设计AQS时，充分考虑了可伸缩性，可谓大师Doug Lea的经典作品啊！
 
 
 
