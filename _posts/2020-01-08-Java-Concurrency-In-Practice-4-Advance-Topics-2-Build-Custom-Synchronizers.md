@@ -460,7 +460,45 @@ public class SemaphoreOnLock {
 
 实际上很多J.U.C下面的类都是基于AbstractQueuedSynchronizer (AQS)构建的，例如CountDownLatch, ReentrantReadWriteLock, SynchronousQueue,and FutureTask（java7之后不是了）。AQS解决了实现同步器时设计的大量细节问题，例如等待线程采用FIFO队列操作顺序。AQS不仅能极大极少实现同步器的工作量，并且也不必处理竞争问题，基于AQS构建只可能在一个时刻发生阻塞，从而降低上下文切换的开销，提高吞吐量。在设计AQS时，充分考虑了可伸缩性，可谓大师Doug Lea的经典作品啊！
 
+## AbstractQueuedSynchronizer (AQS)
 
+基于AQS构建的同步器勒种，最进步的操作包括各种形式的获取操作和释放操作。获取操作是一种依赖状态的操作，并且通常会阻塞。
+
+如果一个类想成为状态依赖的类，它必须拥有一些状态，AQS负责管理这些状态，通过getState,setState, compareAndSetState等protected类型方法进行操作。这是设计模式中的模板模式。
+
+使用AQS的模板如下：
+
+- 获取锁：首先判断当前状态是否允许获取锁，如果是就获取锁，否则就阻塞操作或者获取失败，也就是说如果是独占锁就可能阻塞，如果是共享锁就可能失败。另外如果是阻塞线程，那么线程就需要进入阻塞队列。当状态位允许获取锁时就修改状态，并且如果进了队列就从队列中移除。
+- 释放锁:这个过程就是修改状态位，如果有线程因为状态位阻塞的话就唤醒队列中的一个或者更多线程。
+
+```java
+boolean acquire() throws InterruptedException {
+  while (state does not permit acquire) {
+    if (blocking acquisition requested) {
+      enqueue current thread if not already queued
+      block current thread
+    }
+    else {
+      return failure
+    }
+  }
+  possibly update synchronization state
+  dequeue thread if it was queued
+  return success
+}
+
+void release() {
+  update synchronization state
+  if (new state may permit a blocked thread to acquire)
+    unblock one or more queued threads
+}
+```
+
+要支持上面两个操作就必须有下面的条件：
+
+- 原子性操作同步器的状态位
+- 阻塞和唤醒线程
+- 一个有序的队列
 
 
 
