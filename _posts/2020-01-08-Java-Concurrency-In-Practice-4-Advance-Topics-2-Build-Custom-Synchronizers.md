@@ -500,6 +500,29 @@ void release() {
 - 阻塞和唤醒线程
 - 一个有序的队列
 
+## j.u.c 中的AQS
+
+### 1. ReentrantLock
+
+非公平的ReentrantLock
+
+```java
+protected boolean tryAcquire(int ignored) {
+  final Thread current = Thread.currentThread();
+  int c = getState();
+  if (c == 0) {
+    if (compareAndSetState(0, 1)) {
+      owner = current;
+      return true;
+    }
+  } else if (current == owner) {
+    setState(c+1);
+    return true;
+  }
+  return false;
+} 
+```
+
 
 
 ## 未完待续。。。。。
