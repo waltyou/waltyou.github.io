@@ -31,7 +31,74 @@ tags: [Java, Concurrency, Java Concurrency In Practice]
 
 即使忽略这些风险，锁定方式对于细粒度的操作(例如递增计数器)来说任然是一种高开消的机制。在管理线程之间的竞争是应该有一种粒度更细的技术，类似于volatile变量的机制，同时还要支持原子的更新操作。
 
+## 硬件对并发的支持
 
+独占锁是一项悲观的技术——他假设最坏的情况(如果你不锁门，那么捣蛋鬼就会闯入并搞破坏)，并且只有在确保其他线程不会造成干扰(通过获取正确的锁)的情况下才能执行下去。
+
+对于细粒度的操作，还有另外一种更高效的方法，也是一种乐观的方法。通过这种方法可以在不发生干扰的情况下完成更新操作。这种方式需要借助冲出检查机制来判断在更新的过程中是否存在来自其他线程的干扰，如果存在，这个操作将会失败，并且可以c重试(也可以不重试)。这种乐观的方法就好像一句谚语:”原谅被准许更容易得到”，其中”更容易”在这里相当于”“更高效”。
+
+在针对多处理器操作而设计的处理器中提供了一些特殊的指令，用于管理对共享数据的并发操作。在早起的处理器初中支持原子的测试并设置(Test-and-Set),获取并递增(Fetch-and-Increment)以及交换(Swap)等指令，这些指令足以实现各种互斥量，而这些互斥量又可以实现更复杂的并发对象。现在几乎所有的现代处理器中都包含了某种形式的原子读-改-写执行，例如比较并交换(Compare-and-Swap)或者关联加载/条件存储(Load-Linked/Store-Conditional),操作系统和JVM使用这些指令来实现锁和并发的数据结构，但在Java 5.0之前，在Java类中还不能直接使用这些指令。
+
+### 1. 比较并交换(CAS)
+
+CAS包含三个操作数——需要读写的内存位置V，进行比较的值A和待写入的新值B。当且仅当V的值等于A时，CAS才会通过原子方式用新值 B 来更新V的值，否则不会执行任何操作。无论位置V的值是否等于A，都将返回V原有的值。
+
+```java
+@ThreadSafe
+public class SimulatedCAS {
+    @GuardedBy("this") private int value;
+
+    public synchronized int get() {
+        return value;
+    }
+
+    public synchronized int compareAndSwap(int expectedValue, int newValue) {
+        int oldValue = value;
+        if (oldValue == expectedValue)
+            value = newValue;
+        return oldValue;
+    }
+
+    public synchronized boolean compareAndSet(int expectedValue, int newValue) {
+        return (expectedValue
+                == compareAndSwap(expectedValue, newValue));
+    }
+}
+```
+
+## 2. 非阻塞的计数器
+
+下面代码中的 CasCounter 使用CAS实现了一个线程安全的技术器。递增操作采用了标准形式——读取旧的值，根据它计算出新值(加1)，并使用CAS来设置这个新值。如果CAS失败，那么改操作将立即重试。通常，反复的重试是一种合理的策略，但是存在一些竞争很激烈的情况下，更好的方式是在重试之前首先等待一段时间或者回退，从而避免造成活锁问题。
+
+```java
+@ThreadSafe public class CasCounter { 
+  private SimulatedCAS value; 
+  
+  public int getValue() { 
+    return value.get(); 
+  } 
+  
+  public int increment() { 
+    int v; 
+    do { 
+      v = value.get(); 
+    } while (v != value.compareAndSwap(v, v + 1)); 
+    return v + 1; 
+  } 
+}
+```
+
+初看起来，基于CAS的技术器似乎比基于锁的计数器在性能上更差一些，因为他需要执行更多的操作和更复杂的控制流，并且还依赖看似复杂的CAS操作。但实际上，当实际上竞争程度不高时，基于CAS的计数器在性能上远远超过了基于锁的计数器，而且在没有竞争是甚至更高。
+
+虽然Java语言的锁定语法比较简洁，但JVM和操作在管理锁时需要完成的工作却并不简单。在实现锁定时需要遍历JVM中一条非常复杂的代码路径，并可能导致操作系统级的锁定、线程挂起以及上下问切换等操作。在最好情况下，在锁定时至少需要一次CAS，因此虽然在使用锁时没有用到CAS，但实际上也发节约任何执行开销。另一方面，在程序内部执行CAS是不需要执行JVM代码、系统调用或者线程调度操作。在应用级看起来越长的代码路径，如国家上JVM和操作系统中的代码调用，那么事实上CAS代码却比较少。
+
+CAS的主要**缺点**是，它将使调动者处理竞争问题(通过重试、回退、放弃)，而在锁中能自动处理竞争问题(线程在获得锁之前将一致阻塞)。
+
+## 3. JVM对CAS操作的支持
+
+那么，Java代码如何确保处理器执行CAS操作?在Java 5.0 之前，如果不编写明确的代码，那么就无法执行CAS。在Java 5.0 中引入了底层的支持，在int、long和对象的应用等类型上都公开了CAS操作，并且JVM把他们编译为底层硬件提供的最有效方法。在支持CAS的平台上，运行时把他们便以为相应的(多条)机器指令。
+
+在最坏的情况下，如果不支持CAS指令，那么JVM将使用自旋锁，在原子变量类(例如java.util.concurrent.atomic中的AtomicXXX)中使用了这些底层的JVMN支持为数字类型和应用类型提供一种高效的CAS操作，二在java.util.concurrent中的大多数类在实现时则直接或者简介的使用了这些原子变量类。
 
 
 
