@@ -102,4 +102,18 @@ CAS的主要**缺点**是，它将使调动者处理竞争问题(通过重试、
 
 
 
+## 原子变量类
+
+原子变量比锁的粒度更细，量级更轻，并且对于在多处理器系统上实现高性能的并发代码来说是非常关键的。
+
+原子变量类相当于一种泛化得volatile变量，能够支持原子的和有条件的读-改-写操作。AtomicInteger表示一个int类型的值，并提供了get和set方法，这些Volatile类型的int变量在读取和写入上有着相同的内存语义。它还提供了一个原子的compareAndSet方法（如果该方法成功执行，那么将实现与读取/写入一个volatile变量相同的内存效果），以及原子的增加、递增和递减等方法。
+
+共有12个原子变量类，可分为4组：标量类（Scalar）、更新器类、数组类、复合变量类。最常用的原子变量类就是标量类：AtomicInteger、AtomicLong、AtomicBoolean、AtomicReference。所有这些类都支持CAS，此外，AtomicInteger、AtomicLong还支持算数运算。（要想模拟其它基本类型的原子变量，可以将short或byte等类型与int类型进行转换，以及使用floatToIntBits或doubleToLongBits来转换浮点数）
+
+原子数组类（只支持Integer、Long和Reference）中的元素可以实现原子更新。原子数组类为数组的元素提供了volatile类型的访问语义，这是普通数组所不具备的特性--volatile类型的数组仅在数组引用上具有volatile语义，而在其元素上则没有。
+
+尽管原子的标量类扩展了Number类，但并没有扩展一些基本类型的包装类，例如Integer或Long。事实上，它们也不能进行扩展：基本类型的包装类是不可修改的，而原子变量类是可以修改的。在原子变量类中同样没有重新定义hashCode和equals方法，每个实例都是不同的。与其它可变对象相同，它们也不宜用做基于散列的容器中的键值。
+
+
+
 ## 未完待续。。。。
