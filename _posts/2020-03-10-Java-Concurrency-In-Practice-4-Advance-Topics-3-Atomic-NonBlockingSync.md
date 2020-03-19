@@ -114,6 +114,48 @@ CAS的主要**缺点**是，它将使调动者处理竞争问题(通过重试、
 
 尽管原子的标量类扩展了Number类，但并没有扩展一些基本类型的包装类，例如Integer或Long。事实上，它们也不能进行扩展：基本类型的包装类是不可修改的，而原子变量类是可以修改的。在原子变量类中同样没有重新定义hashCode和equals方法，每个实例都是不同的。与其它可变对象相同，它们也不宜用做基于散列的容器中的键值。
 
+## 1. 原子变量是一种“更好的volatile”
+
+通过CAS来维持包含多个变量的不变性条件
+
+```java
+public class CasNumberRange {
+    private static class IntPair{
+        // 不变性条件: lower <= upper
+        final int lower;
+        final int upper;
+        
+        public IntPair(int lower, int upper) {
+            this.lower = lower;
+            this.upper = upper;
+        }
+    }
+    
+    private AtomicReference<IntPair> values = new AtomicReference<>();
+    
+    public int getLower(){
+        return values.get().lower;
+    }
+    
+    public int getUpper(){
+        return values.get().upper;
+    }
+    
+    public void setLower(int i){
+        while (true){
+            IntPair oldv = values.get();
+            if (i > oldv.upper){
+                throw new IllegalArgumentException("lower can't > upper");
+            }
+            IntPair newv = new IntPair(i, oldv.upper);
+            if (values.compareAndSet(oldv, newv)){
+                return;
+            }
+        }
+    }
+}
+```
+
 
 
 ## 未完待续。。。。
