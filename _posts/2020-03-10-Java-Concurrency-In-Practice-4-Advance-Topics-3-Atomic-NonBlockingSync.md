@@ -172,6 +172,120 @@ public class CasNumberRange {
 
 非阻塞算法中能确保线程安全性，因为compareAndSet像锁定机制一样，既能提供原子性，又能提供可见性。
 
+```java
+public class ConcurrentStack<E> {//非阻塞栈
+  //栈顶元素，永远指向栈顶，入栈与出栈都只能从栈顶开始
+  AtomicReference<Node<E>> top = new AtomicReference<Node<E>>();
+  //非阻塞的入栈操作
+  public void push(E item) {
+    //创建新的元素
+    Node<E> newHead = new Node<E>(item);
+    Node<E> oldHead;
+    do {
+      //当前栈顶元素，也即这次操作的基准点，操作期间不能改变
+      oldHead = top.get();
+      newHead.next = oldHead;//让新元素成为栈顶
+      //如果基准点被其他线程修改后就会失败，失败后再重试
+    } while (!top.compareAndSet(oldHead, newHead));
+  }
+
+  //非阻塞的出栈操作
+  public E pop() {
+    Node<E> oldHead;
+    Node<E> newHead;
+    do {
+      oldHead = top.get();//取栈顶元素，即基准点
+      if (oldHead == null)
+        return null;
+      newHead = oldHead.next;
+      //如果基准点没有变化，则成功
+    } while (!top.compareAndSet(oldHead, newHead));
+    return oldHead.item;//返回栈顶元素值
+  }
+
+  //节点元素
+  private static class Node<E> {
+    public final E item;
+    public Node<E> next;
+
+    public Node(E item) {
+      this.item = item;
+    }
+  }
+}
+```
+## 2. 非阻塞的链表
+
+一个链表队列比栈更加复杂，因为它需要支持首尾（从尾插入，从首取出）的快速访问，为了实现，它会维护独立的队首指针和队尾指针。
+
+有两个指针指向位于尾部的节点：当前最后一个元素的next指针，以及尾节点。当成功地插入一个新元素时，这两个指针都需要采用原子操作来更新。 
+
+Michael-Scott算法:
+
+```java
+public class LinkedQueue<E> {
+  private static class Node<E> {
+    final E item;
+    final AtomicReference<Node<E>> next; 
+    public Node(E item, Node<E> next) {
+      this.item = item;
+      this.next = new AtomicReference<Node<E>>(next);
+    }
+  }
+
+  //哑元，用于区分队首与队尾，特别是在循环队列中
+  private final Node<E> dummy = new Node<E>(null, null);
+  private final AtomicReference<Node<E>> head = 
+    new AtomicReference<Node<E>>(dummy);//头指针，出队时用
+  private final AtomicReference<Node<E>> tail = 
+    new AtomicReference<Node<E>>(dummy);//尾指针，入队时用
+
+  public boolean put(E item) {//入队
+    Node<E> newNode = new Node<E>(item, null);
+    while (true) {//在除尾插入新的元素直到成功
+      //当前队尾元素
+      Node<E> curTail = tail.get();
+      /*
+       * 当前队尾元素的next域，一般为null，但有可能不为null，
+       * 因为有可能其他线程已经上一语句与下一语句间添加了新
+       * 的元素，即此时队列处于中间状态
+       */
+      Node<E> tailNext = curTail.next.get();
+      /*
+       * 再一次检查上面两行语句的操作还是否有效，因为很有可在此刻尾指针已经
+       * 向后移动了（比如其他线程已经执行了B 或 D 处语句），所以下面的操作都
+       * 是要基于尾节点是curTail才可以。（想了一下，其实这里不需要这个判断
+       * 也是可以的，因为下面执行到 B 或 C 时自然会失败，这样做只是为了提高
+       * 成功的效率）
+       */
+      if (curTail == tail.get()) {
+
+        if (tailNext != null) {// A
+          /*
+           *  队列处于中间状态，尝试调整队尾指针，这里
+           *  需要使用compareAndSet原子操作来进行，因为
+           *  有可以在进行时 D 处已经调整完成
+           */
+          tail.compareAndSet(curTail, tailNext);// B
+        } else {
+          // 队列处于稳定状态，尝试在队尾插入新的节点
+          if (curTail.next.compareAndSet(null, newNode)) {// C
+            /*
+             *  插入尝试成功，再开始尝试调整队尾指针，这里完全
+             *  有可能不需要再调整了，因为上面  B 行已经帮这里调
+             *  整过了
+             */
+            tail.compareAndSet(curTail, newNode);// D
+            return true;
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+
 
 
 ## 未完待续。。。。
