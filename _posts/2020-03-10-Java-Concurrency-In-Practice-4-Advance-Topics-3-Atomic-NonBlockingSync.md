@@ -284,8 +284,30 @@ public class LinkedQueue<E> {
   }
 }
 ```
+## 3. 原子的域更新器
+
+原子的域更新器类表示现有volatile域的一种基于反射的“视图”，从而能够在已有的volatile域上使用CAS。
+
+```java
+private class Node<E> {
+  private final E item;
+  private volatile Node<E> next;
+  
+  public Node(E item) {
+    this.item = item;
+  }
+}
+
+private static AtomicReferenceFieldUpdater nextUpdater //用来对next字段进行更新
+    = AtomicReferenceFieldUpdater.newUpdater(Node.class, Node.class, "next");
+```
+
+
+## 4. ABA 问题
+
+在某些算法中，如果V的值首先由A变成B，再由B变成A，那么仍然应该被认为是发生了变化，并需要重新执行算法中的某些步骤
+
+**解决方案**：不只更新某个引用的值，而是更新两个值，包括一个引用和一个版本号。
 
 
 
-
-## 未完待续。。。。
