@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Java 并发编程实战-学习日志（四）2：自定义同步器
+title: Java 并发编程实战-学习日志（四）3：原子变量与非阻塞同步
 date: 2020-03-10 18:11:04
 author: admin
 comments: true
