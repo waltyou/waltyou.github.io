@@ -79,6 +79,29 @@ Happens-Before排序包括：
 - 向Executor提交一个Runnable或Callable的操作将在任务开始执行之前执行
 - 一个线程到达CyclicBarrier或Exchange的操作将在其他到达该栅栏或交换点的线程被释放之前执行。如果CyclicBarrier使用一个栅栏操作，那么到达栅栏的操作将在栅栏操作之前执行，而栅栏操作又会在线程从栅栏中释放之前执行
 
+## 发布
+
+造成不正确发布的真正原因："发布一个共享对象"与"另一个线程访问该对象"之间缺少一种Happens-Before的关系。
+
+### 1. 不安全的发布
+
+除了不可变对象以外，使用被另一个线程初始化的对象通常都是不安全的，除非对象的发布操作是在使用该对象的线程开始使用之前执行。
+
+```java
+public class UnsafeLazyInitialization {
+    private static Object resource;
+    public static Object getInstance(){
+        if (resource == null){
+            resource = new Object(); //不安全的发布
+        }
+        return resource;
+    }
+}
+```
+
+原因一：线程B看到了线程A发布了一半的对象。
+
+原因二：即使线程A初始化Resource实例之后再将resource设置为指向它，线程B仍可能看到对resource的写入操作将在对Resource各个域的写入操作之前发生。因为线程B看到的线程A中的操作顺序，可能与线程A执行这些操作时的顺序并不相同。
 
 
 ## 未完待续。。。。。。
