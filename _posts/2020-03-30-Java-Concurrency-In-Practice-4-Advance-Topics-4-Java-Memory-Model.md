@@ -103,5 +103,73 @@ public class UnsafeLazyInitialization {
 
 原因二：即使线程A初始化Resource实例之后再将resource设置为指向它，线程B仍可能看到对resource的写入操作将在对Resource各个域的写入操作之前发生。因为线程B看到的线程A中的操作顺序，可能与线程A执行这些操作时的顺序并不相同。
 
+### 2. 安全的发布
 
-## 未完待续。。。。。。
+例：BlockingQueue的同步机制保证put在take后执行，A线程放入对象能保证B线程取出时是安全的。
+
+借助于类库中现在的**同步容器、使用锁保护共享变量、或都使用共享的volatile类型变量**，都可以保证对该变量的读取和写入是按照happens-before排序的。
+
+happens-before事实上可以比安全发布承诺更强的**可见性与排序性**。
+
+## 3. 安全初始化模式
+
+方式一：加锁保证可见性与排序性，存在性能问题.
+```java
+public class UnsafeLazyInitialization {
+    private static Object resource;
+    
+    public synchronized static Object getInstance(){
+        if (resource == null){
+            resource = new Object(); //不安全的发布
+        }
+        return resource;
+    }
+}
+```
+方式二：提前初始化，可能造成浪费资源
+```java
+public class EagerInitialization {
+     private static Object resource = new Object();
+     public static Object getInstance(){
+         return resource;
+     }
+ }
+```
+方式三：延迟初始化，建议
+
+```java
+public class ResourceFactory {
+    private static class ResourceHolder{
+        public static Object resource = new Object();
+    }
+    public static Object getInstance(){
+        return ResourceHolder.resource;
+    }
+}
+```
+方式四：双重加锁机制，注意保证volatile类型，否则出现一致性问题
+
+```java
+public class DoubleCheckedLocking {
+    private static volatile Object resource;
+    public static Object getInstance(){
+        if (resource == null){
+            synchronized (DoubleCheckedLocking.class){
+                if (resource == null){
+                    resource = new Object(); 
+                }
+            }
+        }
+        return resource;
+    }
+}
+```
+
+## 初始化过程中的安全性
+
+- 如果能确保初始化过程的安全性，被正确构造的不可变对象在没有同步的情况下也能安全地在多个线程之间共享
+- 如果不能确保初始化的安全性，一些本应为不可变对象的值将会发生改变
+
+初始化安全性只能保证通过final域可达的值从构造过程完成时可见性。对于通过非final域可达的值，或者在构成过程完成后可能改变的值，必须采用同步来确保可见性.
+
+
