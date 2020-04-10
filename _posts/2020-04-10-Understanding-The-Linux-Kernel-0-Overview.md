@@ -22,7 +22,7 @@ Linux 作为主流且好评如潮的操作系统 ，内核是什么样子的呢�
 
 ## 全书脑图
 
-[![](/images/posts/UnderstandingLinuxKernel-Overview.png){:width="400" height="300"}](/images/posts/UnderstandingLinuxKernel-Overview.png)
+[![](/images/posts/UnderstandingLinuxKernel-Overview.png)](/images/posts/UnderstandingLinuxKernel-Overview.png)
 
 
 
