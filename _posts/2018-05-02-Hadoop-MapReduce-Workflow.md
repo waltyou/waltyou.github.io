@@ -259,7 +259,7 @@ shuffling阶段和sorting阶段是由MapReduce框架同时进行的。
 
 在Reducer开始处理数据之前，所有中间结果键值对会被MapReduce框架按key值来排序，而不是按value值。
 被reducer处理的value们是不被排序的，它们可以是任何顺序。
-(注：不过MapReduce也提供了对value排序的机制，叫做[Secondary Sorting](<https://www.safaribooksonline.com/library/view/data-algorithms/9781491906170/ch01.html>)。)
+(注：不过MapReduce也提供了对value排序的机制，叫做[Secondary Sorting](./MapReduce-Secondary-Sort)。)
 
 Sorting 更好的帮助了reducer来判断是否要启动一个新的reduce task。
 对于按key排序好键值对数据，reducer一旦发现一个不同于之前key的键值对时，它就可以启动一个新的reduce task了。
