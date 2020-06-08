@@ -311,11 +311,65 @@ typedef struct _ _wait_queue wait_queue_t;
 
 `switch_to`宏的最后一个参数last是个输出参数，用来存储进程C的描述符地址（当然，这时在A恢复执行后做的）。进程切换之前，这个宏把A的内核栈中prev的值存储在eax寄存器中，进程切换之后，当A已经恢复执行，把eax寄存器的内容写入last参数指向的内存。因为eax寄存器在进程切换中不会改变，因此last指定的位置存储了C的描述符地址。在当前的schedule()实现中，最后一个参数是进程A的prev地址，因此prev被C的地址覆盖。
 
+####   __switch_to()函数
 
+\__switch_to()函数做了由switch_to()宏开始的进程切换的大部分工作。它作用于分别表示之前进程和新进程的prev_p和next_p参数。然而，这个函数又与一般的函数不同，因为\__switch_to()的参数prev_p和next_p分别取自eax和edx寄存器，而不是像一般的函数那样从栈取参数。为了强制使这个函数从寄存器取参数，内核使用_attribute\__和regpram关键字，它们是gcc编译器实现的c语言非标准扩展。\__switch_to()函数在include/asm-i386/system.h头文件里声明：
+```c
+_ _switch_to(struct task_struct *prev_p,
+            struct task_struct *next_p)
+   _ _attribute_ _(regparm(3));
+```
 
+### 4. 保存和加载FPU、MMX、XMM寄存器
 
+从Intel 80486DX开始，浮点运算单元被集成到CPU中。名词“数学协处理器”曾经一直被使用，那时的浮点运算是通过一个昂贵的专用芯片执行的。然而，为了和旧模式兼容，浮点运算通过“ESCAPE”指令实现，这些指令的字节前缀从0xd8到0xdf。它们作用于CPU的一套浮点寄存器。显然，如果一个进程使用ESCAPE指令，属于硬件上下文的浮点寄存器的内容必须被保存。
 
+在后来的奔腾模型里，因特尔引入了一套新的汇编指令到微处理器中。它们叫做MMX指令，用来加速多媒体应用程序的执行。MMX指令作用于FPU的浮点寄存器。选择这种架构的一个明显的缺点是程序员不能混淆浮点指令和MMX指令。优点是，操作系统设计人员可以忽略这套新的指令集，因为相同的用来保存浮点运算单元状态的任务切换代码也可以用来保存MMX的状态。
 
+MMX指令加速了多媒体应用程序，因为它们在处理器内部引进一个单指令多数据（SIMD）管道。奔腾3模型扩展了SIMD性能：它引入了SSE扩展（流式SIMD扩展），它增加了一个能够处理8个128位寄存器（XMM寄存器）中的浮点数的设施。这些寄存器与FPU和MMX寄存器不重叠，因此SSE和FPU/MMX指令可以自由组合。奔腾4模型还引进另一个特性：SSE2扩展，它是一个能够支持更高精度浮点值的SSE扩展。SSE2使用和SSE相同的一套XMM寄存器。
 
-### 未完待续。。。
+80x86微处理器不会自动保存TSS中的FPU，MMX和XMM寄存器。但是，它们包含一些硬件来使得内核能够在需要的时候保存这些寄存器。这些硬件支持包含cr0寄存器中的TS（Task-Switching）标志，它遵循以下规则：
+
+- 每次硬件上下文切换，TS标志都被设置。
+- 当TS标志被设置时，每次ESCAPE、MMX、SSE、SSE2指令的执行都会产生一个“设备不可用”异常（参考第4章）。
+
+TS标志只允许内核在正真需要的是才保存和恢复FPU、MMX、XMM寄存器。为了解释他是怎样工作的，假设进程A正在使用数学协处理器。当从A到B发生上下文切换时，内核设置TS标志，并保存浮点寄存器到进程A的TSS中。如果新的进程B不使用数学协处理器，内核不需要恢复浮点寄存器的内容。但是一旦B尝试执行一个ESCAPE或者MMX指令，CPU产生一个“设备不可用”异常，然后相应的处理函数会把进程B的TSS中保存的值加载到浮点寄存器。
+
+#### 保存FPU寄存器
+
+之前已经提到过，`switch_to()`函数执行`__unlazy_fpu`宏，并以被替换的prev进程的描述符作为参数。这个宏会检查prev的`TS_USEDFPU`标志。被设置说明prev使用了FPU，MMX，SSE或者SSE2指令；因此，内核必须保存相关的硬件上下文：
+
+```assembly
+if (prev->thread_info->status & TS_USEDFPU)
+    save_init_fpu(prev);
+```
+
+#### 加载FPU寄存器
+
+浮点寄存器的内容的恢复并不是紧跟在next进程恢复执行后。但是cr0的TS标志已经被`__unlazy_fpu()`设置。因此，当next进程第一次尝试执行一个ESCAPE，MMX或SSE/SSE2指令时，控制单元产生一个“设备不可用”异常，然后（更准确的说，异常处理函数是被该异常唤起的）内核运行`math_state_restore()`函数。next进程被标识为current。
+
+```assembly
+void math_state_restore( )
+{
+    asm volatile ("clts"); /* clear the TS flag of cr0 */
+    if (!(current->flags & PF_USED_MATH))
+        init_fpu(current);
+    restore_fpu(current);
+    current->thread.status |= TS_USEDFPU;
+}
+```
+
+该函数清除cr0的CW标志，因此之后执行的FPU，MMX或SSE/SSE2指令不会触发“设备不可用”异常。如果thread.i387子字段没有意义，比如`PF_USED_MATH`标志位0，则调用`init_fpu()`来重置thread.i387自字段并设置current的`PF_USED_MATH`标志为1。然后调用`restore_fpu()`函数从thread.i387自字段中加载合适的值到FPU中。这一步会根据CPU是否支持SSE/SSE2扩展来选择使用fxrstor或者frstor汇编指令。最后，`math_state_restore()`设置`TS_USEDFPU`标志。
+
+#### 在内核态使用FPU，MMX，和SSE/SSE2单元
+
+即使内核也可以使用FPU，MMX，或SSE/SSE2单元。这样做当然应该避免干扰当前用户模式进程的计算。因此：
+
+- 在使用协处理器之前，内核必须调用`kernel_fpu_begin()`，它实际上是在用户进程使用FPU（TS_USEDFPU标志）的情况下调用`save_init_fpu()`来保存寄存器的内容 ，然后重置cr0的TS标志。
+- 结束使用协处理器后，内核必须调用`kernel_fpu_end()`来设置cr0的TS标志。
+
+之后，当用户态进程执行一个协处理器指令时，`math_state_restore()`函数会恢复这些寄存器的内容，就像进程切换那样。
+
+但是，我们应该注意，当当前进程正在使用协处理器时，`kernel_fpu_begin()`的执行是非常耗时的，以至于能抵消FPU，MMX或SSE/SSE2单元带来的性能提升。实际上，内核只在极少的地方使用它们，通常是在移动或清除较大的内存区域或计算校验和函数时。
+
 
