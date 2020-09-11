@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Learning Spark (0) - 总览
+title: Learning Spark (0) - 总览及第三章结构化API
 date: 2020-09-08 18:11:04
 author: admin
 comments: true
@@ -35,9 +35,11 @@ Databricks 出了本《Learning Spark》的电子书，来学习一下。
 
 
 
-## Structured APIs
+前两章非常基础，直接从第三章《Structured APIs》开始。
 
-### RDD 到底是什么？
+
+
+## RDD 到底是什么？
 
 RDD 是 Spark 最基础的抽象。它分为三部分：
 
