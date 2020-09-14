@@ -143,7 +143,37 @@ avgDF.show()
 
 ## DataFrame API
 
+受 pandas dataframe 的启发，Spark Dataframe 就像是一张分布在内存中的表格，它带有column name 和type。
 
+### 基本数据类型
+
+[![](/images/posts/spark_scala_dataTypes.jpg)](/images/posts/spark_scala_dataTypes.jpg)
+
+[![](/images/posts/spark_python_dataTypes.jpg)](/images/posts/spark_python_dataTypes.jpg)
+
+
+
+### 结构化的和复杂的数据类型
+
+[![](/images/posts/spark_scala_complex_dataTypes.jpg)](/images/posts/spark_scala_complex_dataTypes.jpg)
+
+[![](/images/posts/spark_python_complex_dataTypes.jpg)](/images/posts/spark_python_complex_dataTypes.jpg)
+
+
+
+### Schemas 和create DataFrame
+
+Spark中的schema定义了DataFrame的列名和关联的数据类型。 
+
+相对于采用“读取schema”方法，预先定义schema具有三个好处：
+
+- 您可以把 Spark 从推断数据类型的负担中释放出来。
+- 您可以阻止Spark创建单独的作业，而只是为了读取文件的大部分内容以确定schema，这对于大型数据文件而言可能既昂贵又费时。
+- 您可以及早发现错误，如果数据与架构不匹配。
+
+
+
+## DataSet API
 
 
 
