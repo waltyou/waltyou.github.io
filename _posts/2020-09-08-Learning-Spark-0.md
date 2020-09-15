@@ -171,9 +171,39 @@ Spark中的schema定义了DataFrame的列名和关联的数据类型。
 - 您可以阻止Spark创建单独的作业，而只是为了读取文件的大部分内容以确定schema，这对于大型数据文件而言可能既昂贵又费时。
 - 您可以及早发现错误，如果数据与架构不匹配。
 
+#### 定义 schema
+
+Using Spark DataFrame API:
+
+```scala
+// In Scala
+import org.apache.spark.sql.types._
+val schema = StructType(Array(StructField("author", StringType, false),StructField("title", StringType, false), StructField("pages", IntegerType, false)))
+```
+
+```python
+# In Python
+from pyspark.sql.types import *
+schema = StructType([StructField("author", StringType(), False),
+      StructField("title", StringType(), False),
+      StructField("pages", IntegerType(), False)])
+```
+
+Using DDL:
+
+```scala
+// In Scala
+val schema = "author STRING, title STRING, pages INT" 
+
+# In Python
+schema = "author STRING, title STRING, pages INT"
+
+df = spark.createDataFrame(data, schema)
+```
+
+### 列和表达式
 
 
-## DataSet API
 
 
 
