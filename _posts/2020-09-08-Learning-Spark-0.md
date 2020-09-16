@@ -1,4 +1,5 @@
 ---
+
 layout: post
 title: Learning Spark (0) - 总览及第三章结构化API
 date: 2020-09-08 18:11:04
@@ -202,6 +203,140 @@ df = spark.createDataFrame(data, schema)
 ```
 
 ### 列和表达式
+
+Spark 也支持在column上进行逻辑转换：expr("columnName * 5") or (expr("colum nName - 5") > col(anothercolumnName)) 。
+
+```scala
+scala> import org.apache.spark.sql.functions._
+scala> blogsDF.columns
+res2: Array[String] = Array(Campaigns, First, Hits, Id, Last, Published, Url)
+// Access a particular column with col and it returns a Column type
+scala> blogsDF.col("Id")
+res3: org.apache.spark.sql.Column = id
+// Use an expression to compute a value
+scala> blogsDF.select(expr("Hits * 2")).show(2) 
+// or use col to compute value
+scala> blogsDF.select(col("Hits") * 2).show(2)
+
+// Use an expression to compute big hitters for blogs
+// This adds a new column, Big Hitters, based on the conditional expression 
+blogsDF.withColumn("Big Hitters", (expr("Hits > 10000"))).show()
+
+// Concatenate three columns, create a new column, and show the 
+// newly created concatenated column
+blogsDF
+.withColumn("AuthorsId", (concat(expr("First"), expr("Last"), expr("Id")))) .select(col("AuthorsId"))
+.show(4)
+
+// These statements return the same value, showing that 
+// expr is the same as a col method call 
+blogsDF.select(expr("Hits")).show(2)
+blogsDF.select(col("Hits")).show(2) 
+blogsDF.select("Hits").show(2)
+
+// Sort by column "Id" in descending order 
+blogsDF.sort(col("Id").desc).show() 
+blogsDF.sort($"Id".desc).show()
+```
+
+
+
+### Rows 行
+
+Create Row：
+
+```Scala
+// In Scala
+import org.apache.spark.sql.Row
+// Create a Row
+val blogRow = Row(6, "Reynold", "Xin", "https://tinyurl.6", 255568, "3/2/2015",
+Array("twitter", "LinkedIn"))
+// Access using index for individual items blogRow(1)
+res62: Any = Reynold
+```
+
+```Python
+# In Python
+from pyspark.sql import Row
+blog_row = Row(6, "Reynold", "Xin", "https://tinyurl.6", 255568, "3/2/2015",
+["twitter", "LinkedIn"])
+# access using index for individual items 
+blog_row[1]
+'Reynold'
+```
+
+Create DataFrame by rows：
+
+```Scala
+// In Scala
+val rows = Seq(("Matei Zaharia", "CA"), ("Reynold Xin", "CA")) 
+val authorsDF = rows.toDF("Author", "State")
+authorsDF.show()
+```
+
+```Python
+# In Python
+rows = [Row("Matei Zaharia", "CA"), Row("Reynold Xin", "CA")]
+authors_df = spark.createDataFrame(rows, ["Authors", "State"])
+authors_df.show()
+```
+
+### 通用的DataFrame操作
+
+Spark 提供 DataFrameReader 来读取各式各样的数据源来生成DataFrame，比如 JSON, CSV, Parquet, Text, Avro, ORC, etc。 同时，也提供 DataFrameWriter 来把 DataFame 写回各类数据源。
+
+#### 使用 DataFrameReader & DataFrameWriter
+
+在Spark中读取和写入非常简单，因为社区提供了这些高级抽象和贡献，可以连接到各种数据源，包括常见的NoSQL存储，RDBMS，Apache Kafka和Kinesis等流引擎。
+
+Without schema:
+
+```Scala
+// In Scala
+val sampleDF = spark 
+	.read
+	.option("samplingRatio", 0.001)
+	.option("header", true) 
+	.csv("""/databricks-datasets/learning-spark-v2/sf-fire/sf-fire-calls.csv""")
+```
+
+Define schema firstly:
+
+```Python
+# In Python, define a schema
+from pyspark.sql.types import *
+# Programmatic way to define a schema
+fire_schema = StructType([StructField('CallNumber', IntegerType(), True),
+                          StructField('UnitID', StringType(), True),
+                          StructField('IncidentNumber', IntegerType(), True),
+                          StructField('CallType', StringType(), True),
+                          StructField('CallDate', StringType(), True),
+                          StructField('WatchDate', StringType(), True),
+                          ...
+                          ...
+                          StructField('Delay', FloatType(), True)])
+# Use the DataFrameReader interface to read a CSV file
+sf_fire_file = "/databricks-datasets/learning-spark-v2/sf-fire/sf-fire-calls.csv"
+fire_df = spark.read.csv(sf_fire_file, header=True, schema=fire_schema)
+```
+
+```Scala
+// In Scala it would be similar
+val fireSchema = StructType(Array(StructField("CallNumber", IntegerType, true),
+                                  StructField("Location", StringType, true),
+                                  ...
+                                  ...
+                                  StructField("Delay", FloatType, true)))
+// Read the file using the CSV DataFrameReader
+val sfFireFile="/databricks-datasets/learning-spark-v2/sf-fire/sf-fire-calls.csv" 
+val fireDF = spark.read.schema(fireSchema)
+      .option("header", "true")
+      .csv(sfFireFile)
+```
+
+
+
+
 
 
 
