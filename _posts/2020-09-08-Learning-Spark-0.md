@@ -334,13 +334,55 @@ val fireDF = spark.read.schema(fireSchema)
       .csv(sfFireFile)
 ```
 
+#### Saving a DataFrame as a Parquet file or SQL table
 
+你可以使用 DataFrameWriter 保持 DataFrame 到各类数据源中。 Parquet，是默认的格式。这种格式使用snappy来压缩数据，并且会将schema信息保存到metadata中，这样子下次读取这个文件的时候，就不需要手动提供schema。
 
+保存为Parquet 文件：
 
+```Scala
+// In Scala to save as a Parquet file
+val parquetPath = ... 
+fireDF.write.format("parquet").save(parquetPath)
+```
 
+```Python
+# In Python to save as a Parquet file
+parquet_path = ...
+fire_df.write.format("parquet").save(parquet_path)
+```
 
+保存为sql table，这个表会注册到Hive的metastore 中：
 
+```Scala
+// In Scala to save as a table
+val parquetTable = ... // name of the table fireDF.write.format("parquet").saveAsTable(parquetTable)
+```
 
+```Python
+# In Python
+parquet_table = ... # name of the table fire_df.write.format("parquet").saveAsTable(parquet_table)
+```
+
+#### Projections and filters
+
+关系表达式中的*projection*是一种通过使用过滤器 filters 仅返回与特定关系条件匹配的行的方法。 在Spark中，投影是使用 select() 方法完成的，而过滤器可以使用 filter() 或 where() 方法来表示。
+
+```Python
+# In Python
+few_fire_df = (fire_df
+               .select("IncidentNumber", "AvailableDtTm", "CallType")
+               .where(col("CallType") != "Medical Incident"))
+few_fire_df.show(5, truncate=False)
+```
+
+```Scala
+// In Scala
+val fewFireDF = fireDF
+	.select("IncidentNumber", "AvailableDtTm", "CallType") 
+	.where($"CallType" =!= 	"Medical Incident")
+fewFireDF.show(5, false)
+```
 
 未完待续。。。
 
