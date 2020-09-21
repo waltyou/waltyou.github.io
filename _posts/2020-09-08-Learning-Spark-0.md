@@ -384,6 +384,101 @@ val fewFireDF = fireDF
 fewFireDF.show(5, false)
 ```
 
+#### 重命名、添加、删除列
+
+```Python
+# In Python
+fire_ts_df = (new_fire_df
+              .withColumn("IncidentDate", to_timestamp(col("CallDate"), "MM/dd/yyyy"))
+              .drop("CallDate")
+              .withColumn("OnWatchDate", to_timestamp(col("WatchDate"), "MM/dd/yyyy"))
+              .drop("WatchDate")
+              .withColumn("AvailableDtTS", to_timestamp(col("AvailableDtTm"),
+                                                        "MM/dd/yyyy hh:mm:ss a"))
+              .drop("AvailableDtTm"))
+# Select the converted columns
+(fire_ts_df
+ .select("IncidentDate", "OnWatchDate", "AvailableDtTS")
+ .show(5, False))
+
+```
+
+```Scala
+// In Scala
+val fireTsDF = newFireDF
+  .withColumn("IncidentDate", to_timestamp(col("CallDate"), "MM/dd/yyyy"))
+  .drop("CallDate")
+  .withColumn("OnWatchDate", to_timestamp(col("WatchDate"), "MM/dd/yyyy"))
+  .drop("WatchDate")
+  .withColumn("AvailableDtTS", to_timestamp(col("AvailableDtTm"), "MM/dd/yyyy hh:mm:ss a"))
+  .drop("AvailableDtTm")
+// Select the converted columns
+fireTsDF
+	.select("IncidentDate", "OnWatchDate", "AvailableDtTS") .show(5, false)
+```
+
+
+
+#### 聚合 Aggregations
+
+DataFrame 有很多有用的 transforma 和 action，比如 groupBy(), orderBy(), and count()，他们提供了通过列名进行聚合然后得出数量的能力。
+
+```Python
+# In Python
+(fire_ts_df
+ .select("CallType")
+ .where(col("CallType").isNotNull())
+ .groupBy("CallType")
+ .count()
+ .orderBy("count", ascending=False)
+ .show(n=10, truncate=False))
+```
+
+```Scala
+// In Scala
+fireTsDF
+  .select("CallType") 
+  .where(col("CallType").isNotNull) 
+  .groupBy("CallType")
+  .count()
+  .orderBy(desc("count")) 
+  .show(10, false)
+```
+
+#### 其他操作
+
+除了上面看到的，DataFrame API 还提供了状态统计函数：min(), max(), sum(), and avg()。
+
+```Python
+# In Python
+import pyspark.sql.functions as F 
+(fire_ts_df
+      .select(F.sum("NumAlarms"), F.avg("ResponseDelayedinMins"),
+              F.min("ResponseDelayedinMins"), F.max("ResponseDelayedinMins"))
+      .show())
+```
+
+```Scala
+// In Scala
+import org.apache.spark.sql.{functions => F} 
+fireTsDF
+      .select(F.sum("NumAlarms"), F.avg("ResponseDelayedinMins"),
+      	F.min("ResponseDelayedinMins"), F.max("ResponseDelayedinMins"))
+      .show()
+```
+
+
+
+## Datasets API
+
+
+
+
+
+
+
+
+
 未完待续。。。
 
 
