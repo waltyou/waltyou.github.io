@@ -471,9 +471,21 @@ fireTsDF
 
 ## Datasets API
 
+Spark 2.0 统一了 DataFrame 和 Dataset 的API，称为 Structured API，以便开发者只需要学习一套API。Dataset 有两个部分：Untyped API和Typed API：
 
+[![](/images/posts/spark-dataset-api.jpg)](/images/posts/spark-dataset-api.jpg)
 
+从概念上来讲，Scala 中的 DataFrame 可以被当作是一个普通对象的合集：Dataset[Row]。Row 是一个通用的、没有类型的 JVM 对象，它可以包含多个不同类型的字段。
 
+不同的是，一个 Dataset 是一个包含强类型对象的合集，这些对象可以是 Java 中的类或者 Scala 中的JVM object。
+
+### 类型对象、无类型对象和通用的Row
+
+在 Spark 支持的语言当中， Dataset 只在 Java 、Scala 中有意义，而在 Python、R 中只有 DataFrame 有意义。这是因为 Python、R 不是编译时间类型安全的（compile-time type-safe），它的类型是在执行期间而不是在编译期间，动态推断或分配的。
+
+在Scala和Java中则相反：在编译时将类型绑定到变量和对象。 但是，在Scala中，DataFrame只是无类型Dataset [Row]的别名。
+
+[![](/images/posts/typed-untyped-objects-in-spark.jpg)](/images/posts/typed-untyped-objects-in-spark.jpg)
 
 
 
