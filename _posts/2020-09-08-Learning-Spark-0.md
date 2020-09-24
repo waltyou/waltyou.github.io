@@ -489,6 +489,111 @@ Spark 2.0 统一了 DataFrame 和 Dataset 的API，称为 Structured API，以�
 
 
 
+### 创建 Dataset
+
+与从数据源创建 DataFrame 一样，在创建数据集时，您必须了解shema。换句话说，您需要了解数据类型。尽管使用 JSON 和 CSV 数据可以推断架构，但对于大型数据集，这需要大量资源（非常昂贵）。在 Scala 中创建数据集时，为生成的数据集指定架构的最简单方法是使用case class。在 Java 中，使用 JavaBean 类。
+
+#### Scala： Case classes
+
+JSON file 中每一行大概是这样子：
+
+```json
+{"device_id": 198164, "device_name": "sensor-pad-198164owomcJZ", "ip":
+    "80.55.20.25", "cca2": "PL", "cca3": "POL", "cn": "Poland", "latitude":
+    53.080000, "longitude": 18.620000, "scale": "Celsius", "temp": 21,
+    "humidity": 65, "battery_level": 8, "c02_level": 1408,"lcd": "red",
+    "timestamp" :1458081226051}
+```
+
+怎么把它变成 typed object：DeviceIoTData 呢？我们可以定义一个case class：
+
+```Scala
+case class DeviceIoTData (battery_level: Long, c02_level: Long, cca2: String, cca3: String, cn: String, device_id: Long, device_name: String, humidity: Long, ip: String, latitude: Double, lcd: String, longitude: Double, scale:String, temp: Long, timestamp: Long)
+```
+
+定义之后，我们就可以直接读取文件并将返回类型 Dataset[Row] 转换为 Dataset[DeviceIoTData]：
+
+```Scala
+// In Scala
+val ds = spark.read 
+	.json("/databricks-datasets/learning-spark-v2/iot-devices/iot_devices.json")
+  .as[DeviceIoTData]
+ds: org.apache.spark.sql.Dataset[DeviceIoTData] = [battery_level...]
+ds.show(5, false)
+```
+
+### Dataset 的操作
+
+和 DataFrame 类似，dataset也可以进行 transformations and actions。
+
+```Scala
+// In Scala
+val filterTempDS = ds.filter({d => {d.temp > 30 && d.humidity > 70}) filterTempDS: org.apache.spark.sql.Dataset[DeviceIoTData] = [battery_level...] filterTempDS.show(5, false)
+```
+
+需要注意的另一件事是，使用 DataFrames 时，fitler 像是 SQL-like 的 DSL 语言一样，但是在 Dataset 中，我们只能使用scala 或 java的原生语言表达。
+
+```Scala
+// In Scala
+case class DeviceTempByCountry(temp: Long, device_name: String, device_id: Long, cca3: String)
+val dsTemp = ds
+	.filter(d => {d.temp > 25})
+	.map(d => (d.temp, d.device_name, d.device_id, d.cca3)) 
+	.toDF("temp", "device_name", "device_id", "cca3")
+	.as[DeviceTempByCountry] 
+
+dsTemp.show(5, false)
+
+
+val dsTemp2 = ds
+	.select($"temp", $"device_name", $"device_id", $"device_id", $"cca3") 
+	.where("temp > 25")
+	.as[DeviceTempByCountry]
+
+```
+
+总结一下，我们在 Dataset上进行的操作，比如 filter(), map(), groupBy(), select(), take(), etc， 和DataFrame上的很类似。 某种程度上来讲，Dataset 和 RDD 很像，它们都提供相似的接口给上述的方法以及编译时期的安全，但是Dataset的接口更安全和面向对象。
+
+当我们使用 dataset时， Spark SQL 引擎处理 JVM object 的创建、转换、序列化和反序列化。它会在 Dataset encoder的帮助下，处理 Java 堆内存管理。
+
+## DataFrame VS Dataset
+
+现在，您可能想知道为什么以及何时应该使用DataFrames或Dataset。 在许多情况下，哪种方法都可以，取决于您使用的语言，但是在某些情况下，一种语言比另一种语言更可取。 这里有一些例子：
+
+- 如果您想告诉Spark该做什么而不是该怎么做，请使用DataFrames或Datasets。
+- 如果您想要丰富的语义，高级抽象和DSL运算符，请使用DataFrames 或 Datasets。
+- 如果您希望严格的编译时类型安全性，并且不介意为特定的数据集[T]创建多个case class，请使用dataset。
+- 如果您的处理需要高级表达式，过滤器，映射，聚合，计算平均值或总和，SQL查询，列访问或对半结构化数据使用关系运算符，请使用DataFrames或Datasets。
+- 如果您的处理要求与类似SQL的查询类似的关系转换，请使用DataFrames。
+- 如果您想利用Tungsten的高效编码器序列化并从中受益，请使用Dataset。
+- 如果要跨Spark组件进行统一，代码优化和API简化，请使用DataFrames。
+- 如果您是R用户，请使用DataFrames。
+- 如果您是Python用户，则在需要更多控制权时，请使用DataFrames并下拉至RDD。
+- 如果需要空间和速度效率，请使用DataFrames。
+- 如果要在编译期间而不是在运行时捕获错误，请选择适当的API，如下图所示：[![](/images/posts/structured-API.jpg)](/images/posts/structured-API.jpg)
+
+### 什么时候使用RDD
+
+您可能会问：RDD是否被降级为二等公民？ 他们被弃用了吗？ 答案是否定的！ 尽管将来在Spark 2.x和Spark 3.0中进行的所有开发工作都将继续具有DataFrame接口和语义，而不是使用RDD，但仍将继续支持RDD API。
+
+在某些情况下，您可能需要考虑使用RDD，例如：
+
+- 使用RDD编写的第三方程序包
+- 可以放弃代码优化、高效的空间利用以及DataFrame和Dataset所提供的性能优势
+- 想精确地指导Spark如何进行查询
+
+此外，您可以使用简单的API方法调用`df.rdd`随意在DataFrame或Dataset和RDD之间无缝切换。 （但是，请注意，这个操作是有代价的，除非有必要，否则应避免。）毕竟，DataFrame和Dataset是建立在RDD之上的，它们在整个代码生成过程中都分解为紧凑的RDD代码。
+
+构建高效查询并生成紧凑代码的过程是Spark SQL引擎的工作。 这是我们一直在研究的结构化API的基础。 现在让我们来窥探一下该引擎。
+
+
+
+## Spark SQL 和底层引擎
+
+
+
+
+
 
 
 未完待续。。。
