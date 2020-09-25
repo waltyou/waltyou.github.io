@@ -586,23 +586,122 @@ val dsTemp2 = ds
 
 构建高效查询并生成紧凑代码的过程是Spark SQL引擎的工作。 这是我们一直在研究的结构化API的基础。 现在让我们来窥探一下该引擎。
 
+有个视频也讲述了 RDD/dataFrame/dataset之间的区别，可以去看一看：[A Tale of Three Apache Spark APIs: RDDs, DataFrames, and Datasets - Jules Damji](https://www.youtube.com/watch?v=Ofk7G3GD9jk&ab_channel=Databricks) 。
+
 
 
 ## Spark SQL 和底层引擎
 
+Spark 1.3中引入以来，Spark SQL已经发展成为一个强大的引擎，并在其上构建了许多高级结构化功能。 除了允许您对数据发出类似SQL的查询之外，Spark SQL引擎还支持：
+
+- 统一Spark组件，并允许抽象为Java，Scala，Python和R中的DataFrame /dataset，从而简化了结构化数据集的工作。
+- 连接到Apache Hive metastore和table。
+- 从结构化文件格式（JSON，CSV，文本，Avro，Parquet，ORC等）中以特定模式读取和写入结构化数据，并将数据转换为临时表。
+- 提供交互式Spark SQL Shell，以快速浏览数据。
+- 通过标准数据库JDBC / ODBC连接器提供与外部工具之间的桥梁。
+- 生成用于JVM的优化查询计划和紧凑代码，以最终执行。
+
+[![](/images/posts/Spark-SQL-Stack.jpg)](/images/posts/Spark-SQL-Stack.jpg)
+
+Spark SQL引擎的核心是Catalyst优化器和Project Tungsten。 它们一起支持高级DataFrame和Dataset API和SQL查询。 现在，让我们仔细看看优化器。
+
+### The Catalyst Optimizer
+
+Catalyst Optimizer 将可执行的查询转换为一个可执行计划。它通过以下四个阶段：
+
+1. 分析 Analysis
+2. 逻辑优化 Logical optimization
+3. 物理计划 Physical planning
+4. 产生代码 Code generation
+
+[![](/images/posts/spark-computation-four-phase.jpg)](/images/posts/spark-computation-four-phase.jpg)
 
 
 
+举个例子，不管你是用什么语言，都是类似的处理过程：从query plan 到 execute bytecode。
+
+```Python
+# In Python
+count_mnm_df = (mnm_df
+                .select("State", "Color", "Count")
+                .groupBy("State", "Color")
+                .agg(count("Count").alias("Total"))
+                .orderBy("Total", ascending=False))
+```
+
+```SQL
+-- In SQL
+SELECT State, Color, Count, sum(Count) AS Total FROM MNM_TABLE_NAME
+GROUP BY State, Color, Count
+ORDER BY Total DESC
+```
+
+在Python中，执行 `count_mnm_df.explain(True)` 可以查看各个阶段的计划。或者想要看逻辑计划和物理计划之间的不同，可以在scala中使用`df.queryExecution.logical` or `df.queryExecution.optimizedPlan` 。
+
+```scala
+count_mnm_df.explain(True)
+
+== Parsed Logical Plan ==
+'Sort ['Total DESC NULLS LAST], true
++- Aggregate [State#10, Color#11], [State#10, Color#11, count(Count#12) AS...]
++- Project [State#10, Color#11, Count#12]
++- Relation[State#10,Color#11,Count#12] csv
+
+== Analyzed Logical Plan ==
+State: string, Color: string, Total: bigint
+Sort [Total#24L DESC NULLS LAST], true
++- Aggregate [State#10, Color#11], [State#10, Color#11, count(Count#12) AS...]
++- Project [State#10, Color#11, Count#12]
++- Relation[State#10,Color#11,Count#12] csv
+
+== Optimized Logical Plan ==
+Sort [Total#24L DESC NULLS LAST], true
++- Aggregate [State#10, Color#11], [State#10, Color#11, count(Count#12) AS...]
++- Relation[State#10,Color#11,Count#12] csv
+
+== Physical Plan ==
+*(3) Sort [Total#24L DESC NULLS LAST], true, 0
++- Exchange rangepartitioning(Total#24L DESC NULLS LAST, 200)
++- *(2) HashAggregate(keys=[State#10, Color#11], functions=[count(Count#12)], output=[State#10, Color#11, Total#24L])
++- Exchange hashpartitioning(State#10, Color#11, 200) +- *(1) HashAggregate(keys=[State#10, Color#11],
+functions=[partial_count(Count#12)], output=[State#10, Color#11, count#29L]) +- *(1) FileScan csv [State#10,Color#11,Count#12] Batched: false,
+Format: CSV, Location: InMemoryFileIndex[file:/Users/jules/gits/LearningSpark2.0/chapter2/py/src/... dataset.csv], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<State:string,Color:string,Count:int>
+```
 
 
 
-未完待续。。。
+让我们考虑另一个DataFrame计算示例。 随着底层引擎优化其逻辑和物理计划，以下Scala代码也经历了类似的旅程：
+
+```Scala
+// In Scala
+// Users DataFrame read from a Parquet table val usersDF = ...
+// Events DataFrame read from a Parquet table val eventsDF = ...
+// Join two DataFrames
+val joinedDF = users
+      .join(events, users("id") === events("uid"))
+      .filter(events("date") > "2015-01-01")
+```
+
+[![](/images/posts/spark-query-transformation-example.jpg)](/images/posts/spark-query-transformation-example.jpg)
 
 
 
+#### 阶段1: 分析
 
+Spark SQL引擎首先为SQL或DataFrame查询生成抽象语法树（AST）。 在此初始阶段，将通过查询内部catalog（Spark SQL的编程接口，其中包含列，数据类型，函数，表，数据库等的名称的列表）来解析任何列或表的名称。 成功解决后，查询将进入下一个阶段。
 
+#### 阶段2: 逻辑优化
 
+这个阶段包括两个内部阶段。 应用基于标准规则（RBO）的优化方法，Catalyst优化器将首先构建一组多个计划，然后使用其基于成本的优化器（CBO）将成本分配给每个计划。 这些计划以operator trees的形式布置； 例如，它们可能包括恒定折叠，谓词下推，投影修剪，布尔表达式简化等过程。此逻辑计划是物理计划的输入。
+
+#### 阶段3: 物理计划
+
+在此阶段，Spark SQL使用与Spark执行引擎中可用的物理运算符匹配的物理运算符，为选定的逻辑计划生成最佳的物理规划。
+
+#### 阶段4: 生成代码
+
+查询优化的最后阶段涉及生成可在每台计算机上运行的有效Java字节码。 因为Spark SQL可以对内存中加载的数据集进行操作，所以Spark可以使用最新的编译器技术来生成代码以加快执行速度。 换句话说，它充当编译器。 **Tungsten**项目在此起到了重要作用，该项目可促进整个阶段的代码生成。
+整个阶段的代码生成是什么？ 这是一个物理查询优化阶段，它将整个查询分解为一个函数，摆脱虚拟函数调用，并使用CPU寄存器存储中间数据。 Spark 2.0中引入的第二代Tungsten引擎使用此方法生成紧凑的RDD代码以最终执行。 这种简化的策略大大提高了CPU效率和性能。
 
 
 
