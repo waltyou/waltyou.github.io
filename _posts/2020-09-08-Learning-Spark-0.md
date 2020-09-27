@@ -243,7 +243,7 @@ blogsDF.sort($"Id".desc).show()
 
 ### Rows 行
 
-Create Row：
+创建行
 
 ```Scala
 // In Scala
