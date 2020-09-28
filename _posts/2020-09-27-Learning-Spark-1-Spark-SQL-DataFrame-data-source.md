@@ -25,7 +25,7 @@ tags: [Big Data, Spark, Learning Spark]
 
 ### 基本例子
 
-```Scala
+```scala
 spark.sql("""SELECT date, delay, origin, destination
     FROM us_delay_flights_tbl
     WHERE delay > 120 AND ORIGIN = 'SFO' AND DESTINATION = 'ORD'
@@ -62,7 +62,7 @@ Spark允许您创建两种类型的表：托管表和非托管表(managed and un
 
 表驻留在数据库中。 默认情况下，Spark在默认数据库下创建表。 要创建自己的数据库名称，可以从Spark应用程序或笔记本发出SQL命令。
 
-```Scala
+```scala
 // In Scala/Python
 spark.sql("CREATE DATABASE learn_spark_db")
 spark.sql("USE learn_spark_db")
@@ -70,7 +70,7 @@ spark.sql("USE learn_spark_db")
 
 #### 1. 创建托管表
 
-```Scala
+```scala
 // In Scala/Python
 spark.sql("CREATE TABLE managed_us_delay_flights_tbl (date STRING, delay INT,
       distance INT, origin STRING, destination STRING)")
@@ -78,7 +78,7 @@ spark.sql("CREATE TABLE managed_us_delay_flights_tbl (date STRING, delay INT,
 
 或者使用DataFrame API，像这个样子：
 
-```Python
+```python
 # In Python
 # Path to our US flight delays CSV file
 csv_file = "/databricks-datasets/learning-spark-v2/flights/departuredelays.csv" 

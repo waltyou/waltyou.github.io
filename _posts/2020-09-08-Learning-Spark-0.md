@@ -245,7 +245,7 @@ blogsDF.sort($"Id".desc).show()
 
 创建行
 
-```Scala
+```scala
 // In Scala
 import org.apache.spark.sql.Row
 // Create a Row
@@ -255,7 +255,7 @@ Array("twitter", "LinkedIn"))
 res62: Any = Reynold
 ```
 
-```Python
+```python
 # In Python
 from pyspark.sql import Row
 blog_row = Row(6, "Reynold", "Xin", "https://tinyurl.6", 255568, "3/2/2015",
@@ -267,14 +267,14 @@ blog_row[1]
 
 Create DataFrame by rows：
 
-```Scala
+```scala
 // In Scala
 val rows = Seq(("Matei Zaharia", "CA"), ("Reynold Xin", "CA")) 
 val authorsDF = rows.toDF("Author", "State")
 authorsDF.show()
 ```
 
-```Python
+```python
 # In Python
 rows = [Row("Matei Zaharia", "CA"), Row("Reynold Xin", "CA")]
 authors_df = spark.createDataFrame(rows, ["Authors", "State"])
@@ -291,7 +291,7 @@ Spark 提供 DataFrameReader 来读取各式各样的数据源来生成DataFrame
 
 Without schema:
 
-```Scala
+```scala
 // In Scala
 val sampleDF = spark 
 	.read
@@ -302,7 +302,7 @@ val sampleDF = spark
 
 Define schema firstly:
 
-```Python
+```python
 # In Python, define a schema
 from pyspark.sql.types import *
 # Programmatic way to define a schema
@@ -320,7 +320,7 @@ sf_fire_file = "/databricks-datasets/learning-spark-v2/sf-fire/sf-fire-calls.csv
 fire_df = spark.read.csv(sf_fire_file, header=True, schema=fire_schema)
 ```
 
-```Scala
+```scala
 // In Scala it would be similar
 val fireSchema = StructType(Array(StructField("CallNumber", IntegerType, true),
                                   StructField("Location", StringType, true),
@@ -340,13 +340,13 @@ val fireDF = spark.read.schema(fireSchema)
 
 保存为Parquet 文件：
 
-```Scala
+```scala
 // In Scala to save as a Parquet file
 val parquetPath = ... 
 fireDF.write.format("parquet").save(parquetPath)
 ```
 
-```Python
+```python
 # In Python to save as a Parquet file
 parquet_path = ...
 fire_df.write.format("parquet").save(parquet_path)
@@ -354,12 +354,12 @@ fire_df.write.format("parquet").save(parquet_path)
 
 保存为sql table，这个表会注册到Hive的metastore 中：
 
-```Scala
+```scala
 // In Scala to save as a table
 val parquetTable = ... // name of the table fireDF.write.format("parquet").saveAsTable(parquetTable)
 ```
 
-```Python
+```python
 # In Python
 parquet_table = ... # name of the table fire_df.write.format("parquet").saveAsTable(parquet_table)
 ```
@@ -368,7 +368,7 @@ parquet_table = ... # name of the table fire_df.write.format("parquet").saveAsTa
 
 关系表达式中的*projection*是一种通过使用过滤器 filters 仅返回与特定关系条件匹配的行的方法。 在Spark中，投影是使用 select() 方法完成的，而过滤器可以使用 filter() 或 where() 方法来表示。
 
-```Python
+```python
 # In Python
 few_fire_df = (fire_df
                .select("IncidentNumber", "AvailableDtTm", "CallType")
@@ -376,7 +376,7 @@ few_fire_df = (fire_df
 few_fire_df.show(5, truncate=False)
 ```
 
-```Scala
+```scala
 // In Scala
 val fewFireDF = fireDF
 	.select("IncidentNumber", "AvailableDtTm", "CallType") 
@@ -386,7 +386,7 @@ fewFireDF.show(5, false)
 
 #### 重命名、添加、删除列
 
-```Python
+```python
 # In Python
 fire_ts_df = (new_fire_df
               .withColumn("IncidentDate", to_timestamp(col("CallDate"), "MM/dd/yyyy"))
@@ -403,7 +403,7 @@ fire_ts_df = (new_fire_df
 
 ```
 
-```Scala
+```scala
 // In Scala
 val fireTsDF = newFireDF
   .withColumn("IncidentDate", to_timestamp(col("CallDate"), "MM/dd/yyyy"))
@@ -423,7 +423,7 @@ fireTsDF
 
 DataFrame 有很多有用的 transforma 和 action，比如 groupBy(), orderBy(), and count()，他们提供了通过列名进行聚合然后得出数量的能力。
 
-```Python
+```python
 # In Python
 (fire_ts_df
  .select("CallType")
@@ -434,7 +434,7 @@ DataFrame 有很多有用的 transforma 和 action，比如 groupBy(), orderBy()
  .show(n=10, truncate=False))
 ```
 
-```Scala
+```scala
 // In Scala
 fireTsDF
   .select("CallType") 
@@ -449,7 +449,7 @@ fireTsDF
 
 除了上面看到的，DataFrame API 还提供了状态统计函数：min(), max(), sum(), and avg()。
 
-```Python
+```python
 # In Python
 import pyspark.sql.functions as F 
 (fire_ts_df
@@ -458,7 +458,7 @@ import pyspark.sql.functions as F
       .show())
 ```
 
-```Scala
+```scala
 // In Scala
 import org.apache.spark.sql.{functions => F} 
 fireTsDF
@@ -507,13 +507,13 @@ JSON file 中每一行大概是这样子：
 
 怎么把它变成 typed object：DeviceIoTData 呢？我们可以定义一个case class：
 
-```Scala
+```scala
 case class DeviceIoTData (battery_level: Long, c02_level: Long, cca2: String, cca3: String, cn: String, device_id: Long, device_name: String, humidity: Long, ip: String, latitude: Double, lcd: String, longitude: Double, scale:String, temp: Long, timestamp: Long)
 ```
 
 定义之后，我们就可以直接读取文件并将返回类型 Dataset[Row] 转换为 Dataset[DeviceIoTData]：
 
-```Scala
+```scala
 // In Scala
 val ds = spark.read 
 	.json("/databricks-datasets/learning-spark-v2/iot-devices/iot_devices.json")
@@ -526,14 +526,14 @@ ds.show(5, false)
 
 和 DataFrame 类似，dataset也可以进行 transformations and actions。
 
-```Scala
+```scala
 // In Scala
 val filterTempDS = ds.filter({d => {d.temp > 30 && d.humidity > 70}) filterTempDS: org.apache.spark.sql.Dataset[DeviceIoTData] = [battery_level...] filterTempDS.show(5, false)
 ```
 
 需要注意的另一件事是，使用 DataFrames 时，fitler 像是 SQL-like 的 DSL 语言一样，但是在 Dataset 中，我们只能使用scala 或 java的原生语言表达。
 
-```Scala
+```scala
 // In Scala
 case class DeviceTempByCountry(temp: Long, device_name: String, device_id: Long, cca3: String)
 val dsTemp = ds
@@ -620,7 +620,7 @@ Catalyst Optimizer 将可执行的查询转换为一个可执行计划。它通�
 
 举个例子，不管你是用什么语言，都是类似的处理过程：从query plan 到 execute bytecode。
 
-```Python
+```python
 # In Python
 count_mnm_df = (mnm_df
                 .select("State", "Color", "Count")
@@ -672,7 +672,7 @@ Format: CSV, Location: InMemoryFileIndex[file:/Users/jules/gits/LearningSpark2.0
 
 让我们考虑另一个DataFrame计算示例。 随着底层引擎优化其逻辑和物理计划，以下Scala代码也经历了类似的旅程：
 
-```Scala
+```scala
 // In Scala
 // Users DataFrame read from a Parquet table val usersDF = ...
 // Events DataFrame read from a Parquet table val eventsDF = ...
