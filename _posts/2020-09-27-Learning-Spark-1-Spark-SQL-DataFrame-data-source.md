@@ -105,6 +105,96 @@ spark.sql("""CREATE TABLE us_delay_flights_tbl(date STRING, delay INT,
       .saveAsTable("us_delay_flights_tbl"))
 ```
 
+### 创建视图 view
+
+视图和表之间的区别在于，视图实际上并不保存数据。 您的Spark应用程序终止后，表仍然存在，但是视图消失了。
+
+create view
+
+```sql
+-- In SQL
+CREATE OR REPLACE GLOBAL TEMP VIEW us_origin_airport_SFO_global_tmp_view AS SELECT date, delay, origin, destination from us_delay_flights_tbl WHERE origin = 'SFO';
+
+CREATE OR REPLACE TEMP VIEW us_origin_airport_JFK_tmp_view AS
+SELECT date, delay, origin, destination from us_delay_flights_tbl WHERE origin = 'JFK'
+```
+
+```python
+# In Python
+df_sfo = spark.sql("SELECT date, delay, origin, destination FROM us_delay_flights_tbl WHERE origin = 'SFO'") 
+df_jfk = spark.sql("SELECT date, delay, origin, destination FROM us_delay_flights_tbl WHERE origin = 'JFK'")
+# Create a temporary and global temporary view
+df_sfo.createOrReplaceGlobalTempView("us_origin_airport_SFO_global_tmp_view")                                 df_jfk.createOrReplaceTempView("us_origin_airport_JFK_tmp_view")
+```
+
+drop a view
+
+```sql
+-- In SQL
+DROP VIEW IF EXISTS us_origin_airport_SFO_global_tmp_view; 
+DROP VIEW IF EXISTS us_origin_airport_JFK_tmp_view
+
+```
+
+```python
+// In Scala/Python
+spark.catalog.dropGlobalTempView("us_origin_airport_SFO_global_tmp_view")
+spark.catalog.dropTempView("us_origin_airport_JFK_tmp_view")
+```
+
+#### 临时视图与全局临时视图
+
+临时视图和全局临时视图之间的差异是细微的，这可能会使Spark新手开发人员产生轻微的混淆。 临时视图绑定到Spark应用程序中的单个SparkSession。 相反，全局临时视图在一个Spark应用程序中的多个SparkSession中可见。 是的，您可以在单个Spark应用程序中创建多个SparkSession。这很方便，例如，当您要访问（并合并）来自两个不共享相同Hive Metastore配置的不同SparkSession中的数据时。
+
+
+
+### 查看原数据
+
+如前所述，Spark管理与每个托管或非托管表关联的元数据。 这是在Catalog中捕获的，它是Spark SQL中用于存储元数据的高级抽象。 Catalog的功能在Spark 2.x中通过新的公共方法进行了扩展，使您能够检查与数据库，表和视图关联的元数据。 Spark 3.0将其扩展为使用外部目录。
+
+```scala
+// In Scala/Python
+spark.catalog.listDatabases()
+spark.catalog.listTables()
+spark.catalog.listColumns("us_delay_flights_tbl")
+```
+
+### 缓存SQL表
+
+您可以缓存和取消缓存SQL表和视图。 在Spark 3.0中，除了其他选项之外，您还可以将表指定为LAZY，这意味着只应在首次使用该表时对其进行缓存，而不是立即对其进行缓存：
+
+```sql
+-- In SQL
+CACHE [LAZY] TABLE <table-name> 
+UNCACHE TABLE <table-name>
+```
+
+
+
+### 将表读取进DataFrame 中
+
+```scala
+// In Scala
+val usFlightsDF = spark.sql("SELECT * FROM us_delay_flights_tbl") 
+val usFlightsDF2 = spark.table("us_delay_flights_tbl")
+```
+
+```python
+# In Python
+us_flights_df = spark.sql("SELECT * FROM us_delay_flights_tbl")
+us_flights_df2 = spark.table("us_delay_flights_tbl")
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 未完待续。。。。。
