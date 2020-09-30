@@ -187,14 +187,66 @@ us_flights_df2 = spark.table("us_delay_flights_tbl")
 
 
 
+## DataFrame 和 SQL table的数据源
+
+### DataFrameReader
+
+```scala
+DataFrameReader.format(args).option("key", "value").schema(args).load()
+```
+
+请注意，您只能通过SparkSession实例访问DataFrameReader。 也就是说，您无法创建DataFrameReader的实例。 要获取实例句柄，请使用：
+
+```scala
+SparkSession.read
+// or
+SparkSession.readStream
+```
+
+例子：
+
+```scala
+// In Scala
+// Use Parquet
+val file = """/databricks-datasets/learning-spark-v2/flights/summary-
+data/parquet/2010-summary.parquet"""
+val df = spark.read.format("parquet").load(file)
+// Use Parquet; you can omit format("parquet") if you wish as it's the default val df2 = spark.read.load(file)
+// Use CSV
+val df3 = spark.read.format("csv")
+      .option("inferSchema", "true")
+      .option("header", "true")
+      .option("mode", "PERMISSIVE")
+      .load("/databricks-datasets/learning-spark-v2/flights/summary-data/csv/*")
+// Use JSON
+val df4 = spark.read.format("json") .load("/databricks-datasets/learning-spark-v2/flights/summary-data/json/*")
+```
+
+### DataFrameWriter
+
+DataFrameWriter的操作相反：将数据保存或写入指定的内置数据源。 与DataFrameReader不同，您不是从SparkSession访问其实例，而是从要保存的DataFrame访问其实例。 它有一些建议的使用模式：
+
+```scala
+DataFrameWriter.format(args)
+      .option(args)
+      .bucketBy(args)
+      .partitionBy(args)
+      .save(path)
+sDataFrameWriter.format(args).option(args).sortBy(args).saveAsTable(table)
+```
+
+获取句柄：
+
+```scala
+DataFrame.write
+// or
+DataFrame.writeStream
+```
+
+```scala
+// In Scala
+// Use JSON
+val location = ... df.write.format("json").mode("overwrite").save(location)
+```
 
 
-
-
-
-
-
-
-
-
-未完待续。。。。。
