@@ -9,7 +9,7 @@ categories: [Spark]
 tags: [Big Data, Spark, Learning Spark]
 ---
 
-直接进入第四章：《Spark SQL 和 DataFrame：内置数据源第介绍》。
+直接进入第四章：《Spark SQL 和 DataFrame：内置数据源介绍》。
 
 <!-- more -->
 
