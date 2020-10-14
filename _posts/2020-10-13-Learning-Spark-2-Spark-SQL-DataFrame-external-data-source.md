@@ -135,11 +135,84 @@ df.select("id", cubed_udf(col("id"))).show()
 
 
 
+## 使用 Spark SQL Shell，Beeline，Tableau
+
+有多种查询Apache Spark的机制，包括Spark SQL Shell，Beeline CLI实用程序以及诸如Tableau和Power BI之类的报告工具。
+
+### 使用 Spark SQL Shell
+
+一个执行Spark SQL查询的便捷工具是spark-sql CLI。 虽然此实用程序在本地模式下与Hive Metastore服务进行通信，但它不会与Thrift JDBC / ODBC服务器（也称为Spark Thrift Server或STS）通信。 STS允许JDBC / ODBC客户端在Apache Spark上通过JDBC和ODBC协议执行SQL查询。
+要启动Spark SQL CLI，请在`$SPARK_HOME`文件夹中执行以下命令：
+
+> ./bin/spark-**sql**
+
+#### Create a table
+
+> spark-**sql**> **CREATE TABLE** people (name STRING, age int);
+
+#### Insert data into the table
+
+> spark-sql> **INSERT INTO people VALUES ("Michael", NULL);**
+
+#### Running a Spark SQL query
+
+> spark-sql> **SHOW TABLES;**
+>
+> spark-sql> **SELECT \* FROM people WHERE age < 20;**
+
+
+
+### 使用 Beeline
+
+如果您使用过Apache Hive，那么您可能会熟悉命令行工具Beeline，这是用于针对HiveServer2运行HiveQL查询的通用实用程序。 Beeline是基于SQLLine CLI的JDBC客户端。 您可以使用同一实用程序对Spark Thrift服务器执行Spark SQL查询。 请注意，当前实现的Thrift JDBC / ODBC服务器与Hive 1.2.1中的HiveServer2相对应。 您可以使用Spark或Hive 1.2.1随附的以下Beeline脚本测试JDBC服务器。
+
+#### 启动 Thrift server
+
+在`$SPARK_HOME`文件夹中执行以下命令：
+
+> ​    ./sbin/start-thriftserver.sh
+
+#### 通过Beeline 连接 Thrift server
+
+> ./bin/beeline
+>
+> !connect jdbc:hive2://localhost:10000
+
+#### 执行Spark SQL 查询
+
+> 0: jdbc:hive2://localhost:10000> **SHOW tables;**
+>
+> 0: jdbc:hive2://localhost:10000> **SELECT \* FROM people;**
+
+
+
+#### 停止 Thrift Server
+
+> ./sbin/stop-thriftserver.sh
+
+
+
+## 外部数据源
+
+### JDBC 和 SQL 数据库
+
+Spark SQL包含一个数据源API，可以使用以下命令从其他数据库读取数据
+JDBC。 当它以Dataframe形式返回结果时，它简化了对这些数据源的查询，从而提供了Spark SQL的所有优势（包括性能和与其他数据源的连接能力）。
+首先，您需要为JDBC数据源指定JDBC驱动程序，并且该驱动程序必须位于Spark类路径上。 在$SPARK_HOME文件夹中，您将发出如下命令：
+
+> ./bin/spark-shell --driver-class-path $database.jar --jars $database.jar
+
+
+
+#### 分区的重要性
+
+在Spark SQL和JDBC外部源之间传输大量数据时，对数据源进行分区很重要。 您的所有数据都通过一个驱动程序连接进行，这可能导致饱和并显着降低提取性能，并可能使源系统的资源饱和。 尽管这些JDBC属性是可选的，但对于任何大规模操作，强烈建议使用表5-2中所示的属性。
+
+[![](/images/posts/spark-partitioning-connection-properties.jpg)](/images/posts/spark-partitioning-connection-properties.jpg)
+
 
 
 未完待续。。。。
-
-
 
 
 
