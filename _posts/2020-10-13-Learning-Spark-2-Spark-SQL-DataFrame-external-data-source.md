@@ -210,6 +210,222 @@ JDBC。 当它以Dataframe形式返回结果时，它简化了对这些数据源
 
 [![](/images/posts/spark-partitioning-connection-properties.jpg)](/images/posts/spark-partitioning-connection-properties.jpg)
 
+用一个例子来说明以上几个参数的作用。比如根据以下设置：
+
+- numPartitions:10 
+- lowerBound:1000 
+- upperBound:10000
+
+那么步长就是1000， 然后将会创建 10 个 partition。这等同于十个查询：
+
+- SELECT * FROM table WHERE partitionColumn BETWEEN 1000 and 2000
+- SELECT * FROM table WHERE partitionColumn BETWEEN 2000 and 3000 
+-  ...
+- SELECT * FROM table WHERE partitionColumn BETWEEN 9000 and 10000
+
+虽然不包含所有内容，但在使用这些属性时，请牢记以下提示：
+
+- numPartitions的最好是使用数量为Spark工作者数的倍数。 例如，如果有四个Spark工作节点，则可能从4个或8个分区开始。 但是，注意源系统可以很好地处理读取请求也很重要。 对于具有处理窗口（processing windows）的系统，您可以最大程度地增加对源系统的并发请求数。 对于缺少处理窗口的系统（例如OLTP系统连续处理数据），应减少并发请求的数量以防止源系统饱和。
+- 最初，根据最小和最大partitionColumnColumn实际值计算lowerBound和upperBound。 例如，如果您选择`{numPartitions：10，lowerBound：1000，upperBound：10000}`，但是所有值都在2000到4000之间，则10个查询中只有2个（每个分区一个）将执行所有工作。 在这种情况下，更好的配置将是`{numPartitions：10，lowerBound：2000，upperBound：4000}`。
+- 选择可以均匀分布的partitionColumn以避免数据倾斜。 例如，如果您的partitionColumn的大多数值为2500，且`{numPartitions：10，lowerBound：1000，upperBound：10000}`，大部分工作将由请求2000到3000之间的值的任务执行。 选择不同的partitionColumn，或者在可能的情况下生成一个新的（也许是多个列的哈希），以便更均匀地分配您的分区。
+
+### 连接其他数据源
+
+1. PostgreSQL
+2. MySQL
+3. Azure Cosmos DB
+4. MS SQL Server
+5. Apache Cassandra 
+6. Snowflake
+7. MongoDB
+
+
+
+## DataFrames和Spark SQL中的高阶函数
+
+由于复杂数据类型是简单数据类型的组合，因此很容易直接对其进行操作。 有两种用于处理复杂数据类型的典型解决方案：
+
+- 将嵌套结构分解为单独的行，应用某些函数，然后重新创建嵌套结构
+- 构建用户定义的函数
+
+这些方法的好处是允许您以表格格式考虑问题。 它们通常涉及（但不限于）使用统一函数（utility functions），例如 get_json_object(), from_json(), to_json(), explode(), and selectExpr()。
+
+### 选项1：分解和收集
+
+在此嵌套的SQL语句中，我们首先 explode(values)，它为值内的每个元素（value）创建一个新行（带有id）：
+
+```sql
+-- In SQL
+SELECT id, collect_list(value + 1) AS values 
+FROM (SELECT id, EXPLODE(values) AS value
+			FROM table) x 
+GROUP BY id
+```
+
+尽管`collect_list()`返回具有重复项的对象列表，但是GROUP BY语句需要随机操作，这意味着重新收集的数组的顺序不一定与原始数组的顺序相同。 由于 values 可以是任意数量的维度（一个非常宽和/或非常长的数组），而且我们正在执行GROUP BY，所以这种方法可能会非常昂贵。
+
+### 选择2： UDF
+
+和上述例子完成同样的功能，可以创建一个UDF，它遍历values中所有的值并加一：
+
+```python
+spark.sql("SELECT id, plusOneInt(values) AS values FROM table").show()
+```
+
+尽管这比使用 `explode()`和`collect_list()`更好，因为不会出现任何排序问题，但是序列化和反序列化过程本身可能会很昂贵。 另外，还必须注意，`collect_list()`可能会使 executor遇到大型数据集的内存不足问题，而使用UDF可以缓解这些问题。
+
+### 高阶函数
+
+Spark SQL 还有一些将匿名lambda函数作为参数的高阶函数。 下面是一个高阶函数的示例：
+
+```sql
+-- In SQL
+transform(values, value -> lambda expression)
+```
+
+`transform()` 函数将 array(values) 和匿名函数（lambda表达式）作为输入。 通过将匿名函数应用于每个元素，然后将结果分配给输出数组，该函数可以透明地创建一个新数组（类似于UDF方法，但效率更高）。
+
+举个例子，先来创建一个数据集：
+
+```python
+# In Python
+from pyspark.sql.types import *
+schema = StructType([StructField("celsius", ArrayType(IntegerType()))])
+
+t_list = [[35, 36, 32, 30, 40, 42, 38]], [[31, 32, 34, 55, 56]]
+t_c = spark.createDataFrame(t_list, schema)
+t_c.createOrReplaceTempView("tC")
+
+# Show the DataFrame
+t_c.show()
+```
+
+```scala
+// In Scala
+// Create DataFrame with two rows of two arrays (tempc1, tempc2) 
+val t1 = Array(35, 36, 32, 30, 40, 42, 38)
+val t2 = Array(31, 32, 34, 55, 56)
+val tC = Seq(t1, t2).toDF("celsius") 
+tC.createOrReplaceTempView("tC")
+// Show the DataFrame
+tC.show()
+```
+
+输出：
+
+```
++--------------------+
+|             celsius|
++--------------------+
+|[35, 36, 32, 30, ...|
+|[31, 32, 34, 55, 56]|
++--------------------+
+```
+
+#### transform()
+
+```python
+// In Scala/Python
+// Calculate Fahrenheit from Celsius for an array of temperatures 
+spark.sql("""
+	SELECT celsius,
+			transform(celsius, t -> ((t * 9) div 5) + 32) as fahrenheit
+  FROM tC
+""").show()
+```
+
+输出：
+
+```
++--------------------+--------------------+ 
+| 						celsius| 					fahrenheit| 
++--------------------+--------------------+ 
+|[35, 36, 32, 30, ...|[95, 96, 89, 86, ...| 
+|[31, 32, 34, 55, 56]|[87, 89, 93, 131,...| 
++--------------------+--------------------+
+```
+
+#### filter()
+
+```python
+// In Scala/Python
+// Filter temperatures > 38C for array of temperatures 
+spark.sql("""
+	SELECT celsius,
+     filter(celsius, t -> t > 38) as high
+  FROM tC
+""").show()
+```
+
+输出：
+
+```
++--------------------+--------+ 
+| 						celsius| 		high| 
++--------------------+--------+ 
+|[35, 36, 32, 30, ...|[40, 42]| 
+|[31, 32, 34, 55, 56]|[55, 56]| 
++--------------------+--------+
+```
+
+#### exists()
+
+```python
+// In Scala/Python
+// Is there a temperature of 38C in the array of temperatures 
+spark.sql("""
+	SELECT celsius,
+         exists(celsius, t -> t = 38) as threshold
+  FROM tC
+""").show()
+
+```
+
+输出：
+
+```
++--------------------+---------+ 
+| 						celsius|threshold| 
++--------------------+---------+ 
+|[35, 36, 32, 30, ...| 		 true|
+|[31, 32, 34, 55, 56]| 		false| 
++--------------------+---------+
+```
+
+#### reduce()
+
+> ​    reduce(array<T>, B, function<B, T, B>, function<B, R>)
+
+`reduce()`函数通过使用`function <B，T，B>`将元素合并到缓冲区B中，并在最终缓冲区B 上调用`function<B，R>`，来实现将数组的元素减少为单个值：
+
+```python
+// In Scala/Python
+// Calculate average temperature and convert to F 
+spark.sql("""
+	SELECT celsius,
+           reduce(
+              celsius,
+              0,
+              (t, acc) -> t + acc,
+              acc -> (acc div size(celsius) * 9 div 5) + 32
+            ) as avgFahrenheit
+   FROM tC
+""").show()
+```
+
+输出：
+
+```
++--------------------+-------------+ 
+| 						celsius|avgFahrenheit| 
++--------------------+-------------+ 
+|[35, 36, 32, 30, ...| 					 96| 
+|[31, 32, 34, 55, 56]| 					105| 
++--------------------+-------------+
+```
+
+
+
 
 
 未完待续。。。。
