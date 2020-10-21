@@ -338,7 +338,7 @@ spark.sql("""
 
 ```
 +--------------------+--------------------+ 
-| 						celsius| 					fahrenheit| 
+|celsius| fahrenheit| 
 +--------------------+--------------------+ 
 |[35, 36, 32, 30, ...|[95, 96, 89, 86, ...| 
 |[31, 32, 34, 55, 56]|[87, 89, 93, 131,...| 
@@ -361,7 +361,7 @@ spark.sql("""
 
 ```
 +--------------------+--------+ 
-| 						celsius| 		high| 
+|celsius|high| 
 +--------------------+--------+ 
 |[35, 36, 32, 30, ...|[40, 42]| 
 |[31, 32, 34, 55, 56]|[55, 56]| 
@@ -385,7 +385,7 @@ spark.sql("""
 
 ```
 +--------------------+---------+ 
-| 						celsius|threshold| 
+| celsius| threshold| 
 +--------------------+---------+ 
 |[35, 36, 32, 30, ...| 		 true|
 |[31, 32, 34, 55, 56]| 		false| 
@@ -417,18 +417,306 @@ spark.sql("""
 
 ```
 +--------------------+-------------+ 
-| 						celsius|avgFahrenheit| 
+| celsius| avgFahrenheit| 
 +--------------------+-------------+ 
 |[35, 36, 32, 30, ...| 					 96| 
 |[31, 32, 34, 55, 56]| 					105| 
 +--------------------+-------------+
 ```
 
+## DataFrames 和 Spark SQL 的常用操作
 
+Spark SQL的部分功能来自其支持的各种DataFrame操作（也称为无类型数据集操作）。 操作列表非常广泛，包括：
 
+- Aggregate functions
+- Collection functions
+- Datetime functions
+- Math functions
+- Miscellaneous functions （混杂）
+- Non-aggregate functions
+- Sorting functions
+- String functions
+- UDF functions
+- Window functions
 
+在本章中，我们将重点介绍以下常见的关系操作：
 
-未完待续。。。。
+- Unions and joins
+- Windowing
+- Modifications
+
+先准备一些数据：
+
+```python
+# In Python
+# Set file paths
+from pyspark.sql.functions import expr 
+tripdelaysFilePath = "/databricks-datasets/learning-spark-v2/flights/departuredelays.csv"
+airportsnaFilePath = "/databricks-datasets/learning-spark-v2/flights/airport-codes-na.txt"
+
+# Obtain airports data set
+airportsna = (spark.read
+              .format("csv")
+              .options(header="true", inferSchema="true", sep="\t")
+              .load(airportsnaFilePath))
+airportsna.createOrReplaceTempView("airports_na")
+
+# Obtain departure delays data set
+departureDelays = (spark.read
+                   .format("csv")
+                   .options(header="true")
+                   .load(tripdelaysFilePath))
+
+departureDelays = (departureDelays
+                   .withColumn("delay", expr("CAST(delay as INT) as delay"))
+                   .withColumn("distance", expr("CAST(distance as INT) as distance")))
+departureDelays.createOrReplaceTempView("departureDelays")
+
+# Create temporary small table
+foo = (departureDelays
+       .filter(expr("""origin == 'SEA' and destination == 'SFO' and
+        date like '01010%' and delay > 0""")))
+foo.createOrReplaceTempView("foo")
+```
+
+数据内容如下：
+
+```python
+// Scala/Python
+spark.sql("SELECT * FROM airports_na LIMIT 1").show()
++-----------+-----+-------+----+ 
+| City|State|Country|IATA| 
++-----------+-----+-------+----+ 
+|Abbotsford| BC|Canada|YXX| 
+| Aberdeen| SD| USA| ABR|
++-----------+-----+-------+----+
+
+spark.sql("SELECT * FROM departureDelays LIMIT 10").show()
++--------+-----+--------+------+-----------+
+|    date|delay|distance|origin|destination|
++--------+-----+--------+------+-----------+
+|01011245|    6|     602|   ABE|        ATL|
+|01020600|   -8|     369|   ABE|        DTW|
+
+spark.sql("SELECT * FROM foo").show()
++--------+-----+--------+------+-----------+
+|    date|delay|distance|origin|destination|
++--------+-----+--------+------+-----------+
+|01010710|   31|     590|   SEA|        SFO|
+|01010955|  104|     590|   SEA|        SFO|
+|01010730|    5|     590|   SEA|        SFO|
++--------+-----+--------+------+-----------+
+```
+
+### Unions
+
+Apache Spark中的常见模式是将具有相同模式的两个不同的DataFrame联合在一起。 这可以使用`union()`方法实现：
+
+```python
+# In Python
+# Union two tables
+bar = departureDelays.union(foo) 
+bar.createOrReplaceTempView("bar")
+# Show the union (filtering for SEA and SFO in a specific time range)
+bar.filter(expr("""origin == 'SEA' AND destination == 'SFO'
+    AND date LIKE '01010%' AND delay > 0""")).show()
+```
+
+DataFrame bar 是delays 和 foo的并集。 使用相同的过滤条件在DataFrame栏中显示结果，按预期，我们看到了foo数据的重复：
+
+```python
+-- In SQL
+spark.sql(""" SELECT *
+      FROM bar
+     WHERE origin = 'SEA'
+       AND destination = 'SFO'
+       AND date LIKE '01010%'
+       AND delay > 0
+""").show()
++--------+-----+--------+------+-----------+ 
+| date|delay|distance|origin|destination| 
++--------+-----+--------+------+-----------+ 
+|01010710| 31| 590| SEA| SFO| 
+|01010955| 104| 590| SEA| SFO| 
+|01010730| 5| 590| SEA| SFO| 
+|01010710| 31| 590| SEA| SFO| 
+|01010955| 104| 590| SEA| SFO| 
+|01010730| 5| 590| SEA| SFO| 
++--------+-----+--------+------+-----------+
+```
+
+### Joins
+
+常见的DataFrame操作是将两个DataFrame（或表）连接在一起。 默认情况下，Spark SQL连接是 inner join，其选项包括：inner, cross, outer, full, full_outer, left, left_outer, right, right_outer, left_semi, 和 left_anti。
+
+```scala
+// In Scala
+foo.join(
+  airports.as('air),
+  $"air.IATA" === $"origin"
+).select("City", "State", "date", "delay", "distance", "destination").show()
+```
+
+```sql
+-- In SQL
+spark.sql("""
+SELECT a.City, a.State, f.date, f.delay, f.distance, f.destination
+      FROM foo f
+      JOIN airports_na a
+      ON a.IATA = f.origin 
+""").show()
+```
+
+### Windowing 窗口函数
+
+窗口函数使用窗口（某个范围）中行的值来返回一组值，通常以另一行的形式返回。 使用窗口函数，可以在一组行上进行操作，同时仍为每个输入行返回一个值。 在本节中，我们将展示如何使用`dense_rank()`窗口功能；同时，还有很多其他窗口函数：
+
+[![](/images/posts/spark-windows-functions.jpg)](/images/posts/spark-windows-functions.jpg)
+
+```sql
+-- In SQL
+DROP TABLE IF EXISTS departureDelaysWindow;
+
+CREATE TABLE departureDelaysWindow AS
+  SELECT origin, destination, SUM(delay) AS TotalDelays
+  FROM departureDelays
+  WHERE origin IN ('SEA', 'SFO', 'JFK')
+  	AND destination IN ('SEA', 'SFO', 'JFK', 'DEN', 'ORD', 'LAX', 'ATL')
+  GROUP BY origin, destination;
+
+SELECT * FROM departureDelaysWindow
+
++------+-----------+-----------+ 
+|origin|destination|TotalDelays| 
++------+-----------+-----------+ 
+| JFK| ORD| 5608| 
+| SEA| LAX| 9359| 
+| JFK| SFO| 35619| 
+| SFO| ORD| 27412| 
+| JFK| DEN| 4315| 
+| SFO| DEN| 18688| 
+| SFO| SEA| 17080| 
+| SEA| SFO| 22293| 
+| JFK| ATL| 12141| 
+| SFO| ATL| 5091| 
+| SEA| DEN| 13645| 
+| SEA| ATL| 4535| 
+| SEA| ORD| 10041| 
+| JFK| SEA| 7856| 
+| JFK| LAX| 35755| 
+| SFO| JFK| 24100| 
+| SFO| LAX| 40798| 
+| SEA| JFK| 4667| 
++------+-----------+-----------+
+only showing top 10 rows
+```
+
+如果您想为每个这些始发机场找到三个延误最多的目的地怎么办？ 您可以通过为每个始发点运行三个不同的查询，然后将结果合并在一起来实现此目的，如下所示：
+
+```sql
+-- In SQL
+SELECT origin, destination, SUM(TotalDelays) AS TotalDelays 
+FROM departureDelaysWindow
+WHERE origin = '[ORIGIN]' 
+GROUP BY origin, destination 
+ORDER BY SUM(TotalDelays) DESC 
+LIMIT 3
+```
+
+这里的 [ORIGIN] 是三个不同的起点：JFK, SEA, SFO.
+
+但是更好的方法是使用诸如`dense_rank()`之类的窗口函数来执行以下计算：
+
+```sql
+-- In SQL
+spark.sql("""
+SELECT origin, destination, TotalDelays, rank
+FROM (
+    SELECT origin, destination, TotalDelays, 
+          dense_rank() OVER (
+          	PARTITION BY origin ORDER BY TotalDelays DESC
+          ) as rank
+		FROM departureDelaysWindow 
+) t
+WHERE rank <= 3 
+""").show()
++------+-----------+-----------+----+ 
+|origin|destination|TotalDelays|rank| 
++------+-----------+-----------+----+ 
+| SEA| SFO| 22293| 1| 
+| SEA| DEN| 13645| 2| 
+| SEA| ORD| 10041| 3| 
+| SFO| LAX| 40798| 1| 
+| SFO| ORD| 27412| 2| 
+| SFO| JFK| 24100| 3| 
+| JFK| LAX| 35755| 1| 
+| JFK| SFO| 35619| 2| 
+| JFK| ATL| 12141| 3| 
++------+-----------+-----------+----+
+only showing top 10 rows
+```
+
+重要的是要注意，每个窗口分组都需要容纳在一个执行程序中，并且在执行过程中将组成一个分区。 因此，您需要确保查询不受限制（即限制窗口的大小）。
+
+###  Modifications 修改
+
+另一个常见的操作是对DataFrame进行修改。 尽管DataFrames本身是不可变的，但是您可以通过创建新的，不同的DataFrames（例如具有不同的列）的操作来修改它们。
+
+#### 添加新列
+
+`withColumn`
+
+#### 删除列
+
+`drop`
+
+#### 重命名列
+
+`withColumnRenamed`
+
+#### 旋转
+
+处理数据时，有时您需要将列换为行，即，旋转数据。 让我们获取一些数据来证明这个概念：
+
+```sql
+-- In SQL
+SELECT destination, CAST(SUBSTRING(date, 0, 2) AS int) AS month, delay 
+FROM departureDelays
+WHERE origin = 'SEA'
++-----------+-----+-----+ 
+|destination|month|delay| 
++-----------+-----+-----+
+| ORD| 1| 92|
+| JFK| 1| -7|
+| DFW| 1| -5|
+| MIA| 1| -3|
+| DFW| 1| -3|
+| DFW|1|1|
+| ORD| 1| -10|
+| DFW| 1| -6|
+| DFW| 1| -2|
+| ORD| 1| -3| 
++-----------+-----+-----+ 
+only showing top 10 rows
+```
+
+通过 pivoting，您可以在month列中放置名称（而不是分别显示1月和2月的1和2），也可以按destination 和 month对 delay 执行汇总计算（在这种情况下为平均值和最大值）：
+
+```sql
+-- In SQL
+SELECT * FROM (
+  SELECT destination, CAST(SUBSTRING(date, 0, 2) AS int) AS month, delay
+  FROM departureDelays WHERE origin = 'SEA' 
+)
+PIVOT (
+  CAST(AVG(delay) AS DECIMAL(4, 2)) AS AvgDelay, MAX(delay) AS MaxDelay 
+  FOR month IN (1 JAN, 2 FEB)
+)
+ORDER BY destination
+
+```
+
+[![](/images/posts/spark-pivoting-example.jpg)](/images/posts/spark-pivoting-example.jpg)
 
 
 
