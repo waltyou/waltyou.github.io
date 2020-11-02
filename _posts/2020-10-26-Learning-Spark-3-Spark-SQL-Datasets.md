@@ -65,9 +65,54 @@ JVM拥有自己的内置Java序列化器和反序列化器，但效率低下，�
 
 
 
+## 使用Dataset的代价
 
+与在Spark中引入 Encoder 之前使用的其他串行器相比，它开销较小且可以忍受。 但是，在较大的数据集和许多查询中，这会产生费用并且会影响性能。
 
+### 降低成本的策略
 
+减轻过度序列化和反序列化的一种策略是**在查询中使用DSL表达式**，并避免过度使用lambda作为匿名函数作为高阶函数的参数。 由于lambda在运行前一直是匿名且对Catalyst优化器不透明，因此当您使用它们时，它不能有效地识别您在做什么（您没有告诉Spark该怎么做），因此无法优化查询。
 
-未完待续。。。
+第二种策略是将查询链接在一起，以最大程度减少序列化和反序列化。 将查询链接在一起是Spark的一种常见做法。
+
+让我们用一个简单的例子来说明。 假设我们有一个类型为Person的Dataset，其中Person被定义为Scala case class：
+
+```scala
+// In Scala
+Person(id: Integer, firstName: String, middleName: String, lastName: String, gender: String, birthDate: String, ssn: String, salary: String)
+```
+
+我们想使用函数式编程对此数据集发出一组查询。
+
+让我们来研究一下这样一种情况，在这种情况下，我们低效地编写查询，这种方式会无意间导致重复序列化和反序列化的成本：
+
+```scala
+import java.util.Calendar
+val earliestYear = Calendar.getInstance.get(Calendar.YEAR) - 40
+personDS 
+  // Everyone above 40: lambda-1
+  .filter(x => x.birthDate.split("-")(0).toInt > earliestYear) 
+  // Everyone earning more than 80K
+  .filter($"salary" > 80000)
+	// Last name starts with J: lambda-2
+  .filter(x => x.lastName.startsWith("J"))
+  // First name starts with D
+  .filter($"firstName".startsWith("D"))
+  .count()
+```
+
+如下图所示，每次我们从lambda迁移到DSL（filter($"salary" > 8000)）时，都会产生序列化和反序列化Person JVM对象的成本。
+
+[![](/images/posts/spark-inefficient-lambda-DSL.jpg)](/images/posts/spark-inefficient-lambda-DSL.jpg)
+
+相比之下，以下查询仅使用DSL，不使用lambda。 结果，它的效率更高-整个组合查询和链接查询都不需要序列化/反序列化：
+
+```scala
+personDS
+  .filter(year($"birthDate") > earliestYear) // Everyone above 40 
+  .filter($"salary" > 80000) // Everyone earning more than 80K
+  .filter($"lastName".startsWith("J")) // Last name starts with J
+  .filter($"firstName".startsWith("D")) // First name starts with D 
+  .count()
+```
 
