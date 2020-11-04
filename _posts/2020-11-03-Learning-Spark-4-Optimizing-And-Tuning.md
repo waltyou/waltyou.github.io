@@ -101,6 +101,16 @@ spark.sql("SET -v").select("key", "value").show(5, false)
 spark.sql("SET -v").select("key", "value").show(n=5, truncate=False)
 ```
 
+或者你也可以通过Spark UI 里的 Environment 页来看。
+
+在修改配置之前，可以使用 `spark.conf.isModifiable("*<config_name>*") ` 来查看该配置是否可以更改。
+
+虽然有很多种方式来设置配置。但是它们也是有读取顺序的，spark-defaults.conf 首先被读出来，然后是 spark-submit 的命令行，最后是 SparkSession。所有这些属性将被合并，并且所有重复属性会按优先顺序进行去重。 比如，在命令行中提供的值将取代配置文件中的设置，前提是它们不会在应用程序本身中被覆盖。
+
+调整或提供正确的配置有助于提高性能，正如您将在下一部分中看到的那样。 这里的建议来自社区中从业人员的观察，并且侧重于如何最大程度地利用Spark的群集资源以适应大规模工作负载。
+
+
+
 
 
 
