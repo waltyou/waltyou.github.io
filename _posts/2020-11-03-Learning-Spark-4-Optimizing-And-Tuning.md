@@ -111,6 +111,40 @@ spark.sql("SET -v").select("key", "value").show(n=5, truncate=False)
 
 
 
+### 扩展Spark以处理大工作量
+
+大型Spark工作负载通常是批处理工作，有些是每晚运行的，有些则是每天定期执行的。 无论哪种情况，这些作业都可能处理数十TB字节的数据或更多。 为了避免由于资源匮乏或性能逐步下降而导致作业失败，可以启用或更改一些Spark配置。 这些配置影响三个Spark组件：Spark driver，executor 和在 executor 上运行的 shuffle 服务。
+
+Spark driver 的职责是与集群管理器协调，以在集群中启动executor，并在其上安排Spark任务。 对于大工作量，您可能有数百个任务。 本节介绍了一些可以调整或启用的配置，以优化资源利用率、任务并行度，来避免出现大任务的瓶颈。 
+
+#### 静态与动态资源分配
+
+如前所述，当您将计算资源指定为`spark-submit`的命令行参数时，您便设置了上限。 这意味着，如果由于工作负载超出预期而导致以后在驱动程序中排队任务时需要更多资源，Spark将无法容纳或分配额外的资源。
+
+相反，如果您使用Spark的动态资源分配配置( `dynamic resource allocation configuration`)，则Spark driver 会随着大型工作负载的需求不断增加和减少，可以请求更多或更少的计算资源。 在工作负载是动态的情况下（即，它们对计算能力的需求各不相同），使用动态分配有助于适应突然出现的峰值。
+
+一种可能有用的用例是streaming，其中数据流量可能不均匀。 另一个是按需数据分析，在高峰时段您可能需要大量SQL查询。 启用动态资源分配可以使Spark更好地利用资源，在不使用执行器时释放它们，并在需要时获取新的执行器。
+
+要启用和配置动态分配，可以使用如下设置。 注意这里的数字是任意的； 适当的设置将取决于您的工作负载的性质，应进行相应的调整。 其中一些配置无法在Spark REPL内设置，因此您必须以编程方式进行设置：
+
+> spark.dynamicAllocation.enabled true
+> spark.dynamicAllocation.minExecutors 2
+> spark.dynamicAllocation.schedulerBacklogTimeout 1m
+> spark.dynamicAllocation.maxExecutors 20
+> spark.dynamicAllocation.executorIdleTimeout 2min
+
+默认情况下，`spark.dynamicAllocation.enabled`设置为 false。 当使用此处显示的设置启用时，Spark驱动程序将要求集群管理器创建两个执行程序作为最低启动条件（`spark.dynamicAllocation.minExecutor`）。 随着任务队列积压的增加，每次超过积压超时（`spark.dynamicAllocation.schedulerBacklogTimeout`）都将请求新的执行者。 在这种情况下，每当有未计划的待处理任务超过1分钟时，驱动程序将请求启动新的执行程序以计划积压的任务，最多20个（`spark.dynamicAllocation.maxExecutor`）。 相比之下，如果执行者完成任务并空闲2分钟（`spark.dynamicAllocation.executorIdleTimeout`），Spark驱动程序将终止它。
+
+#### 配置 Spark executors’ memory 和 shuffle service
+
+仅启用动态资源分配是不够的。 您还必须了解Spark如何布置和使用执行程序内存，以便使执行程序不会因内存不足而受JVM垃圾回收的困扰。
+
+每个执行器可用的内存量由`spark.executor.memory`控制。 如图所示，它分为三个部分：执行内存，存储内存和保留内存。 在保留300 MB的预留内存之后，默认内存划分为60％的执行内存和40％的存储内存，以防止OOM错误。 Spark文档建议此方法适用于大多数情况，但是您可以调整希望哪一部分用作基准的`spark.executor.memory`比例。 当不使用存储内存时，Spark可以获取它以供执行内存用于执行目的，反之亦然。
+
+[![](/images/posts/spark-executor-memory-layout.jpg)](/images/posts/spark-executor-memory-layout.jpg)
+
+执行内存用于Spark shuffles，joins, sorts, 和 aggregations。 由于不同的查询可能需要不同的内存量，因此专用于此的可用内存的fraction（默认情况下，`spark.memory.fraction`为0.6）可能很难最优，但是它很易调整。 相比之下，存储内存主要用于缓存从DataFrame派生的用户数据结构和分区。
+
 
 
 
