@@ -143,9 +143,22 @@ Spark driver 的职责是与集群管理器协调，以在集群中启动executo
 
 [![](/images/posts/spark-executor-memory-layout.jpg)](/images/posts/spark-executor-memory-layout.jpg)
 
-执行内存用于Spark shuffles，joins, sorts, 和 aggregations。 由于不同的查询可能需要不同的内存量，因此专用于此的可用内存的fraction（默认情况下，`spark.memory.fraction`为0.6）可能很难最优，但是它很易调整。 相比之下，存储内存主要用于缓存从DataFrame派生的用户数据结构和分区。
+执行内存用于Spark shuffles，joins, sorts, 和 aggregations。 由于不同的查询可能需要不同的内存量，因此专用于此的可用内存的fraction（默认情况下，`spark.memory.fraction`为0.6）可能很难最优，但是它很易调整。另外，存储内存主要用于缓存从DataFrame派生的用户数据结构和分区。
 
+在 map 和 shuffle 操作期间，Spark会写入和读取本地磁盘的shuffle文件，因此 I/O 活动繁重。 这可能会导致瓶颈，因为对于大型Spark作业，默认配置并不理想。 在Spark作业的此阶段，知道要进行哪些配置调整可以减轻这种风险。
 
+我们捕获了一些建议的配置进行调整，以使这些操作期间的map、spill、merge过程，不会因效率低下的I / O所困扰，并使这些操作能够在将最终的shuffle分区写入磁盘之前使用缓冲内存。 调整在每个executor上运行的shuffle服务还可以帮助提高大型Spark工作负载的整体性能。
+
+| 配置                                    | 默认值、推荐值及介绍                                         |
+| --------------------------------------- | ------------------------------------------------------------ |
+| spark.driver.memory                     | 默认值为1g（1 GB）。 这是分配给Spark驱动程序以从执行程序接收数据的内存量。 这通常在`spark-submit` 时使用`--driver-memory`进行更改。<br/>仅当您希望驱动程序从诸如`collect()`之类的操作中接收到大量数据，或者驱动程序内存用完时，才更改此设置。 |
+| spark.shuffle.file.buffer               | 默认值为32 KB。 推荐为1 MB。 这允许Spark在将最终map结果写入磁盘之前做更多缓冲。 |
+| spark.file.transferTo                   | 默认为true。 将其设置为false将强制Spark在最终写入磁盘之前使用文件缓冲区传输文件； 这将减少I / O活动。 |
+| spark.shuffle.unsafe.file.output.buffer | 默认值为32 KB。 这可以控制在shuffle操作期间合并文件时可能的缓冲量。 通常，较大的值（例如1 MB）更适合较大的工作负载，而默认值可以适用于较小的工作负载。 |
+| spark.io.compression.lz4.blockSize      | 默认值为32 KB。 增加到512 KB。 您可以通过增加块的压缩大小来减少shuffle文件的大小。 |
+| spark.shuffle.service.index.cache.size  | 默认值为100m。 缓存条目限制为指定的内存占用空间（以字节为单位）。 |
+| spark.shuffle.registration.timeout      | 默认值为5000毫秒。 增加到120000 ms。                         |
+| spark.shuffle.registration.maxAttempts  | 默认值为3。如果需要，请增加到5。                             |
 
 
 
