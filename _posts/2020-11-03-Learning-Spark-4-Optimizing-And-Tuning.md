@@ -160,6 +160,45 @@ Spark driver 的职责是与集群管理器协调，以在集群中启动executo
 | spark.shuffle.registration.timeout      | 默认值为5000毫秒。 增加到120000 ms。                         |
 | spark.shuffle.registration.maxAttempts  | 默认值为3。如果需要，请增加到5。                             |
 
+#### 最大化Spark的并行度
+
+Spark的大部分效率归功于其能够大规模并行运行多个任务的能力。 要了解如何最大程度地提高并行度（即尽可能并行地读取和处理数据），您必须研究Spark如何将数据从存储中读取到内存中以及分区对Spark意味着什么。
+
+用数据管理的话来说，分区是一种将数据安排到多个可配置可读的数据子集中的方式。 这些数据子集可以在一个进程中由多个线程独立或并行读取或处理（如有必要）。 这种独立性很重要，因为它允许大规模并行处理数据。
+
+Spark在并行处理任务方面非常高效。 对于大规模工作负载，Spark作业将具有多个阶段(stage)，并且在每个阶段中将有许多任务(task)。 Spark最多会为每个内核(core)的每个任务(task)计划一个线程(thread)，并且每个任务将处理一个不同的分区。 为了优化资源利用率并最大程度地提高并行度，理想的情况是分区至少与执行程序上的内核一样多。 如果每个执行程序上的分区数量多于核心数量，则所有核心都将保持繁忙状态。 您可以将分区视为并行性的基本单位：在单个内核上运行的单个线程可以在单个分区上工作。
+
+[![](/images/posts/spark-tasks-cores-partitions.jpg)](/images/posts/spark-tasks-cores-partitions.jpg)
+
+**如何创建分区**。 如前所述，Spark的任务是处理从磁盘读入内存的分区的数据。 磁盘上的数据按块或连续的文件块进行布局，具体取决于存储。 默认情况下，数据存储上的文件块大小范围从64 MB到128 MB。 例如，在HDFS和S3上，默认大小为128 MB（这是可配置的）。 这些块的连续集合构成一个分区。
+
+Spark中分区的大小由`spark.sql.files.maxPartitionBytes`决定。 默认值为128 MB。 您可以减小大小，但这可能会导致所谓的“小文件问题”，即许多小分区文件，由于文件系统操作（例如，打开，关闭和列出目录）而引入了过多的磁盘I / O和性能下降，这在分布式系统上会很慢。
+
+当您显式使用DataFrame API的某些方法时，也会创建分区。 例如，在创建大型DataFrame或从磁盘读取大型文件时，您可以显式指示Spark创建一定数量的分区：
+
+```scala
+// In Scala
+val ds = spark.read.textFile("../README.md").repartition(16) 
+ds: org.apache.spark.sql.Dataset[String] = [value: string]
+
+ds.rdd.getNumPartitions 
+res5: Int = 16
+
+val numDF = spark.range(1000L * 1000 * 1000).repartition(16)
+numDF.rdd.getNumPartitions
+
+numDF: org.apache.spark.sql.Dataset[Long] = [id: bigint] 
+res12: Int = 16
+```
+
+最后，在shuffle阶段创建shuffle分区。 默认情况下，`spark.sql.shuffle.partitions`中的shuffle分区数设置为200。 您可以根据拥有的数据集的大小来调整此数字，以减少通过网络发送给执行者任务的小分区的数量。
+
+在诸如`groupBy()`或`join()`之类的操作（也称为宽转换）期间创建的 shuffle 分区会占用网络和磁盘I / O资源。 在执行这些操作期间，shuffle 会将结果溢出到`spark.local.directory`指定的位置的executor 的本地磁盘上。 拥有高性能的SSD磁盘来执行此操作将提高性能。
+
+对于shuffle阶段设置的shuffle分区数量没有神奇的公式。 该数目可能会因您的使用情况，数据集，内核数和可用的执行器内存量而异，这是一种反复试验的方法。
+
+除了为大型工作负载扩展Spark外，要提高性能，您还需要考虑缓存或持久存储经常访问的DataFrames或表。 
+
 
 
 未完待续。。。
