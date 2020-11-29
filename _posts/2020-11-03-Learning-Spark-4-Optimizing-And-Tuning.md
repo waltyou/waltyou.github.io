@@ -199,6 +199,88 @@ res12: Int = 16
 
 除了为大型工作负载扩展Spark外，要提高性能，您还需要考虑缓存或持久存储经常访问的DataFrames或表。 
 
+## 缓存和持久化数据
+
+缓存和持久性有什么区别？ 在Spark中，它们是同义的。 两个API调用`cache()`和`persist()`提供了这些功能。 后者可以更好地控制数据的存储方式和位置，包括在内存和磁盘中（序列化和非序列化）。 两者都有助于提高频繁访问的DataFrame或表的性能。
+
+### DataFrame.cache()
+
+`cache()` 将在内存允许的范围，在跨Spark executor 的内存中读取的所有分区。 虽然DataFrame可能会被部分缓存，但partition无法被部分缓存（例如，如果您有8个分区，但内存中只能容纳4.5个分区，则仅会缓存4个）。 但是，如果不是所有分区都被缓存，则当您想再次访问数据时，必须重新计算未缓存的分区，这会降低Spark作业的速度。
+
+让我们看一个示例，该示例说明在访问DataFrame时缓存大型DataFrame如何提高性能：
+
+```scala
+// In Scala
+// Create a DataFrame with 10M records
+val df = spark.range(1 * 10000000).toDF("id").withColumn("square", $"id" * $"id") df.cache() // Cache the data
+df.count() // Materialize the cache
+
+res3: Long = 10000000 
+Command took 5.11 seconds
+
+df.count() // Now get it from the cache 
+res4: Long = 10000000
+Command took 0.44 seconds
+```
+
+第一个`count()`实现了缓存，而第二个 `count()`实现了缓存，因此对该数据集的访问时间快了将近12倍。
+
+如下图所示，观察DataFrame如何跨本地主机上的一个执行器存储，我们可以看到它们都存在内存。
+
+[![](/images/posts/spark-cache-in-executor-memory.jpg)](/images/posts/spark-cache-in-executor-memory.jpg)
+
+### DataFrame.persist()
+
+`persist(StorageLevel.LEVEL)`是微妙的，可控制如何通过StorageLevel缓存数据。 下表总结了不同的存储级别。 磁盘上的数据始终使用Java或Kryo序列化进行序列化。
+
+| StorageLevel        | Description                                                  |
+| ------------------- | ------------------------------------------------------------ |
+| MEMORY_ONLY         | 数据直接作为对象存储，并且仅存储在内存中。                   |
+| MEMORY_ONLY_SER     | 数据被序列化为紧凑字节数组表示形式，并且仅存储在内存中。 要使用它，必须将其反序列化，但要付出一定的代价。 |
+| MEMORY_AND_DISK     | 数据直接作为对象存储在内存中，但是如果没有足够的内存，其余数据将被序列化并存储在磁盘上。 |
+| DISK_ONLY           | 数据被序列化并存储在磁盘上。                                 |
+| OFF_HEAP            | 数据存储在堆外。                                             |
+| MEMORY_AND_DISK_SER | 与MEMORY_AND_DISK类似，但是数据存储在内存中时会被序列化。 （数据总是存储在磁盘上时已序列化。） |
+
+> 每个StorageLevel（OFF_HEAP除外）都有一个等效的LEVEL_NAME_2，这意味着在两个不同的Spark执行程序（MEMORY_ONLY_2，MEMORY_AND_DISK_SER_2等）上复制两次。虽然此选项很昂贵，但它允许在两个地方进行数据本地化，从而提供容错能力并为Spark提供计划在数据副本本地执行任务的选项。
+
+让我们看与上一节相同的示例，但是使用`persist`方法：
+
+```scala
+// In Scala
+import org.apache.spark.storage.StorageLevel
+// Create a DataFrame with 10M records
+val df = spark.range(1 * 10000000).toDF("id").withColumn("square", $"id" * $"id") df.persist(StorageLevel.DISK_ONLY) // Serialize the data and cache it on disk 
+df.count() // Materialize the cache
+
+res2: Long = 10000000 
+Command took 2.08 seconds
+
+df.count() // Now get it from the cache res3: Long = 10000000
+Command took 0.38 seconds
+```
+
+要取消持久化缓存的数据，只需调用`DataFrame.unpersist()`。
+
+### 什么时候Cache和Persist
+
+缓存的常见用例是需要重复访问大数据集以进行查询或转换的方案。 一些示例包括：
+
+- 迭代机器学习train中常用的DataFrames
+- 经常访问的DataFrame，以在ETL期间进行频繁的转换或建立数据管道
+
+### 什么时候不要 Cache和Persist
+
+并非所有用例都表明需要缓存。 某些情况可能无法保证您使用DataFrames，其中包括：
+
+- 太大而无法容纳在内存中的DataFrame
+- 在DataFrame上进行廉价转换，而无需考虑使用它的大小
+
+通常，应谨慎使用内存缓存，因为它可能会导致序列化和反序列化中的资源成本，具体取决于所使用的StorageLevel。
+接下来，我们将重点转移到几个常见的Spark连接操作上，这些操作会触发昂贵的数据移动，需要来自集群的计算和网络资源，以及如何通过组织数据来减轻这种移动。
+
+
+
 
 
 未完待续。。。
