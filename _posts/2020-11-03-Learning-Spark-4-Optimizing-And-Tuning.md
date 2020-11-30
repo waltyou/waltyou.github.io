@@ -281,6 +281,22 @@ Command took 0.38 seconds
 
 
 
+## Spark Join 家族
+
+Join 操作是大数据分析中一种常见的转换类型，其中两个表或DataFrames形式的数据集通过一个通用的匹配键进行合并。 与关系数据库类似，Spark DataFrame和Dataset API以及Spark SQL提供了一系列联接转换：inner joins, outer joins, left joins, right joins, etc。所有这些操作都触发了跨Spark执行程序的大量数据移动。
+
+这些转换的核心是Spark该如何计算：生成什么数据、哪些keys和相关数据应该写入磁盘，以及如何将这些 key 和 data 作为`groupBy`，`join`，`agg` , `sortBy`, `reduceByKey`等操作的一部分传输到节点。 这种运动通常称为 shuffle。
+
+Spark具有五种不同的联接策略，通过它可以在执行程序之间交换，移动，排序，分组和合并数据：
+
+- broadcast hash join（BHJ）
+- shuffle hash join（SHJ）
+- shuffle sort merge join（SMJ）
+- broadcast nested loop join（BNLJ）
+- shuffle-and- replicated nested loop join（又称为 Cartesian product join）
+
+在这里，我们仅关注其中的两个（BHJ和SMJ），因为它们是您会遇到的最常见的情况。
+
 
 
 未完待续。。。
