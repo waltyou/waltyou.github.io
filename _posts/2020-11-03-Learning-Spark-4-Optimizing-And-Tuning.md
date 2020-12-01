@@ -297,6 +297,49 @@ Spark具有五种不同的联接策略，通过它可以在执行程序之间交
 
 在这里，我们仅关注其中的两个（BHJ和SMJ），因为它们是您会遇到的最常见的情况。
 
+### Broadcast Hash Join
+
+也称为 *map-side-only join*，当需要在某些条件或列上联接两个数据集（其中一个很小，可以放进driver和executor的内存，和另一个足够大以至于可以避免移动的数据集）结合使用时，将使用 BHJ。 使用Spark broadcast variable，driver 将较小的数据集分发给所有Spark执行程序，如下图所示，随后将其与每个执行程序上的较大数据集合并。 这种策略避免了大量数据交换。
+
+[![](/images/posts/spark-BHJ.jpg)](/images/posts/spark-BHJ.jpg)
+
+默认情况下，如果较小的数据集小于10 MB，Spark将使用 BHJ。 此配置在`spark.sql.autoBroadcastJoinThreshold`中设置。 您可以根据每个执行器和驱动程序中的内存量来减小或增大大小。 如果您确信有足够的内存，则可以对大于10 MB（甚至最大100 MB）的DataFrame使用广播联接。
+
+一个常见的用例是，当您在两个 dataframe 之间拥有一组通用的键时，其中一个键的信息少于另一个，并且您需要两者的合并视图。 例如，考虑一个简单的情况，您有一个来自世界各地的足球运动员的大数据集，playersDF，和一个他们所服务的足球俱乐部的小数据集，clubsDF，并且希望通过一个通用key 来 join 它们：
+
+```scala
+// In Scala
+import org.apache.spark.sql.functions.broadcast
+val joinedDF = playersDF.join(broadcast(clubsDF), "key1 === key2")
+```
+
+> 在此代码中，我们强制Spark进行广播连接，但是默认情况下，如果较小数据集的大小小于spark.sql.autoBroadcastJoinThreshold，它就会使用 BHJ。
+
+BHJ是Spark提供的最简单，最快的联接，因为它不涉及任何 shuffle。broadcast后，所有数据都可以在本地executor使用。 您只需要确保Spark驱动程序和执行程序侧都具有足够的内存，即可将较小的数据集保存在内存中。
+
+在操作之后的任何时间，您都可以通过执行以下操作在物理计划中查看执行了哪些联接操作：
+
+```scala
+joinedDF.explain(mode)
+```
+
+在 Spark 3.0 中，你可以使用 `joinedDF.explain('mode')` 来展示一个可读的输出。mode 包括 simple、extended、codegen、cost 和 formatted。
+
+#### 什么时候用BHJ
+
+在以下条件下使用这种类型的联接以获取最大利益：
+
+- 当较小和较大数据集中的每个键通过Spark散列到同一分区时
+- 当一个数据集比另一个数据集小得多时（并且在默认配置10 MB内，如果有足够的内存，可以设置的更大）
+- 当您只想执行等值联接时，而不需要根据匹配的key来进行排序两个数据集
+- 当您不必担心过多的网络带宽使用或OOM错误时，因为较小的数据集将广播给所有Spark执行者
+
+在`spark.sql.autoBroadcastJoinThreshold`中指定值 `-1`将使Spark始终使用  SMJ （sort merge join）。
+
+
+
+
+
 
 
 未完待续。。。
