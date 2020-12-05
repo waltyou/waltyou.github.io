@@ -338,6 +338,142 @@ joinedDF.explain(mode)
 
 
 
+### Shuffle Sort Merge Join
+
+sort-merge 算法是一个用来合并两个大的数据集高效的方式。它会让两个数据集通过共有的key来进行排序、去重，并且会将拥用相同 hash key的数据放到同一个executor上。很显然这会产生executor之间数据的移动。
+
+从名字也可以看出，它分为两个阶段：sort ，然后 merge。排序阶段按所需的join key对每个数据集进行排序； 合并阶段从每个数据集中迭代行中的每个键，如果两个键匹配，则合并行。
+
+默认情况下，通过`spark.sql.join.preferSortMergeJoin`启用SortMergeJoin。 
+
+看下面的例子：获取两个具有一百万条记录的大型 dataframe ，并将它们连接到两个公用键*uid == users_id*上。
+
+```scala
+// In Scala
+import scala.util.Random
+// Show preference over other joins for large data sets
+// Disable broadcast join
+// Generate data
+...
+spark.conf.set("spark.sql.autoBroadcastJoinThreshold", "-1")
+
+// Generate some sample data for two data sets
+var states = scala.collection.mutable.Map[Int, String]() 
+var items = scala.collection.mutable.Map[Int, String]() 
+val rnd = new scala.util.Random(42)
+
+// Initialize states and items purchased
+states += (0 -> "AZ", 1 -> "CO", 2-> "CA", 3-> "TX", 4 -> "NY", 5-> "MI")
+items += (0 -> "SKU-0", 1 -> "SKU-1", 2-> "SKU-2", 3-> "SKU-3", 4 -> "SKU-4",
+5-> "SKU-5")
+
+// Create DataFrames
+val usersDF = (0 to 1000000)
+			.map(id => (id, s"user_${id}", s"user_${id}@databricks.com", states(rnd.nextInt(5))))
+			.toDF("uid", "login", "email", "user_state")
+val ordersDF = (0 to 1000000)
+      .map(r => (r, r, rnd.nextInt(10000), 10 * r* 0.2d, states(rnd.nextInt(5)), items(rnd.nextInt(5))))
+      .toDF("transaction_id", "quantity", "users_id", "amount", "state", "items")
+// Do the join
+val usersOrdersDF = ordersDF.join(usersDF, $"users_id" === $"uid") // Show the joined results
+usersOrdersDF.show(false)
+
++--------------+--------+--------+--------+-----+-----+---+---+----------+ |transaction_id|quantity|users_id|amount |state|items|uid|...|user_state| 
++--------------+--------+--------+--------+-----+-----+---+---+----------+ 
+|3916 |3916 |148 |7832.0 |CA |SKU-1|148|...|CO | 
+|36384 |36384 |148 |72768.0 |NY |SKU-2|148|...|CO |
+```
+
+检查最终的执行计划，可以看到Spark执行了 SortMergeJoin 来join两个dataframe。 Exchange 操作是将每个executor上 map的结果进行shuffle的动作。
+
+```scala
+usersOrdersDF.explain()
+== Physical Plan ==
+InMemoryTableScan [transaction_id#40, quantity#41, users_id#42, amount#43,
+state#44, items#45, uid#13, login#14, email#15, user_state#16]
+	+- InMemoryRelation [transaction_id#40, quantity#41, users_id#42, amount#43,
+state#44, items#45, uid#13, login#14, email#15, user_state#16],
+StorageLevel(disk, memory, deserialized, 1 replicas)
+    +- *(3) SortMergeJoin [users_id#42], [uid#13], Inner
+      :- *(1) Sort [users_id#42 ASC NULLS FIRST], false, 0
+      : 	+- Exchange hashpartitioning(users_id#42, 16), true, [id=#56]
+      : 		+- LocalTableScan [transaction_id#40, quantity#41, users_id#42, amount#43, state#44, items#45]
+      +- *(2) Sort [uid#13 ASC NULLS FIRST], false, 0
+    		+- Exchange hashpartitioning(uid#13, 16), true, [id=#57]
+    			+- LocalTableScan [uid#13, login#14, email#15, user_state#16]
+```
+
+此外，Spark UI显示了整个作业的三个阶段：交换和排序操作发生在最后一个阶段，然后合并结果。 Exchange成本很高，并且需要在执行者之间通过网络对分区进行shuffle。
+
+[![](/images/posts/spark-before-bucketing.jpg)](/images/posts/spark-before-bucketing.jpg)
+
+[![](/images/posts/spark-before-bucketing-exchange.jpg)](/images/posts/spark-before-bucketing-exchange.jpg)
+
+
+
+#### 优化 shuffle sort merge join
+
+如果我们提前为那些执行频繁等值连接的连接 key 或列创建分区存储桶，则可以从该执行计划中消除“Exchange”步骤。 也就是说，我们可以创建大量的存储桶来存储特定的已排序列（每个存储桶一个 key）。 通过这种方式对数据进行预排序和重组可以提高性能，因为它使我们可以跳过昂贵的Exchange操作，直接进入WholeStageCodegen。
+
+```scala
+// In Scala
+import org.apache.spark.sql.functions._
+import org.apache.spark.sql.SaveMode
+
+// Save as managed tables by bucketing them in Parquet format
+usersDF.orderBy(asc("uid"))
+	.write.format("parquet") 
+	.bucketBy(8, "uid") 
+	.mode(SaveMode.OverWrite) 
+	.saveAsTable("UsersTbl")
+
+ordersDF.orderBy(asc("users_id")) 
+  .write.format("parquet") 
+  .bucketBy(8, "users_id") 
+  .mode(SaveMode.OverWrite) 
+  .saveAsTable("OrdersTbl")
+
+// Cache the tables
+spark.sql("CACHE TABLE UsersTbl")
+spark.sql("CACHE TABLE OrdersTbl")
+
+// Read them back in
+val usersBucketDF = spark.table("UsersTbl") 
+val ordersBucketDF = spark.table("OrdersTbl")
+
+// Do the join and show the results
+val joinUsersOrdersBucketDF = ordersBucketDF 
+	.join(usersBucketDF, $"users_id" === $"uid")
+
+joinUsersOrdersBucketDF.show(false)
+```
+
+与bucket之前的物理计划相比，该物理计划还显示未执行任何交换：
+
+```
+ == Physical Plan ==
+ *(3) SortMergeJoin [users_id#165], [uid#62], Inner
+ :- *(1) Sort [users_id#165 ASC NULLS FIRST], false, 0
+ :  +- *(1) Filter isnotnull(users_id#165)
+ :     +- Scan In-memory table `OrdersTbl` [transaction_id#163, quantity#164,
+ users_id#165, amount#166, state#167, items#168], [isnotnull(users_id#165)]
+ :           +- InMemoryRelation [transaction_id#163, quantity#164, users_id#165,
+ amount#166, state#167, items#168], StorageLevel(disk, memory, deserialized, 1
+ replicas)
+ :                 +- *(1) ColumnarToRow
+ :                    +- FileScan parquet
+ ...
+```
+
+#### 什么时候使用 shuffle sort merge join
+
+在以下条件下使用这种类型的联接以获取最大利益：
+
+- 当两个大型数据集中的每个键可以排序并通过Spark散列到同一分区时
+- 当您只想执行等值联接以根据匹配的排序键组合两个数据集时
+- 当您要防止进行Exchange和Sort操作以避免在网络上大型shuffle时
+
+到目前为止，我们已经介绍了与调整和优化Spark有关的操作方面，以及Spark如何在两次常见的联接操作期间交换数据。 我们还演示了如何通过使用存储桶来避免大量数据交换来提高随机排序合并合并连接操作的性能。
 
 
 
