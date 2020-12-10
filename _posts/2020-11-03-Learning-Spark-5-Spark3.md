@@ -49,6 +49,45 @@ DPP中的关键优化技术是从维度表中获取过滤器的结果，并将�
 
 默认情况下已启用，因此您无需显式配置它，当在两个表之间执行联接时，所有这些都会动态发生。 通过DPP优化，Spark 3.0可以更好地处理 start-schema 查询。
 
+### Adaptive Query Execution
+
+Spark 3.0优化查询性能的另一种方法是在运行时调整其物理执行计划。 自适应查询执行（AQE）根据在查询执行过程中收集的运行时统计信息来重新优化和调整查询计划。 它尝试在运行时执行以下操作：
+
+- 通过减少shuffle分区的数量，来减少reducer数量。
+- 优化查询的物理执行计划，例如通过在适当的地方将`SortMergeJoin`转换为`BroadcastHashJoin`。
+- 处理join过程中的数据倾斜
+
+所有这些自适应措施都在计划执行期间发生。 要在Spark 3.0中使用AQE，请将配置`spark.sql.adaptive.enabled`设置为true。
+
+[![](/images/posts/spark-AQE.jpg)](/images/posts/spark-AQE.jpg) 
+
+#### AQE 架构
+
+查询中的Spark操作是通过流水线方式并在并行进程中执行的，但是一个 shuffle或者 broadcast 交换会打破这个pipeline，因为需要将这一级的输出作为下一级的输入。 这些断点在查询阶段称为实现点（*materialization points*），它们提供了重新优化和重新检查查询的机会，如图所示：
+
+[![](/images/posts/spark-AQE-framework.jpg)](/images/posts/spark-AQE-framework.jpg) 
+
+如图所示，这是AQE框架迭代的概念步骤：
+
+1. 执行每个阶段的所有叶节点，例如扫描操作。
+2. 实现点完成执行后，将其标记为完成，并且在执行期间收集的所有相关统计信息都会在其逻辑计划中进行更新。
+3. 基于这些统计信息，例如读取的分区数，读取的数据字节等，框架再次运行Catalyst优化器以了解它是否可以：
+   1. 合并分区的数量以减少用于读取shuffle数据的reducer的数量。
+   2. 根据读取的表的大小，用BHJ 替换 SMJ
+   3. 尝试补救倾斜join
+   4. 创建一个新的优化逻辑计划，然后创建一个新的优化物理计划。
+
+重复以上过程，直到执行了查询计划的所有阶段。
+
+简而言之，这种重新优化是动态完成的，其目标是动态合并shuffle分区，减少读取shuffle输出数据所需的reduce数量，并在适当时切换join策略，并纠正任何倾斜连接。
+
+两种Spark SQL配置指示AQE如何减少reducer的数量：
+
+- `spark.sql.adaptive.coalescePartitions.enabled` (set to true)
+- `spark.sql.adaptive.skewJoin.enabled` (set to true)
+
+
+
 
 
 未完待续。。。
