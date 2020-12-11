@@ -88,6 +88,44 @@ Spark 3.0优化查询性能的另一种方法是在运行时调整其物理执�
 
 
 
+### SQL Join Hints
+
+在现有的`BROADCAST`联接提示中，Spark 3.0为所有Spark联接策略添加了联接提示。 此处为每种连接类型提供了示例。
+
+#### 1. Shuffle sort merge join (SMJ)
+
+如以下示例所示，您可以在/ * + ... * /注释块内的SELECT语句中添加一个或多个提示：
+
+```sql
+SELECT /*+ MERGE(a, b) */ id FROM a JOIN b ON a.key = b.key
+SELECT /*+ MERGE(customers, orders) */ * FROM customers, orders WHERE
+		orders.custId = customers.custId
+```
+
+#### 2. Broadcast hash join (BHJ)
+
+```sql
+SELECT /*+ BROADCAST(a) */ id FROM a JOIN b ON a.key = b.key
+SELECT /*+ BROADCAST(customers) */ * FROM customers, orders WHERE
+		orders.custId = customers.custId
+```
+
+#### 3. Shuffle hash join (SHJ)
+
+```sql
+SELECT /*+ SHUFFLE_HASH(a, b) */ id FROM a JOIN b ON a.key = b.key
+SELECT /*+ SHUFFLE_HASH(customers, orders) */ * FROM customers, orders WHERE
+		orders.custId = customers.custId
+```
+
+#### 4. Shuffle-and-replicate nested loop join (SNLJ)
+
+```sql
+SELECT /*+ SHUFFLE_REPLICATE_NL(a, b) */ id FROM a JOIN b
+```
+
+
+
 
 
 未完待续。。。
