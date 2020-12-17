@@ -126,6 +126,54 @@ SELECT /*+ SHUFFLE_REPLICATE_NL(a, b) */ id FROM a JOIN b
 
 
 
+### Catalog Plugin API and DataSourceV2
+
+Spark 3.0的实验性DataSourceV2 API不仅限于Hive元存储和catalog，还扩展了Spark生态系统并为开发人员提供了三个核心功能。 具体来说，它：
+
+- 允许插入用于catalog和表管理的外部数据源
+- 通过支持的文件格式，如ORC，Parquet，Kafka，Cassandra，Delta Lake和Apache Iceberg，支持将谓词下推到其他数据源。
+- 提供统一的API，用于接收器和源的数据源的流式处理和批处理
+
+针对希望扩展Spark使用外部源和接收器功能的开发人员，Catalog API提供了SQL和编程API来从指定的可插入目录中创建，更改，加载和删除表。 该目录提供了在不同级别执行的功能和操作的分层抽象:
+
+[![](/images/posts/spark-Catalog-plugin.jpg)](/images/posts/spark-Catalog-plugin.jpg) 
+
+Spark和特定连接器之间的初始交互是解决与其实际Table对象的关系。 Catalog 定义了如何在此连接器中查找表。 此外，Catalog 可以定义如何修改自己的元数据，从而启用诸如CREATE TABLE，ALTER TABLE等操作。
+
+例如，在SQL中，您现在可以发出命令来为Catalog 创建 namespace。 要使用可插入的目录，请在`spark-defaults.conf`文件中启用以下配置：
+
+```
+spark.sql.catalog.ndb_catalog com.ndb.ConnectorImpl # connector implementation
+spark.sql.catalog.ndb_catalog.option1  value1
+spark.sql.catalog.ndb_catalog.option2  value2
+```
+
+在此，数据源目录的连接器具有两个选项：option1-> value1和option2-> value2。 定义完后，Spark或SQL中的应用程序用户可以使用DataFrameReader和DataFrameWriter API方法或带有这些已定义选项的Spark SQL命令作为数据源操作的方法。 例如：
+
+```sql
+-- In SQL
+SHOW TABLES ndb_catalog;
+CREATE TABLE ndb_catalog.table_1; 
+SELECT * from ndb_catalog.table_1; 
+ALTER TABLE ndb_catalog.table_1;
+```
+
+```scala
+// In Scala
+df.writeTo("ndb_catalog.table_1")
+val dfNBD = spark.read.table("ndb_catalog.table_1")
+      .option("option1", "value1")
+      .option("option2", "value2")
+```
+
+这些目录插件API扩展了Spark的能力，可将外部数据源用作接收器和源，但它们仍处于试验阶段，不应在生产中使用。 
+
+### 加速器感知调度程序 Accelerator-Aware Scheduler
+
+Project Hydrogen 是一项将AI和大数据整合在一起的社区计划，其主要目标是三个：实现屏障执行模式, accelerator-aware scheduling 和 optimized data exchange。 Apache Spark 2.4.0中引入了屏障执行模式的基本实现。 在Spark 3.0中，已实现了基本的调度程序，以利用目标平台上的GPU（如独立模式，YARN或Kubernetes部署Spark的硬件加速器）的优势。
+
+
+
 
 
 未完待续。。。
