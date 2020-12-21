@@ -172,6 +172,28 @@ val dfNBD = spark.read.table("ndb_catalog.table_1")
 
 Project Hydrogen 是一项将AI和大数据整合在一起的社区计划，其主要目标是三个：实现屏障执行模式, accelerator-aware scheduling 和 optimized data exchange。 Apache Spark 2.4.0中引入了屏障执行模式的基本实现。 在Spark 3.0中，已实现了基本的调度程序，以利用目标平台上的GPU（如独立模式，YARN或Kubernetes部署Spark的硬件加速器）的优势。
 
+为了让Spark以有组织的方式利用这些GPU来使用它们的特殊工作负载，您必须指定可通过配置使用的硬件资源。 然后，您的应用程序可以在发现脚本的帮助下发现它们。 在您的Spark应用程序中，启用GPU使用是一个三步过程：
+
+1. 编写发现脚本，以发现每个Spark执行程序上可用的基础GPU的地址。 该脚本在以下Spark配置中设置：`spark.worker.resource.gpu.discoveryScript=/path/to/script.sh`
+
+2. 为您的Spark执行者设置配置以使用以下发现的GPU：
+
+   `spark.executor.resource.gpu.amount=2`
+   `spark.task.resource.gpu.amount=1`
+
+3. 编写RDD代码以利用这些GPU来完成任务：
+
+```scala
+import org.apache.spark.BarrierTaskContext 
+val rdd = ...
+rdd.barrier.mapPartitions { it =>
+  val context = BarrierTaskContext.getcontext.barrier() 
+  val gpus = context.resources().get("gpu").get.addresses 
+  // launch external process that leverages GPU 
+  launchProcess(gpus)
+}
+```
+
 
 
 
