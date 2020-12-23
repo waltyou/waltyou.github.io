@@ -194,6 +194,139 @@ rdd.barrier.mapPartitions { it =>
 }
 ```
 
+## Structured Streaming
+
+为了检查您的结构化流作业在执行过程中的数据起伏如何变化，Spark 3.0 UI 提供了一个新的Structured Streaming tab。此选项卡提供两组统计信息 ：聚合有关已完成的流查询作业的信息和有关流查询的详细统计信息，包括输入速率，处理速率，输入行数，批处理持续时间和操作持续时间。
+
+[![](/images/posts/spark-streaming-ui-1.jpg)](/images/posts/spark-streaming-ui-1.jpg) 
+
+[![](/images/posts/spark-streaming-ui-2.jpg)](/images/posts/spark-streaming-ui-2.jpg) 
+
+无需配置； 所有配置均可直接在Spark 3.0安装中运行，并具有以下默认设置：
+
+- spark.sql.streaming.ui.enabled=true
+- spark.sql.streaming.ui.retainedProgressUpdates=100
+
+- spark.sql.streaming.ui.retainedQueries=100
+
+
+
+## PySpark, Pandas UDFs, and Pandas Function APIs
+
+Spark 3.0 需要依赖 pandas 0.23.2 及以上的更高版本，来实现所有 pandas相关的方法，比如 `DataFrame.toPandas()` 或`SparkSession.createDataFrame(pandas.DataFrame)`。
+
+ 此外，它要求PyArrow版本0.12.1或更高版本才能使用PyArrow功能，例如 `pandas_udf()`，`DataFrame.toPandas()`和 `SparkSession.createData Frame(pandas.DataFrame)`，并配置了`spark.sql.execution.arrow.enabled=true`。 下一节将介绍Pandas UDF中的新功能。
+
+### 重新设计的带有Python类型提示的Pandas UDF 
+
+Spark 3.0中的Pandas UDF通过利用Python类型提示进行了重新设计。 这使您可以自然地表达UDF，而无需评估类型。 Pandas UDF现在更具“ Python风格”，它们本身可以定义UDF应该输入和输出的内容，而不必像在Spark 2.4中那样通过 `@pandas_udf(“long”，PandasUDFType.SCALAR)`进行指定。 
+
+```python
+# Pandas UDFs in Spark 3.0
+import pandas as pd
+from pyspark.sql.functions import pandas_udf
+
+@pandas_udf("long")
+def pandas_plus_one(v: pd.Series) -> pd.Series:
+	return v + 1
+```
+
+这种新格式具有许多优点，例如更容易进行静态分析。 您可以按照与以前相同的方式应用新的UDF：
+
+```python
+df = spark.range(3)
+df.withColumn("plus_one", pandas_plus_one("id")).show()
+
++---+--------+ 
+| id|plus_one| 
++---+--------+ 
+|0| 1| 
+|1| 2| 
+|2| 3| 
++---+--------+
+```
+
+### 在 Pandas UDFs中支持迭代器
+
+Pandas UDF 经常用于加载模型并为单节点机器学习和深度学习模型执行分布式推理。 但是，如果模型很大，则Pandas UDF要在同一Python工作进程中为每个批次重复加载相同的模型，会产生很高的开销。
+
+在Spark 3.0中，Pandas UDF可以接受pandas.Series或pandas.Data Frame的迭代器，如下所示：
+
+```python
+from typing import Iterator
+
+@pandas_udf('long')
+def pandas_plus_one(iterator: Iterator[pd.Series]) -> Iterator[pd.Series]:
+    return map(lambda s: s + 1, iterator)
+
+df.withColumn("plus_one", pandas_plus_one("id")).show()
++---+--------+ 
+| id|plus_one| 
++---+--------+ 
+|0| 1| 
+|1| 2| 
+|2| 3| 
++---+--------+
+```
+
+有了此支持，您只能加载一次模型，而不是为迭代器中的每个系列加载模型。 以下伪代码说明了如何执行此操作：
+
+```python
+@pandas_udf(...)
+def predict(iterator):
+  model = ... # load model
+  for features in iterator:
+    yield model.predict(features)
+```
+
+### 新的 Pandas 函数 API
+
+Spark 3.0引入了一些新的Pandas UDF类型，当您想对整个DataFrame而不是按列应用函数时，它们很有用，例如`mapInPandas()`。它们采用pandas的迭代器， 作为输入和输出的另一个pandas.DataFrame迭代器：
+
+```python
+def pandas_filter(
+    iterator: Iterator[pd.DataFrame]) -> Iterator[pd.DataFrame]:
+  for pdf in iterator:
+    yield pdf[pdf.id == 1]
+    
+df.mapInPandas(pandas_filter, schema=df.schema).show()
++---+
+| id|
++---+
+|  1|
++---+
+```
+
+您可以通过在`spark.sql.execution.arrow.maxRecordsPerBatch`配置中指定`pandas.DataFrame`的大小来控制它的大小。 请注意，与大多数Pandas UDF不同，输入大小和输出大小不必匹配。
+
+Spark 3.0还引入了分组地图Pandas UDF。 applyInPandas（）函数采用两个pandas.DataFrames，它们共享一个公用key，并将一个函数应用于每个共同组。 然后将返回的pandas.DataFrames合并为一个DataFrame。 与mapInPandas一样，返回的pandas.DataFrame的长度没有限制。 这是一个例子：
+
+```python
+df1 = spark.createDataFrame(
+  [(1201, 1, 1.0), (1201, 2, 2.0), (1202, 1, 3.0), (1202, 2, 4.0)],
+  ("time", "id", "v1"))
+df2 = spark.createDataFrame(
+  [(1201, 1, "x"), (1201, 2, "y")], ("time", "id", "v2"))
+
+def asof_join(left: pd.DataFrame, right: pd.DataFrame) -> pd.DataFrame:
+  return pd.merge_asof(left, right, on="time", by="id")
+
+df1.groupby("id").cogroup(
+  df2.groupby("id")
+).applyInPandas(asof_join, "time int, id int, v1 double, v2 string").show()
+
++----+---+---+---+
+|time| id| v1| v2|
++----+---+---+---+
+|1201|  1|1.0|  x|
+|1202|  1|3.0|  x|
+|1201|  2|2.0|  y|
+|1202|  2|4.0|  y|
++----+---+---+---+
+```
+
+
+
 
 
 
