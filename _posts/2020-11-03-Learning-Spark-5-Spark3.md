@@ -325,10 +325,90 @@ df1.groupby("id").cogroup(
 +----+---+---+---+
 ```
 
+## 功能改变
 
+### 支持和弃用的语言
 
+Spark 3.0 支持 Python 3 和 JDK 11，以及 Scala version 2.12。所有3.6之前的 Python 版本和 Java 8 都会被弃用。 如果你使用弃用的版本，会得到一个警告信息。
 
+### 对DataFrame和Dataset API的更改
 
+在早期版本的Spark中，Dataset和DataFrame API 已弃用 `unionAll()`方法。 在Spark 3.0中，它被恢复了，并且`unionAll`现在是`union`方法的别名。
 
+同样，较早版本的Spark的 `Dataset.groupByKey()`会生成一个分组的数据集，当键为非结构类型（int，string, array, etc）时，该键会伪造为 `value`。 这样，聚合是由查询中的`ds.groupByKey().count()`生成的，显示出来的结果与 `(value, count)`类似，这是违反直觉的。 这已得到纠正，以产生 `(key, count)`，这更加直观。 例如:
 
-未完待续。。。
+```scala
+// In Scala
+val ds = spark.createDataset(Seq(20, 3, 3, 2, 4, 8, 1, 1, 3)) 
+ds.show(5)
+
++-----+
+|value|
++-----+
+|   20|
+|    3|
+|    3|
+|    2|
+|    4|
++-----+
+
+ds.groupByKey(k=> k).count.show(5)
++---+--------+ 
+|key|count(1)| 
++---+--------+
+|1| 2|
+|3| 3|
+|20| 1|
+|4| 1|
+|8| 1| 
++---+--------+
+
+```
+
+当然，如果你想保持为以前的样子，可以把 `spark.sql.legacy.dataset.nameNonStructGroupingKeyAsValue` 设为 true。
+
+### DataFrame 和  SQL Explain命令
+
+为了获得更好的可读性和格式化，Spark 3.0引入了 `Data Frame.explain(FORMAT_MODE)`功能来显示Catalyst优化器生成的计划的不同视图。 FORMAT_MODE 选项包括“simple”（默认），"extended", "cost", "codegen", and "formatted"。 这是一个简单的例子：
+
+```scala
+// In Scala
+val strings = spark .read.text("/databricks-datasets/learning-spark-v2/SPARK_README.md")
+val filtered = strings.filter($"value".contains("Spark")) 
+filtered.count()
+
+filtered.explain("simple")
+== Physical Plan ==
+*(1) Project [value#72]
++- *(1) Filter (isnotnull(value#72) AND Contains(value#72, Spark))
+   +- FileScan text [value#72] Batched: false, DataFilters: [isnotnull(value#72),
+Contains(value#72, Spark)], Format: Text, Location:
+InMemoryFileIndex[dbfs:/databricks-datasets/learning-spark-v2/SPARK_README.md],
+PartitionFilters: [], PushedFilters: [IsNotNull(value),
+StringContains(value,Spark)], ReadSchema: struct<value:string>
+```
+
+```scala
+filtered.explain("formatted")
+
+== Physical Plan ==
+* Project (3)
++- * Filter (2)
+	+- Scan text  (1)
+
+(1) Scan text
+Output [1]: [value#72]
+Batched: false
+Location: InMemoryFileIndex [dbfs:/databricks-datasets/learning-spark-v2/...
+PushedFilters: [IsNotNull(value), StringContains(value,Spark)]
+ReadSchema: struct<value:string>
+
+(2) Filter [codegen id : 1]
+Input [1]: [value#72]
+Condition : (isnotnull(value#72) AND Contains(value#72, Spark))
+
+(3) Project [codegen id : 1]
+Output [1]: [value#72]
+Input [1]: [value#72]
+```
+
