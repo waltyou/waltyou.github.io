@@ -43,14 +43,41 @@ PowerPhrase:  A short, specific expression that gets results by saying what you 
 
 - A PowerPhrase Is a SHORT Expression.
   - Less is more!
+    - “I have a dream!”
 - PowerPhrases Get RESULTS
 - PowerPhrases Say What You Mean
+  - Do you really say what you mean? Or do you avoid clarity to avoid a reaction?
+  - NOT: "That’s okay. Don’t worry about it."
+  - YES: "This is a problem. We need to find a solution."
 - With PowerPhrases You Mean What You Say!
+  - You need back your words up with actions.
 - PowerPhrases Avoid Being Mean
   - PowerPhrases Avoid Sarcasm.
   - PowerPhrases Avoid Overkill.
   - PowerPhrases Avoid Assumption of Guilt.
   - PowerPhrases Avoid Attempts to Outsmart the Other Person With Wit.
+
+
+
+## Poison Phrases vs PowerPhrases
+
+### 1. Avoid Filler Poison Phrases
+
+— Well...
+
+— Sort of...
+
+— I just...
+
+— I would tend to... 
+
+— I guess...
+
+
+
+
+
+
 
 
 
