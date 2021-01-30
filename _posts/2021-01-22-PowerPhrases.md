@@ -63,6 +63,8 @@ PowerPhrase:  A short, specific expression that gets results by saying what you 
 
 ### 1. Avoid Filler Poison Phrases
 
+Qualifiers, hedges and softener phrases weaken your message. Anything you say that does not add to your message makes it weaker
+
 — Well...
 
 — Sort of...
@@ -74,13 +76,66 @@ PowerPhrase:  A short, specific expression that gets results by saying what you 
 — I guess...
 
 
+Use:
+
+- **This is the best proposal...**
+
+Instead of :
+
+- You know? 
+- Isn’t it?
+- Right?
+- Do you see?
 
 
 
+### 2. Replace Indecisive Poison Phrases WithDecisive PowerPhrases
 
+Speak with certainty and decisiveness. If you cannot be certain on one position, express what you can be certain about.
 
+| **Avoid**                     | **Replace with**               |
+| ----------------------------- | ------------------------------ |
+| I should...                   | **I will...**                  |
+| I’ll try...                   | **I will...**                  |
+| I might be able to...         | **What I can commit to is...** |
+| I sort of think...            | **I know...**                  |
+| It’s just my opinion...       | **I believe...**               |
+| I would tend to think...      | **I think...**                 |
+| You might want to consider... | **I recommend...**             |
 
+###  3. Replace Poison Phrases That Deflect Due Credit and Replace Them With PowerPhrases That Accept Due Credit
 
+| **Avoid**            | **Replace with**                      |
+| -------------------- | ------------------------------------- |
+| I got lucky.         | **I worked hard.**                    |
+| It was nothing...    | **Thanks for noticing.**              |
+| This old thing?      | **Thank you.**                        |
+| Anyone could have... | **I’m pleased with the outcome too.** |
+
+### 4. Replace Negative Poison Phrases With Positive PowerPhrases
+
+| **Avoid**                                               | **Replace with**                                |
+| ------------------------------------------------------- | ----------------------------------------------- |
+| Everything went wrong...                                | **I learned from some setbacks.**               |
+| I’ll have to...                                         | **I’ll be glad to...**                          |
+| I can’t...                                              | **What I can do is...**                         |
+| I am spending time...                                   | **I am investing time...**                      |
+| I’m no good at...                                       | **I’m getting better at...**                    |
+| You’ll have to excuse...                                | **Here it is...**                               |
+| If only I had...                                        | **Starting now I will...**                      |
+| This is bad...                                          | **What good can we get out of this?**           |
+| I can’t get to this until...                            | **I can get to this by...**                     |
+| Don’t forget to...(log off of your computer.)           | **Be certain to...(log off of your computer.)** |
+
+### 5. Replace Absolute Poison Phrases and Labels With Accurate PowerPhrases
+
+| **Avoid**            | **Replace with**                                           |
+| -------------------- | ---------------------------------------------------------- |
+| You always...        | **On several occasions you have...**                       |
+| I never...           | **Up until now I have not...**                             |
+| Everything...        | **Many things...**                                         |
+| You’re lazy.         | **Your performance is not up to standard.**                |
+| You are incompetent. | **There are several mistakes here that need to be fixed.** |
 
 
 
