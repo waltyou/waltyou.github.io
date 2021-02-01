@@ -63,7 +63,7 @@ PowerPhrase:  A short, specific expression that gets results by saying what you 
 
 ### 1. Avoid Filler Poison Phrases
 
-Qualifiers, hedges and softener phrases weaken your message. Anything you say that does not add to your message makes it weaker
+Qualifiers, hedges and softener phrases weaken your message. Anything you say that does not add to your message makes it weaker:
 
 — Well...
 
@@ -136,6 +136,75 @@ Speak with certainty and decisiveness. If you cannot be certain on one position,
 | Everything...        | **Many things...**                                         |
 | You’re lazy.         | **Your performance is not up to standard.**                |
 | You are incompetent. | **There are several mistakes here that need to be fixed.** |
+
+### 6. Replace Victim Poison Phrases With PowerPhrases That Place Responsibility and Emphasis Where It Is Due
+
+Avoid saying:
+
+- You make me so mad.
+
+- You make me feel wonderful !
+
+Those phrases imply you have no control over your own emotions. You don’t want to send that message. Avoid implying that you do not have the ability to choose alter- native thoughts and behaviors.
+
+You may have heard it suggested that you should replace accusative sounding “you” statements with “I” state- ments, such as:
+
+- I feel angry when you...
+
+- I feel wonderful when you...
+
+If the subject of your communication is your anger or wonderful feelings, the above statements are appropriate and accurate PowerPhrases. If the subject is something else, the above statements are not PowerPhrases.
+
+If the point you want to make is that Joe’s tardiness caus- es you all kinds of problems, do not make Joe or yourself the subject of the communication. Rather than saying:
+
+*— You make me mad when you come late.*
+
+or:
+
+*— I get angry when you are late.*
+
+Use a **PowerPhrase to Place Responsibility and Em- phasis Where It Is Due**, such as:
+
+- Starting late causes serious problems which we need to address.
+
+
+
+Do not say:
+
+*— You are not being clear. (Accusatory)*
+
+*— I am not following you. (Makes you the subject.)*
+
+Instead use a **PowerPhrase to Place Responsibility and Emphasis Where It Is Due,** such as:
+
+- Please clarify this point.
+
+- That last point is not clear to me.
+
+### 7. Replace Hints and Vague Poison Phrases With Specific PowerPhrases
+
+| **Avoid**                          | **Replace with**                                             |
+| ---------------------------------- | ------------------------------------------------------------ |
+| I sure wish someone would...       | **Will you...**                                              |
+| I’d like to have something like... | **I want ___ by___ because___.**                             |
+| You need to do a better job.       | **Your performance needs to be improved. Here are the criteria for acceptable performance. Number one...** |
+
+### 8. Avoid Emotional Poison Phrases in Business Situations Where Factual Action-Based PowerPhrases Hold More Power
+
+| **Avoid**                         | **Replace with**                                             |
+| --------------------------------- | ------------------------------------------------------------ |
+| I feel great about this proposal. | **This proposal will improve our bottom line by ___.**       |
+| I don’t like this idea.           | **There are three serious problems with this idea. First...** |
+| I am angry about this delay.      | **How do you plan to get back on schedule after this delay?** |
+
+###  9. Avoid Passive Poison Phrases and Replace With Active **PowerPhrases**
+
+| **Avoid**                                       | **Replace with**                             |
+| ----------------------------------------------- | -------------------------------------------- |
+| The acquisition contract was signed by the CFO. | **The CFO signed the acquisition contract.** |
+| The bone was buried by the dog.                 | **The dog buried the bone.**                 |
+
+
 
 
 
