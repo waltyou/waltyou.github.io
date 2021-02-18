@@ -57,7 +57,13 @@ PowerPhrase:  A short, specific expression that gets results by saying what you 
   - PowerPhrases Avoid Assumption of Guilt.
   - PowerPhrases Avoid Attempts to Outsmart the Other Person With Wit.
 
-
+PowerPhrase wisdom says, before you speak, ask yourself: 
+1. Is it short?
+2. Is it specific?
+3. Is it focused?
+4. Does it truly say what I mean?
+5. Do I intend to back my words with action? 
+6. Am I being kind in my choice of words?
 
 ## Poison Phrases vs PowerPhrases
 
@@ -197,7 +203,7 @@ Instead use a **PowerPhrase to Place Responsibility and Emphasis Where It Is Due
 | I don’t like this idea.           | **There are three serious problems with this idea. First...** |
 | I am angry about this delay.      | **How do you plan to get back on schedule after this delay?** |
 
-###  9. Avoid Passive Poison Phrases and Replace With Active **PowerPhrases**
+###  9. Avoid Passive Poison Phrases and Replace With Active PowerPhrases
 
 | **Avoid**                                       | **Replace with**                             |
 | ----------------------------------------------- | -------------------------------------------- |
@@ -206,9 +212,90 @@ Instead use a **PowerPhrase to Place Responsibility and Emphasis Where It Is Due
 
 
 
+## How to say "No"
+
+### The Three-Step Process for Saying “No”
+
+When You Refuse a Request, **ACT**!
+
+**1. Acknowledge** their request.
+
+Say something to recognize their request. Make a short comment to let them know that you heard them and you are considering what they said.
+
+**2.** Clarify your **Circumstance.**
+
+Tell them a little bit about your own situation. Be brief. Mention what it is that keeps you from being able to honor their request.
+
+**3. Transform** your refusal into a positive. Suggest alternatives or make a comment that reaffirms the relationship such as:
+
+- Some other time.
+
+Put them all together and you have a three-step “no.”
+
+- It sounds like a great idea. Unfortunately I have other priorities. Perhaps next time I can.
+
+
+
+| **Acknowledge**                     | **Circumstances**                                            | **Transform**                                   |
+| ----------------------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
+| I understand this is important.     | My situation is ...                                          | Perhaps next time.                              |
+| Ordinarily I would love to help.    | My policy is ...                                             | Thanks for asking.                              |
+| I appreciate you thinking of me.    | I have other plans...                                        | I’m sure you’ll find the right person you need. |
+| I would if I could.                 | I have other involvements.                                   | Have you considered..?                          |
+| I wish I could help out here.       | I’m not well-suited to do what you want.                     | Here’s an option...                             |
+| I see you need help.                | After looking at my calendar I see I can’t give you the help you need. | Have you considered asking ___?                 |
+| I’m honored that you thought of me. | After realizing the scope of the request, I choose to pass.  | I wish you success.                             |
+
+### Saying “No” in Two Parts
+
+When you say no in two parts, it sounds stronger. Some people’s sensitivity causes them to hear the slightest hint of “no” as a personal rejection and they need a softer ver- sion. Use all three steps for them. Others do not take it as personally, and a two-part no works well.
+
+There are some people that will argue with and attempt to manipulate anything we say. A two-part no works better with these.
+
+| **Acknowledge**         | **Circumstances**                          | **Transform**                     |
+| ----------------------- | ------------------------------------------ | --------------------------------- |
+| **I’d love to.**        | **However, I am busy.**                    |                                   |
+| **Thanks for asking.**  | **Not this time.**                         |                                   |
+|                         | **My boss has already scheduled my time.** | **If you want, you can ask her.** |
+| **Sounds interesting.** | **I have other commitments.**              |                                   |
+|                         | **I have a 3:00 deadline.**                | **I wish I could.**               |
+
+
+
+> **Power Thinking to the Rescue**
+>
+> *What are you telling yourself that keeps you from saying “no”? Don’t think:*
+>
+> — If I say no, they may not like me. 
+>
+> — I better be nice.
+>
+> — I shouldn’t say what I think.
+>
+> *Instead, use Power Thinking. Think:*
+>
+> - What are my true priorities?
+>
+> - What response best serves my true priorities?
+>
+> - How can I communicate that as graciously and effectively as possible?
+
+
+
+### When a Simple “NO” Is a PowerPhrase
+
+Stronger PowerPhrases can be called for when:
+
+1. The listener is unusually direct,
+
+2. The listener is manipulative or a “taker,” or
+
+3. The listener hears acknowledgement as uncertainty or as an opening.
+
 
 
 
 
 
 to be continue....
+
