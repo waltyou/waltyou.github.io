@@ -274,11 +274,11 @@ There are some people that will argue with and attempt to manipulate anything we
 >
 > *Instead, use Power Thinking. Think:*
 >
-> - What are my true priorities?
+> - **What are my true priorities?**
 >
-> - What response best serves my true priorities?
+> - **What response best serves my true priorities?**
 >
-> - How can I communicate that as graciously and effectively as possible?
+> - **How can I communicate that as graciously and effectively as possible?**
 
 
 
@@ -291,6 +291,61 @@ Stronger PowerPhrases can be called for when:
 2. The listener is manipulative or a “taker,” or
 
 3. The listener hears acknowledgement as uncertainty or as an opening.
+
+
+
+### Turning Your NO Into a Negotiation
+
+Sometimes, rather than completely refusing a request or offer, you can suggest alternatives. For example, when one assistant was asked to make copies, she said she would love to but she had a huge stack of orders to file. Then she used the PowerPhrase:
+
+- **I’ll do it if you’ll...(help file orders).**
+
+| Acknowledge| Circumstances| Transform                                  |
+| ------------------------------------ | ------------------------------------------------------------ | ------------------------------------------ |
+| I know this project is top priority. | In order to meet the deadline I need to have uninterrupted time. | I can do this if you’ll answer the phones. |
+| I know this is important. | I am working on the XYZ account. | Which is the priority? |
+|                                      |                                                              | What can I put aside to make time to complete this? |
+
+### PowerPhrases That Buy You Time
+
+Delay phrases lack the power of a clear refusal, but are superior to a yes when you do not mean it. Learn the **PowerPhrases for Buying Time.**
+
+- Let me get back to you.
+- I need to check on a few things before answering you.
+- I need to give this consideration before responding.
+- Let me think about it and let you know.
+- I’ll see what I can do and tell you tomorrow.
+
+### When They Ask, “Will You Do Me a Favor?”
+
+Avoid saying:
+
+*— Sure.*
+
+Instead, use a **PowerPhrase for Getting Clarification Before Agreeing,** such as:
+
+- What do you need?
+- I just might! What is it?
+- Tell me what and I’ll see.
+- I need to know what the favor is before I can answer you.
+
+
+## PowerPhrases That Transform Conflicts Into Understanding
+
+> **Power Thinking to the Rescue**
+>
+> *Avoid thinking:*
+>
+> *— I better avoid this disagreement. — I can’t handle conflict.
+>  — Who do they think they are?*
+>
+> *Instead, choose Power Thoughts, such as:*
+>
+> - **There is a solution here.**
+> - **Conflict is a normal part of life and we will get to the other side.**
+> - **I can stay calm and express myself gracefully.**
+> - **What do I want? What do they want? How can we resolve this?**
+
 
 
 
