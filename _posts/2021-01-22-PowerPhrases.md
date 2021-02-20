@@ -346,6 +346,37 @@ Instead, use a **PowerPhrase for Getting Clarification Before Agreeing,** such a
 > - **I can stay calm and express myself gracefully.**
 > - **What do I want? What do they want? How can we resolve this?**
 
+When conflicts arise, you must know how to make your **CASE**! That means:
+
+- **Clarify** their position
+- **Assert** your position
+- **Seek** solutions and
+- **Evaluate** options and create agreements.
+
+### 1: Clarifying Their Position
+
+> Seek first to understand, and make it clear to them that you do. Then seek to be understood.
+
+You will get excellent results when you **demonstrate interest and concern as the first step** in managing conflict. Explore your assumptions by asking questions. Ask your questions gracefully. 
+
+Watch out for set-up questions like:
+- *Why...?*
+- Why don’t you ever...?
+- Why do you always...?
+
+Also avoid accusative, closed-ended questions that result in defensiveness, such as:
+
+- Did you do that to sabotage me?
+- Are you out to get me?
+
+Instead, use a **PowerPhrase to Ask Clarifying Questions,** such as:
+
+- **Help me to understand...**
+- **Let me make sure I understand you clearly...**
+- **Are you aware...? (I LOVE this one!)**
+- **Your intentions are not clear to me. Can you help me out here?**
+- **What did you mean by...?**
+
 
 
 
