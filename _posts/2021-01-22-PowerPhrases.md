@@ -357,6 +357,8 @@ When conflicts arise, you must know how to make your **CASE**! That means:
 
 > Seek first to understand, and make it clear to them that you do. Then seek to be understood.
 
+#### Ask Clarifying Questions
+
 You will get excellent results when you **demonstrate interest and concern as the first step** in managing conflict. Explore your assumptions by asking questions. Ask your questions gracefully. 
 
 Watch out for set-up questions like:
@@ -376,6 +378,35 @@ Instead, use a **PowerPhrase to Ask Clarifying Questions,** such as:
 - **Are you aware...? (I LOVE this one!)**
 - **Your intentions are not clear to me. Can you help me out here?**
 - **What did you mean by...?**
+
+#### Acknowleage Withou Agreeing
+
+Many of their answers will probably anger or upset you. But we should keep listening to them, and continue to seek to understand. It won’t help you to say:
+
+*— That is a ridiculous idea!
+ — You are kidding, right?
+ — How could you possibly think that? — You’re wrong!*
+
+Instead, use a **PowerPhrase to Acknowledge Without Agreeing**, such as:
+
+- **I see. Tell me more.**
+- **This is a big issue for you.**
+- **I might feel that way if I was in your shoes.**
+- **That’s an interesting perspective.**
+- **I did not realize that you felt that way.**
+- **I had not considered that perspective.**
+- **Please continue.**
+- **That may be.**
+- **I appreciate your sharing your experience. What else do I need to know?**
+
+#### Ask Questions That Confirm Understanding
+
+At various intervals, use PowerPhrases to **Ask Questions That Confirm Understanding**, such as:
+
+- **This is my understanding of what you are saying... What do I still need to know to understand your perspective?**
+- **What I hear you saying is... Is my understanding correct?**
+
+
 
 
 
