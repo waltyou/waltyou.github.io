@@ -379,7 +379,7 @@ Instead, use a **PowerPhrase to Ask Clarifying Questions,** such as:
 - **Your intentions are not clear to me. Can you help me out here?**
 - **What did you mean by...?**
 
-#### Acknowleage Withou Agreeing
+#### Acknowleage Without Agreeing
 
 Many of their answers will probably anger or upset you. But we should keep listening to them, and continue to seek to understand. It won’t help you to say:
 
@@ -406,11 +406,103 @@ At various intervals, use PowerPhrases to **Ask Questions That Confirm Understan
 - **This is my understanding of what you are saying... What do I still need to know to understand your perspective?**
 - **What I hear you saying is... Is my understanding correct?**
 
+### 2. Assert Your Own Position
+
+Use a **PowerPhrase for Requesting Uninterrupted Time to Express Yourself**, such as:
+
+- **You acknowledge that I understand your position. Will you give me five minutes of uninterrupted time to explain mine?**
+- **You have made some valid points that make a lot of sense from where you stand. Please hear me out as I describe how it looks to me.**
+- **Are you ready to hear how I see it?**
+
+There are three steps to asserting your position in conflict: (A) Describe the problem, (B) communicate the impact, and (C) request a new behavior.
+
+#### A. Describe the problem
+
+Think of yourself as an attorney. Attorneys cannot say:
+
+*— You are out to get me.
+— Obviously, my assignments are of a low priority to you.
+— You micromanage.
+ — You never respond to me.
+ — I think you were raised in a barn.*
+
+Attorneys must state facts as facts, and leave out opinions.Use **PowerPhrases for Describing the Negative Behavior,** such as:
+
+**• When...**
+
+**• I notice...**
+
+**• The other day...**
+
+**• When I... you...**
+
+Filled in, these sentence stems can sound like the following:
+
+- **When... the time for the meeting regarding the Smith account was changed...**
+- **I notice that... the assignment I gave you was moved to the bottom of your project sign-in sheet.**
+- **The other day... you checked my work 14 times.**
+- **When I spoke... you did not respond.**
+
+>  Power Thinking to the Rescue
+>
+>  *Certainly you do want to consider their perspective, but do not let their perspective become more important than your own. It won’t help you to say:*
+>
+>  *— I must be crazy.
+>  — They must be crazy.
+>  — I shouldn’t be thinking and feeling this way.**
+>
+>  **Instead, use Power Thinking, such as:**
+>
+>  - **I am the authority on my view of the situation.**
+>
+>  - **They are the authority on their view of the situation.**
+>  - **They have a right to their opinion, and I have a right to mine.**
+>  - **I have a right to express my opinion.**
 
 
 
+#### B. communicate the impact
 
+Watch out for words like:
 
+*— It messes everything up. (Too vague)*
+
+*— I think you don’t trust me. (Blaming)*
+
+Instead, use a **PowerPhrase for Expressing the Impact of a Behavior,** such as:
+
+- **What happens is...**
+- **The impact is...**
+- **I think...**
+- **I feel...** (Consider the cautions for “I think” and “I feel” in Chapter 2 before using them.)
+- **The effect is...**
+
+Filled in these can sound like:
+
+- **What happens is... I feel alienated from the team.**
+- **The impact is... I do not receive my work on time and I do not present well at the meeting.**
+- **I think... I’m not trusted.**
+- **I feel... uncomfortable.**
+- **The effect is... I get confused and make more mistakes.**
+
+#### C. request a new behavior
+
+Avoid saying:
+*—  Do this... (Sounds dictatorial)*
+*—  Don’t do that... (Talk about what you WANT, not what you do not want.)*
+*—  You need to... (Be very careful of sentences that start with “you.” It can sound controlling.)*
+
+Instead, use a **PowerPhrase for Requesting a New Behavior,** such as:
+
+- **I need...**
+- **I want...**
+- **What I want to see happen is...**
+- **I prefer...**
+- **What would work better is...**
+- **What needs to happen is...**
+- **I need... to be advised of changes as they occur.**
+- **I want... us to work out a standard system for prioritizing work.**
+- **I prefer... to work on my own, checking in at regularly scheduled intervals.**
 
 
 
