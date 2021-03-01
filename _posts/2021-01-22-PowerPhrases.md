@@ -504,6 +504,49 @@ Instead, use a **PowerPhrase for Requesting a New Behavior,** such as:
 - **I want... us to work out a standard system for prioritizing work.**
 - **I prefer... to work on my own, checking in at regularly scheduled intervals.**
 
+#### D. Consequences
+
+When you express consequences, it is far better to explain the benefits of cooperating than the costs of noncooperation. However, there is a place for both.
+
+Watch out for words like:
+
+*— Do this or else...(Threatening)*
+
+*— If I were you...(Condescending)*
+
+*— You are forcing me to...(Accusatory)*
+
+Instead, use a **PowerPhrase for Explaining Conse- quences,** such as:
+
+- **This will...**
+- **The benefit to you is...**
+- **If this happens again, I will...** 
+- **Next time this happens I will...**
+- **What this means for you is...**
+
+| **Problem**                                                  | **Impact: Thoughts/ Feelings/Effect**                        | **Request**                                                  | **Consequence**                                              |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **I sent three inquiries without receiving a response.**     | **I think I am being ignored.**                              | **I need a prompt acknowledgement of my inquiries and an indication of when my request will be granted.** | **This will keep me from inundating you with repeated requests.** |
+| **My situation is that I have been here for three months and I still do not have a workstation of my own.** | **I feel frustrated. What happens is I have to carry my materials to wherever I can find a station, and it takes quite a while to sort them out.** | **My request is that the next time someone leaves, I be given their desk.** | **The benefit to you is I will be more efficient in my work.** |
+| **When you sell products that were designed for my department...** | **The effect is that my claims of exclusivity to my clients are invalidated and they lose trust in me.** | **I need you to stop selling our line. I recommend that you request products to be designed exclusively for your department.** | **If this happens again I will bring the issue to the supervisor.** |
+| **When I speak, I notice you are reading the paper.**        | **I believe that you cannot listen to me and read the paper at the same time.** | **Please give me your full attention.**                      | **Next time this happens I will wait until I have your full attention to speak.** |
+| **The other day you spoke with my staff about turnaround times.** | **They were upset by the way you addressed them and the standards you expressed. They were so upset that very little work got done that day.** | **I suggest we meet and find a solution to this problem together.** | --                                                           |
+
+### 3: Seeking Solutions
+
+Use a **PowerPhrase to Request That You Negotiate Solutions Together**, such as:
+
+- **What I want to see happen is for us to negotiate solutions together.**
+- **I suggest that we kick around a few ideas to see what solutions we can come up with.**
+- **If we could come up with a solution that works for us both, would you be interested?**
+- **What would it take to make my request possible?**
+- **I believe we can work this out to both of our satis- faction. Will you work with me on this?**
+- **I need your help to resolve this.**
+
+
+
+
+
 
 
 to be continue....
