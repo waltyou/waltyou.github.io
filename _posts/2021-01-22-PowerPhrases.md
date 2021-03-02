@@ -540,12 +540,71 @@ Use a **PowerPhrase to Request That You Negotiate Solutions Together**, such as:
 - **I suggest that we kick around a few ideas to see what solutions we can come up with.**
 - **If we could come up with a solution that works for us both, would you be interested?**
 - **What would it take to make my request possible?**
-- **I believe we can work this out to both of our satis- faction. Will you work with me on this?**
+- **I believe we can work this out to both of our satisfaction. Will you work with me on this?**
 - **I need your help to resolve this.**
 
+It suggests that you both complete the following **PowerPhrases for Seeking Solutions:**
+
+**• I think I should...**
+
+**• You think you should...**
+
+**• I think you should...**
+
+**• You think I should...**
+
+Find the points of agreement, and combine the lists into:
+
+**• We think we should...**
 
 
 
+### 4: Evaluating Options and Building Agreements
+
+ For each option, use **PowerPhrases to Evaluate Options,** such as:
+
+- **Does this option solve the problem?**
+- **Can you and I both live with this option?**
+- **Is there any way to improve this option?**
+- **Is it realistic?**
+- **Are you and I both willing to commit to it in writing?**
+
+f they resist and say that obviously you do not trust them, say:
+
+- **Putting it in writing ensures we have the same understanding.**
+- **My policy is to get agreements as clear as possible to avoid surprises later.**
+- **Follow-up enables us to review our decisions in case a situation arises that we did not consider.**
+
+At follow-up, ask:
+
+- **How is it working for you?**
+- **What needs to change?**
+- **Is there anything we did not anticipate?**
+
+### Exit Lines
+
+Knowing when to *stop* talking is as important as knowing when to *start.* If you are upset and emotional, DO NOT CONTINUE! Instead, use an exit line to remove yourself and give yourself time to gain perspective. Here is what you DON’T want to say:
+
+*— I am out of here...(Too abrupt)
+— There is no talking to you...(Accusatory) 
+— This is a waste of time... (Negative)
+— You are an idiot...(Insulting)*
+
+Instead, use a **PowerPhrase Exit Line,** such as:
+
+- **I need to check on some things before continuing this discussion. Let’s meet again at...**
+- **I need to take some time to regain perspective before answering you. Let’s talk again Friday.**
+- **My policy is not to discuss emotionally charged subjects when I am upset. I need some time now. Let’s talk later.**
+- **You deserve respect. Right now, I’m so angry I can’t offer you that. I need ____ minutes.**
+- **I’m afraid if we continue this discussion I’ll say something I will regret. Let’s give it a 24-hour rest.**
+- **I value our work relationship too much to speak when I am as upset as I am now. Let’s pick this up tomorrow.**
+- **I think it is possible that one of us might say something we will wish we hadn’t. Let’s meet later when we are calmer.**
+
+Be aware of two important points about using an exit line.
+
+1. Always say when you will be back.
+
+2. After you use the line, you need to LEAVE! Do not say it unless you mean it.
 
 
 
