@@ -606,6 +606,34 @@ Be aware of two important points about using an exit line.
 
 2. After you use the line, you need to LEAVE! Do not say it unless you mean it.
 
+### Defusing Anger
+
+>  Do not  resist anger. Defuse it instead.
+
+If they are hurling accusations at you, avoid words like:
+
+- *That is not true! (Makes them more certain that it is.)*
+- *How dare you! (Accusatory.)*
+- *Shut up! (Makes them want to talk all the more.)*
+
+Avoid saying:
+
+- *Calm down! (Invalidates their emotions.)*
+- Be reasonable! (Points out that they are not being reasonable, which inflames them more.)
+- Can’t you see how right I am? (Or anything that they will interpret this way.)
+- I do not have to put up with this! (They think you deserve it and are avoiding responsibility.)
+
+There are six main ways to defuse anger: (1) Listen, (2) Agree, (3) Ask Specific Questions to Focus Them, (4) Use Humor, (5) Stand Up to Them and (6) Go For a Solution.
+
+#### 1. Listening to Defuse Anger
+
+When listening to an angry person you will need to use **PowerPhrases to Acknowledge Without Agreeing,** such as:
+
+- I can see you feel strongly about this. 
+- I did not know you felt that way.
+- Tell me more.
+- What else concerns you?
+
 
 
 to be continue....
