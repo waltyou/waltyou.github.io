@@ -634,6 +634,101 @@ When listening to an angry person you will need to use **PowerPhrases to Acknowl
 - Tell me more.
 - What else concerns you?
 
+#### 2. Using Agreement to Defuse Anger
+
+Here are words to avoid:
+
+*— Ninety-nine things you said are wrong.
+ — How can you think that?
+ — Aren’t you ignoring the following 200 facts?*
+
+Instead, use a **PowerPhrase to Defuse Anger by Agree- ing,** such as:
+
+- The point you made about ___ hits home. 
+- That may be...
+- I don’t blame you for being upset about... 
+- I hate it when that happens to me too!
+- I get angry too when...
+
+> **Power Thinking to the Rescue**
+>
+> *Observe your thoughts when someone is venting anger at you. Some thoughts that will get you in trouble are:*
+>
+> — I’ve got to stop them.
+>
+> — They have their nerve. 
+>
+> — I can’t handle this!
+>
+> *Instead, use Power Thoughts, such as:*
+>
+> - Stay calm.
+> - What can I say to calm them down?
+> - What do they need in this moment?
+> - What is the issue behind their emotion? 
+> - What might they be afraid of?
+
+#### 3. Ask Specific Questions to Defuse Anger
+
+When they are out of control in anger, this is not the time to say:
+*— That’s not true.*
+*— You’re wrong.*
+*— How dare you!*
+*— Yeah but you...*
+
+Instead, use a **PowerPhrase for Diffusing Anger Through Inquiry,** such as:
+
+- **Exactly what do I say or do that leads you to believe that...**
+- **You just said that ... (I lied, I am stupid, etc....) Will you explain what you mean by that?**
+- **To really understand your point, I need specific examples.**
+
+#### 4. Using Humor to Defuse Anger
+
+Avoid humor at the expense of the angry person. Instead, use a **PowerPhrase to Defuse Anger With Humor,** such as:
+
+- **Someone must have switched stupid pills with my vitamins.**
+- **You know, Brad Pitt was saying the exact same thing to me last week!**
+- **I wonder if my mother dropped me on my head as a baby!**
+- **Don’t hurt me! I’m a grandmother!**
+- **Is there a mess-up of the month award?**
+- **My brain has a mind of its own sometimes.**
+
+#### 5. Stand Up to an Angry Person
+
+Staying calm frustrates the manipulator, and shows them that you are not someone to manipulate. Staying calm proves your strength to the tester. If your attempts to defuse fail and if you believe that you are dealing with a tester or manipulator, speak up on your own behalf. Some words to avoid are:
+
+*— You’re manipulating me. (They probably don’t realize it.)*
+
+*— Shut up! (Inflames and sounds helpless.)*
+
+Instead, use a **PowerPhrase to Tell an Angry Person How to Treat You,** such as:
+
+- **I care about your problem and when you speak to me in this way, I cannot focus on solutions.**
+- **I want to hear what you have to say, but not in this way.**
+- **I am here to find resolution. I am not here to be verbally abused. One more comment like that and I will no longer listen.**
+- **Are you aware that you are blasting the very person who can help you?**
+
+- **When you speak to me in this way, I do not feel moved to help you.**
+- **I am concerned about your problem and uncomfortable with the way you are expressing it.**
+- **Speaking to me in this way is totally unacceptable.**
+- **When you are calm, I will be happy to listen to your concerns.**
+
+#### 6. Going for a Solution to Defuse Anger
+
+Use a **PowerPhrase to Focus on the Solution,** such as:
+
+- **Let’s fix the problem, instead of blame.**
+- **What can I do for you now?**
+- **How do you see us resolving this problem?**
+
+
+
+
+
+
+
+
+
 
 
 to be continue....
