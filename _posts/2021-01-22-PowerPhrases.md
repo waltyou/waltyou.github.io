@@ -723,6 +723,52 @@ Use a **PowerPhrase to Focus on the Solution,** such as:
 
 
 
+### PowerPhrases for Dealing With Passive-Aggressive Behavior
+
+Passive-aggression comes in four main forms.
+
+- Mixed messages. (“Not bad for a novice.”)
+- Tone of voice conflicts with literal meaning of wording. (“So glad you could make it!” in a sarcastic tone that emphasizes the word “make.”)
+- Gestures conflict with words. (Saying “of course” while rolling the eyes.)
+- Actions conflict with words. (Saying, “Let’s do it your way!” but not following through.)
+
+People are passive-aggressive for three reasons.
+
+- They do not know how to or do not feel safe with communicating directly.
+- They can get away with it.
+- They are unconscious of their actions.
+
+Do not say:
+
+*— You lie! (Accusatory)*
+
+*— Oh yeah? Right! (Sarcastic and passive-aggressive)*
+
+Instead, use a **PowerPhrase to Address Passive-Aggres- sive Behavior Directly,** such as:
+
+- **Is something bothering you that we need to address? I care about our relationship. If there is something we need to resolve, let’s do it.**
+- **I am confused because your words say everything is fine, but your tone of voice implies it’s not. What’s going on?**
+- **What do you mean by...?**
+- **That remark sounded sarcastic and condescending to me. Did you mean it that way?**
+- **When you say xxx, this is what I hear xxx. Is that what you mean?**
+- **I thought I heard a dig. Did I?**
+- **When you said xxx, I heard xxx. That hurts!**
+
+If they accuse you of being too sensitive, you do not need to automatically deny it. Avoid saying:
+
+*— No, I am not! (Sounds defensive and you are playing their game, not yours.)*
+
+You can simply respond by saying:
+
+- **That may be. If I am sensitive, I think it is important for you to know how your words affect me.**
+- **If you believe I am sensitive, why do you make comments like that?**
+- **This is not an issue of sensitivity. This is an issue of...**
+
+If they say it was just a joke, you can tell them:
+
+- **If you intended it as a joke, you need to know that I did not find it funny. Instead of being amused, I was hurt.**
+- **Sometimes I use humor to mask put-downs or to communicate issues indirectly. If that is what you are doing, and if there is something you need to tell me, please tell me directly.**
+
 
 
 
