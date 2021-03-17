@@ -771,9 +771,61 @@ If they say it was just a joke, you can tell them:
 
 
 
+## PowerPhrases for Negotiations to Get You What You Want
 
+The hardest part about having a successful negotiation is in being able to picture the possibility.
 
+The second hardest part is to know what to say.
 
+### Pre-negotiation Essentials Research Before Beginning to Negotiate
+
+Before you embark on your negotiation, find out:
+
+1.  What are the standards in the area, and what is a reasonable range?
+2. What do you want and what are you willing to accept?
+3. What are they likely to want and why?
+4. What are your deadlines as well as theirs?
+5. What are their options if you cannot come to agreement and what alternatives do you have? (This is called walk-away power.)
+
+As part of your research, talk to:
+
+1. People who have already negotiated with the per- son or organization you will be negotiating with.
+2. People who work with the person or team you will be negotiating with. For example, the design department can provide you with useful information about the sales department.
+3. Neighbors or neighboring business people.
+4. The person you will be negotiating with.
+
+PowerPhrases to Get Information About the Other Person’s Situation：
+
+- **What pressures are they under?**
+- **What deadlines are they under?**
+- **What is the mood in the organization right now?**
+- **What kind of arrangements have they made with others either currently or in the past?**
+- **If I offered xxxx, would I be in the ballpark?**
+- **What alternatives do they have to making a deal with me?**
+- **How willing are they to take a risk in this matter?**
+- **To whom does the negotiator answer?**
+- **Why do they want what they do? What need are they trying to meet?**
+- **How flexible are they?**
+- **How do they decide...?**
+
+### Set the Tone
+
+Avoid saying:
+
+*— Let’s negotiate.*
+*— I’ll do whatever it takes to win your business.* 
+*— I’ll have you seeing things my way in no time.*
+
+Instead, use a **PowerPhrase to Initiate a Negotiation,** such as:
+
+- **If we could work out a plan that benefits us both, would you be interested?**
+- **Let’s come to an agreement on this.**
+- **Let’s work together to find a plan that works for both of us.**
+- **I am here to work with you.**
+- **Let’s discuss the situation and come up with a solution we both are happy with. I do not want either of us to agree to anything that does not satisfy both our needs.**
+- **We have a challenge. Let’s find a solution together.**
+- **I’m convinced that we can find an agreement that we both like.**
+- **I have an idea I want to share with you. I need 15 minutes of your undivided attention. Would 3:00 this afternoon work?**
 
 
 
