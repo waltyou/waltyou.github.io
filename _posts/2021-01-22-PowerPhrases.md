@@ -827,6 +827,38 @@ Instead, use a **PowerPhrase to Initiate a Negotiation,** such as:
 - **I’m convinced that we can find an agreement that we both like.**
 - **I have an idea I want to share with you. I need 15 minutes of your undivided attention. Would 3:00 this afternoon work?**
 
+To help create a relaxed attitude, personalize the conversation. Use their name, and make it a conversation between two people, not two positions. Avoid saying:
+
+*— ABC Widgets has a proposal they would like to make to XYZ Whatis.*
+
+Instead, use a **PowerPhrase to Personalize the Negotiation,** such as:
+
+- **Kathy, I would like to discuss the deal I can offer you.**
+- **Bill, sit down and get comfortable before we begin.**
+- **Matt, I believe we have a lot to offer each other.**
+- **Janet, I can tell that you are very experienced in this area.**
+
+### Determine Authority
+
+**PowerPhrases to Find the Decision Maker**, such as:
+
+- **Who else would you need to consult before we can come to final terms?**
+- **If we reach an agreement, will anyone else have to approve?**
+- **How does it work around here? Is this a decision you can make?**
+- **If we reach an agreement today, can we move ahead?**
+- **If we came to an agreement here today, what would your next step be?**
+- **If we strike a deal, can you approve it?**
+- **Is there someone else involved in this agreement with you?**
+- **If you are happy with what we conclude here, when can we get started?**
+
+If someone else does need to be consulted, either say:
+
+- **I am unwilling to negotiate without the decision maker present.**
+
+Or say:
+
+- **I would be happy to sit in on meetings with the final decision maker to provide backup informa- tion.**
+
 
 
 to be continue....
