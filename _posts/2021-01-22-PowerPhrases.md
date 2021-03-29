@@ -857,7 +857,79 @@ If someone else does need to be consulted, either say:
 
 Or say:
 
-- **I would be happy to sit in on meetings with the final decision maker to provide backup informa- tion.**
+- **I would be happy to sit in on meetings with the final decision maker to provide backup information.**
+
+
+
+### Graciously Asking Probing Questions
+
+Use a **PowerPhrase to Solicit Their Position**, such as: 
+
+- **What goals do you have for today?** 
+- **How would you like to see this discussion turn out?**
+
+- **Is there anything you want me to know?**
+- **What do you see as our common ground here?**
+- **Tell me what you want from me/us.**
+- **I want to make certain this turns out in a way that works for everybody. How do you see that happening?**
+- **How will you know...(which supplier you want)?**
+
+Listen, listen, and listen to what they have to say. You will do your best negotiating when you do far more listening than talking!
+
+Use a **PowerPhrase to Ask Clarifying Questions in Negotiations**, such as:
+
+- **Could you expand on that?**
+
+- **Please give me more details about...**
+
+- **I need more precise information about that last point.**
+
+- **Is there anything else we need to discuss that would add significant cost to us?**
+
+- **Have I summarized everything?**
+
+  Paraphrase their offers back to them, using a **PowerPhrase to Clarify Understanding**, such as:
+
+- **Am I correct in understanding that...?**
+- **I think I understand what you are saying, but I want to be certain I know just what you mean. Are you saying that...?**
+- **What I understand you to be saying is...**
+- **Let me check to see if I understand you correctly. Are you saying that...?**
+
+### Maintaining Early Neutrality
+
+No matter how unreasonable or exciting their offer seems to you in the beginning, maintain a sense of neutrality early in the negotiation. Get a complete picture before you respond to the pieces.
+
+Even if you feel your very survival depends on working out a deal, avoid saying:
+
+*— I’ve got to have this or I’ll die!
+— This is exactly what I’ve been looking for! 
+— That’s a terrific buy!
+— You are our only supplier.*
+
+Instead, use a **PowerPhrase to Sound Calm in Negotiation**, such as:
+
+- **I think we might be able to work out a deal.**
+- **What you have could work for me.**
+- **Let’s talk specifics and see if there is a way we can make this work.**
+
+Early neutrality keeps your options open.
+
+### Making Your Offer
+
+When you are ready to make an offer, state your needs and offers clearly and confidently. Avoid:
+
+*— I really don’t like asking you to do this but...
+ — I was hoping that maybe you possibly could... 
+ — You probably won’t want to, but...*
+
+Use a **PowerPhrase for Making an Offer**, such as:
+
+- I propose that...
+-  In my view, a fair solution would be...
+- I strongly recommend that...
+- One solution that I see working for us both is...
+- One fair arrangement would be...
+- If we do xxx,, it would benefit you by xxx.
 
 
 
