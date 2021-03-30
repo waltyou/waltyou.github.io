@@ -931,6 +931,28 @@ Use a **PowerPhrase for Making an Offer**, such as:
 - One fair arrangement would be...
 - If we do xxx,, it would benefit you by xxx.
 
+Use specific amounts. Don’t say:
+
+*— I’ll give you around $3000.*
+
+Instead, use a **PowerPhrase for Stating a Specific Amount or Commitment**, such as:
+
+- **I am prepared to offer $2973.**
+
+- **I will have this completed by June 13 at 3:30 PM.**
+
+State your needs clearly. Without being frivolous, ask for what you really want, not just what you think you can get.
+
+- **What I want is xxx. What this would mean to you is xxx.**
+- **What I want is xxx by xxx because xxx.**
+
+Use **PowerPhrases to Communicate Value to Them,** such as:
+
+- **What this means for you is...**
+- **I can help you by...**
+- **Obviously xxxx is important to you. I can help you with...**
+- **One of the advantages I/we offer is...**
+
 
 
 to be continue....
