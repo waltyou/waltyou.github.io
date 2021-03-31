@@ -955,5 +955,42 @@ Use **PowerPhrases to Communicate Value to Them,** such as:
 
 
 
+If you have areas of weakness, minimize the impact by addressing them directly.
+
+Use a **PowerPhrase to Minimize Weakness**, such as:
+
+- **Although we do not have the experience you normally require, what we do offer is...**
+
+- **What we offer instead of...is...**
+
+- **It is true that xxx is not our strong point; however, it is a minor issue in this discussion.**
+
+Then move on to emphasize the parts of the deal that they like.
+
+Get feedback from them regarding your offer by using a **PowerPhrase to Solicit Feedback for Your Offers**, such as:
+
+**• What do you think of this idea?**
+
+**• Do you have any concerns with this proposal?**
+
+**• What do you like about my offer?**
+
+If their expectations are unrealistic, let them know with- out offending. Avoid saying:
+
+*— It’s not fair.*
+
+*— You’re way off base.*
+
+Instead, use a **PowerPhrase to Suggest the Range**, such as:
+
+**• That offer is not competitive.
+• I cannot come close to that.
+• Those expectations are unrealistic.
+• My budget is not close to your range.**
+
+If they do not respond immediately, remain silent until they do.
+
+
+
 to be continue....
 
