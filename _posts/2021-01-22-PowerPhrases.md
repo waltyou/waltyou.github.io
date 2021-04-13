@@ -990,6 +990,72 @@ Instead, use a **PowerPhrase to Suggest the Range**, such as:
 
 If they do not respond immediately, remain silent until they do.
 
+### Give and Take in Negotiations
+
+If their initial offer is ridiculously low or ridiculously high, steer clear of the following Poison Phrases:
+
+- *Oh no! This is going to cost me more than I thought!*
+- *You’re crazy!*
+- *That’s highway robbery!*
+- *What is your problem?*
+- *I disagree.*
+
+Instead, consider not countering. Be prepared with **PowerPhrase Responses to Their Offers.** Say:
+
+- **That’s an interesting offer.**
+- **Let’s get serious.**
+- **I’m confused.** (Silence)
+- **I can begin to negotiate seriously with you when you recommend ideas that are reasonable.**
+- **I believe you want to be fair with me, but this offer is not reasonable.**
+- **That offer tells me that you are not serious about coming to an agreement. Am I right?**
+
+Alternatively, you can counter with your own extreme offer.
+
+- **If that is your initial offer, my initial offer will be as extreme in the other direction.**
+
+Or you can ask:
+
+- **Where did you get that figure?**
+- **What caused you to decide on that...(price, deadline, specification)?**
+- **If you were in my seat would you consider that a serious offer?**
+
+Even when offers are within range or better than you imagined, consider going after a sweeter deal, if only to make them feel good about the deal they make. When you accept an offer too quickly, they will think that they went too cheap. If it is a reasonable offer, affirm that with a **PowerPhrase to Express Partial Disagreement,** such as:
+
+- **Your offer is reasonable for the most part. There are some areas that concern me...**
+- **While I agree on the whole, I have trouble agreeing with the point about...**
+
+You can counter their offer by using a **PowerPhrase to Counter an Offer**, such as:
+
+- **I can offer you xxx, if you can give me xxx.**
+- **I understand you feel your price is justified. However, I can only pay...**
+- **I need... because...**
+- **That’s not what I had in mind.**
+- **I need you to do better than that.**
+- **The best I can do is...**
+- **Is that the best you can do?**
+- **What is your bottom line?**
+- **Let’s brainstorm options together.**
+
+### Brainstorming
+
+PowerPhrase to Initiate the Brainstorming Process：
+
+- **I’ve run out of ideas. How do you think we can resolve this?**
+- **What do you REALLY want?**
+- **What’s the craziest solution you can think of to this problem?**
+- **How can we expand on the ideas we already have on the table?**
+- **Suppose we were to...**
+- **What if...**
+- **Let’s assume...**
+
+
+
+
+
+
+
+
+
 
 
 to be continue....
