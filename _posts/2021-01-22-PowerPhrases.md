@@ -1048,11 +1048,31 @@ PowerPhrase to Initiate the Brainstorming Process：
 - **What if...**
 - **Let’s assume...**
 
+### Dealing With Objections and Tactics
 
+When they state an objection, use a **PowerPhrase to Overcome Objec- tions,** such as:
 
+- **I understand how you feel. Many others have felt the same way. What they found was xxx.**
+- **Are you saying that if I can satisfy this objection, we would have a deal?**
+- **Is that the only barrier between you and an agreement?**
+- **It’s because I know that you are concerned with (their objection) that I think this is a fabulous offer for you.**
+- **What makes you say that?**
+- **What’s keeping you from getting the best?**
 
+### Need to Think About It
 
+Use a **PowerPhrase to Counter Their Need to Think About It,** such as:
 
+- **What questions remain?**
+- **Could you think about it out loud?**
+- **I can help you to think about it if you will tell me what your concerns are.**
+
+### Good Guy–Bad Guy
+
+Use a **PowerPhrase to Challenge the Good Guy–Bad Guy Game**, such as:
+
+- **You aren’t going to play good guy/bad guy with me, are you?**
+- **I think ___ is playing bad guy, but let’s not approach it that way. Let’s take the win-win approach.**
 
 
 
