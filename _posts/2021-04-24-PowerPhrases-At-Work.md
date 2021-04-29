@@ -111,9 +111,74 @@ Be prepared with **PowerPhrase Questions for the Inter- viewer**, such as:
 - **What is the growth potential in this position?**
 - **How long have you been here? What do** **you** **like about the company?**
 - **What would the characteristics and experience of the perfect applicant be?**
+- **What is the mission of the company?**
+
+### Going for Closure With PowerPhrases Without Being Pushy
+
+Do not leave the interview without going for some closure. Toward the end of the interview, create a sense of value and urgency by using **PowerPhrases That Push for Action.**
+
+- **Are there any qualities you are looking for that you haven’t seen in me?**
+- **Is there anything you want to know that I haven’t told you?**
+- **What can I tell you that would prompt you to make an offer now?**
+- **Can you offer me the job?**
+
+If they say no, ask:
+
+**• Can you refer me to someone who can use my skills?**
+
+If they say they will consider the application and get back to you, say:
+
+- **When can I expect your decision?**
+- **If I have not heard from you by then, may I call you?**
+
+### PowerPhrases for When You Are New on the Job
+
+Don’t say:
+
+*— That’s not how we did it at Widget Direct.*
+
+Use **PowerPhrases for Your Early Days on the Job,** such as:
+
+- **I’m looking forward to understanding how you do it here.**
+- **I am happy to do it your way.**
 
 
 
+Don’t say:
+
+*— Let me tell you all about myself!*
+
+Say:
+
+**• I’m anxious to learn about you.**
+
+
+
+Don’t say:
+
+*— I can figure it out myself.*
+
+Say:
+
+**• I need your help.**
+
+**• I need your advice.**
+
+**• I can use some input here.**
+
+
+
+When you make inevitable errors or don’t know what is expected of you, avoid saying:
+
+*— I’m only human!
+ — Be nice to me, I’m new.
+ — I haven’t got the experience.*
+
+Use **PowerPhrases for Reminding Them That You Are New,** such as:
+
+- **I apologize. I am still in my learning curve.**
+- **I just made another mistake to learn from.**
+- **That is the last time I will make that mistake!**
 
 
 
