@@ -180,6 +180,55 @@ Use **PowerPhrases for Reminding Them That You Are New,** such as:
 - **I just made another mistake to learn from.**
 - **That is the last time I will make that mistake!**
 
+> Admit Fault When Appropriate
+>
+> *Say:*
+>
+> **• I’m sorry.
+>  • Please forgive me.
+>  • It will never happen again.
+> ** *If you really messed up, follow this with:* **• How can I make it up to you?**
+
+Do not wait for your coworkers to tell you everything. **Use PowerPhrase Questions for New Employees,** such as:
+
+- **How can I help?**
+- **What more can I do?**
+- **How am I doing?**
+- **What are my priorities?**
+
+### PowerPhrases for Your Supervisor
+
+Time spent getting to know your boss is time well invested.
+
+Do not say:
+
+- *This isn’t what I was hired to do.*
+- *When are you going to tell me what to do?*
+- *I don’t have a plan, that’s your job.*
+
+**Use PowerPhrases for Meeting Your Boss**, such as:
+
+- **I’m xxx and am looking forward to working with you.**
+- **Can you give me a quick sense of the priorities in the department?**
+- **When you have a chance, I have some action ideas of my own that I would like your opinion on.**
+
+Every manager has their own idea of how things should be done. You need to study your manager’s style. Ask questions about how your boss wants things.
+
+Don’t say:
+
+*— This isn’t how my old boss did things.
+— You need to tell me what to do.
+ — I have my own way of doing things.*
+
+Instead, ask questions and make remarks such as the fol- lowing **PowerPhrases for Getting to Know Your Boss.**
+
+ - **What more can I do to help you?**
+- **I look forward to understanding your style.**
+- **I want to learn what you need from me.**
+- **May I take notes?**
+- **What did you particularly like about the way the last person who had this position did the job?**
+- **I’d like to know more about you in order to best understand how to work with you.**
+
 
 
 
