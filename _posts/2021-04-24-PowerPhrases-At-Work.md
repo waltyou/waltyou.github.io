@@ -229,7 +229,69 @@ Instead, ask questions and make remarks such as the fol- lowing **PowerPhrases f
 - **What did you particularly like about the way the last person who had this position did the job?**
 - **I’d like to know more about you in order to best understand how to work with you.**
 
+### Making Suggestions to Your Boss
 
+If they like to think that they thought of everything, don’t say:
+
+*— My advice is...
+ — Obviously you should... 
+ — Try this...*
+
+Instead, use a **PowerPhrase for Making Suggestions to the Boss,** such as:
+
+- **Have you considered...?**
+- **Something you said the other day got me thinking...**
+- **I’d like your opinion about what I did with the concepts you and I discussed last month.**
+
+The better worded a disagreement is, the easier it is to bypass the sense of being in conflict.
+
+Don’t say:
+
+*— You’re wrong.*
+*— You shouldn’t see it that way.* 
+*— I disagree.*
+
+Instead use a **PowerPhrase for Disagreeing With the Boss,** such as:
+
+- **Help me to understand how you reached that conclusion.**
+- **I wonder if we have the same information. My information leads me to a different conclusion.**
+- **I want to give my best here. I can support you better if we can resolve these differences first.**
+
+Have a fallback position if the boss does not appreciate your candor.
+
+- **I know that you are the boss and I will do whatever you say.**
+
+### Refusing Assignments
+
+When you refuse an assignment, don’t say:
+
+*— I can’t.*
+
+*— I don’t have the skills.*
+
+*— I’m overloaded already.*
+
+*— Why do I get all the crummy assignments?*
+
+*— What do I look like here, Wonder Woman/ Superman?*
+
+Begin by clarifying the request. Ask detailed questions so you know the scope.
+
+Be certain to ask the following **PowerPhrases for Clarifying an Assignment**, such as:
+
+- **I need more information. What is the deadline?**
+- **I need more information. What budget is allotted?**
+- **I need more information. What are the specifications?**
+- **Which is the most binding of the three, and how flexible are the others?**
+
+**The Three-Step Process for Saying No to Refuse Assignments**
+
+| **Acknowledge**                                              | **Circumstance**                                             | **Transform**                                                |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **This project is so important it needs someone who can make it his or her top priority.** | **I have the following projects and deadlines...**           | **Let me look into it and come back with a list of questions and recommendations.** |
+| **I am flattered that you considered me for this assignment.** | **After reviewing it I see some problems that need to be reviewed before proceeding.** | **Let’s discuss the prob- lems I see and what options we can create.** |
+| **I take this project very seriously.**                      | **The risks I see in my taking this on are...**              | **If we can resolve these I will be happy to take this on.** |
+| **I prefer to say yes to every assignment you offer me.**    | **My concerns are...**                                       | **What can I put aside to free myself up for this?**         |
 
 
 
