@@ -293,6 +293,71 @@ Be certain to ask the following **PowerPhrases for Clarifying an Assignment**, s
 | **I take this project very seriously.**                      | **The risks I see in my taking this on are...**              | **If we can resolve these I will be happy to take this on.** |
 | **I prefer to say yes to every assignment you offer me.**    | **My concerns are...**                                       | **What can I put aside to free myself up for this?**         |
 
+### Handling Multiple Supervisors
+
+Refer to that sys- tem to keep you out of the middle.
+
+As tempting as it is, refrain from saying:
+
+*— Take a number.
+ — I can’t help you.
+ — Your project is not my only priority. — You’re not the only one I support here.*
+
+Instead, use a **PowerPhrase for Managing Work From Multiple Bosses**, such as:
+
+| **Acknowledge**           | **Circumstance**   | **Transform** |
+| ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| **I would love to help.** | **Mary has already scheduled my time.**                      | **Why not talk to Mary? Perhaps she can give you priority.** |
+|                           | **According to the system we established, I prioritize work by...** | **I will be able to get to this by....**                     |
+
+> Replace Limiting Thinking With Power Thoughts
+>
+> *When managers conflict on priorities, stay out of the middle.*
+>
+> *You may think:
+>  — I’ve got to balance all their conflicting demands. 
+>  — It’s up to me to figure this out.*
+>
+> *You are better off thinking:*
+>
+> **• Their conflicts are between them and I will allow them to resolve them.**
+>
+> **• We can develop systems that everyone agrees to and I will follow them.**
+
+### Meeting With Your Managers
+
+Ask for the meetings you need with your boss, but do it with grace. Refrain from complaining:
+
+*— You never have enough time for me. 
+— Everything else comes first.
+— It seems like I don’t matter.*
+
+Instead, use a **PowerPhrase for Requesting Regular Meetings With Your Boss,** such as:
+
+- **If we meet for ten minutes on a daily basis, I won’t need to interrupt you as frequently throughout the day.**
+- **I have found in the past that meeting on a daily basis increases my productivity and allows me to stay in tune with you. It helps me make you look good.**
+- **Let’s try meeting on a daily basis, monitor the results and see if it is something we would like to continue.**
+
+Also, advocate for regular performance reviews. 
+
+Don’t say:
+
+*— I’m afraid I may be doing something wrong. — You promised!
+ — I’m low on the totem pole here.*
+
+Instead use a **PowerPhrase for Requesting a Performance Review,** such as:
+
+- **To give my best possible I want to set a time to review my progress and set some goals. When can we do that?**
+- **I work best with regular feedback, and I want to do the best job possible here.**
+
+
+
+
+
+
+
+
+
 
 
 to be continue....
