@@ -288,10 +288,10 @@ Be certain to ask the following **PowerPhrases for Clarifying an Assignment**, s
 
 | **Acknowledge**                                              | **Circumstance**                                             | **Transform**                                                |
 | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **This project is so important it needs someone who can make it his or her top priority.** | **I have the following projects and deadlines...**           | **Let me look into it and come back with a list of questions and recommendations.** |
-| **I am flattered that you considered me for this assignment.** | **After reviewing it I see some problems that need to be reviewed before proceeding.** | **Let’s discuss the prob- lems I see and what options we can create.** |
-| **I take this project very seriously.**                      | **The risks I see in my taking this on are...**              | **If we can resolve these I will be happy to take this on.** |
-| **I prefer to say yes to every assignment you offer me.**    | **My concerns are...**                                       | **What can I put aside to free myself up for this?**         |
+| This project is so important it needs someone who can make it his or her top priority. | I have the following projects and deadlines...               | Let me look into it and come back with a list of questions and recommendations. |
+| I am flattered that you considered me for this assignment.   | After reviewing it I see some problems that need to be reviewed before proceeding. | Let’s discuss the prob- lems I see and what options we can create. |
+| I take this project very seriously.                          | The risks I see in my taking this on are...                  | If we can resolve these I will be happy to take this on.     |
+| I prefer to say yes to every assignment you offer me.        | My concerns are...                                           | What can I put aside to free myself up for this?             |
 
 ### Handling Multiple Supervisors
 
@@ -305,10 +305,10 @@ As tempting as it is, refrain from saying:
 
 Instead, use a **PowerPhrase for Managing Work From Multiple Bosses**, such as:
 
-| **Acknowledge**           | **Circumstance**   | **Transform** |
+| **Acknowledge**| **Circumstance**   | **Transform** |
 | ------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| **I would love to help.** | **Mary has already scheduled my time.**                      | **Why not talk to Mary? Perhaps she can give you priority.** |
-|                           | **According to the system we established, I prioritize work by...** | **I will be able to get to this by....**                     |
+| I would love to help. | Mary has already scheduled my time.                      | Why not talk to Mary? Perhaps she can give you priority. |
+|                           | According to the system we established, I prioritize work by... | I will be able to get to this by....                     |
 
 > Replace Limiting Thinking With Power Thoughts
 >
@@ -349,10 +349,6 @@ Instead use a **PowerPhrase for Requesting a Performance Review,** such as:
 
 - **To give my best possible I want to set a time to review my progress and set some goals. When can we do that?**
 - **I work best with regular feedback, and I want to do the best job possible here.**
-
-
-
-
 
 
 
