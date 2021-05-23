@@ -350,7 +350,73 @@ Instead use a **PowerPhrase for Requesting a Performance Review,** such as:
 - **To give my best possible I want to set a time to review my progress and set some goals. When can we do that?**
 - **I work best with regular feedback, and I want to do the best job possible here.**
 
+Be an active participant at your performance review! Performance reviews are wonderful ways to get what you need. Use **PowerPhrases for Making Your Accomplishments Known in a Performance Review**, such as:
 
+- **May I begin by telling you the accomplishments I am most proud of?**
+- **Here is how I made money for the company...**
+- **Here is how I saved money for the company...**
+- **Here are three problems I faced last year. What I did to resolve them is...**
+- **I want to invite you to tell me what you are most pleased about.**
+
+Be sure to use the review as an opportunity to find out what the boss sees as good performance, and what it takes to get a promotion.
+
+- **My understanding is that my priority is to (reconfigure widgets). I have been assembling 257 per day. Is this the best use of my time?**
+- **I want to know in detail what the measurements of good performance are.**
+- **What can I do differently to meet your requirements?**
+
+Even weaknesses can be turned in to strengths at performance reviews.
+-  **Here are some of the areas I have been weak. Here is what I am doing to overcome them.**
+- **I realized I was weak in accounting so I took classes.**
+
+Summarize your understanding.
+- **• My understanding is that I am in good shape and you want me to...(start assembling wind-up widg- ets). Is this correct?**
+
+### Accepting Feedback
+
+How do you accept praise and criticism from your employer? When praised, don’t deflect the compliment by saying:
+
+*— It was nothing.
+ — It was my team. (Unless it was!)*
+
+Instead, use a **PowerPhrase for Accepting Compliments From the Boss,** such as:
+
+- **Thank you. That means a lot, especially from you.**
+- **Thank you. It helped that I had such great support from my team.**
+- **Thank you. I feel great about it too.**
+- **Thank you for noticing.**
+
+How do you respond to criticism from a supervisor? Be very careful to avoid arguing. Avoid words like:
+
+*—  You’re wrong.*
+*—  You don’t have a clue what I do for you.*
+*—  After all that I do for you, all you notice are the mistakes.*
+*—  Whatever you say...*
+*—  Yeah, but YOU...*
+
+Instead, respond with a **PowerPhrase for Accepting Criticism,** such as:
+
+- **I wasn’t aware that there was a problem. I want to hear your feedback to understand what needs to be changed.**
+- **I understand why you viewed it that way. Next time, I will handle it by doing... I want to do whatever I can to strengthen our working relation- ship. I consider us a team.**7
+- **I plan to take this information and devise a plan to improve my performance.**
+
+One powerful way to respond to criticism is to seek clarification of the speaker’s point of view.
+
+- **What else would you like to see me do differently?**
+
+- **What do you mean by...?**
+- **Do I understand you correctly that...? **
+- **What needs to be done at this point?**
+
+A performance review is a good time to request the resources you need to do a better job. That doesn’t mean you should complain and say:
+
+*—  I can’t meet my objectives because you...*
+
+*—  I am not getting the results I want because I do not have...*
+
+Instead use a **PowerPhrase to Request Resources,** such as:
+
+- **A few things that would increase my productivity are...**
+- **My research has shown that these are the costs... and these are the savings... of obtaining the follow- ing resources...**
 
 
 
