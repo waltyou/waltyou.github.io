@@ -416,7 +416,30 @@ A performance review is a good time to request the resources you need to do a be
 Instead use a **PowerPhrase to Request Resources,** such as:
 
 - **A few things that would increase my productivity are...**
-- **My research has shown that these are the costs... and these are the savings... of obtaining the follow- ing resources...**
+- **My research has shown that these are the costs... and these are the savings... of obtaining the following resources...**
+
+
+
+###  Breaking Bad News to the Boss
+
+Avoid saying:
+
+*—  That idiot Jenkins withdrew his account. He just wasn’t patient enough to see this thing through.*
+
+*—  I won’t meet the deadline.*
+
+*—  I should have...*
+
+Instead, do your homework before speaking. Make sure there really is a problem. Then take immediate action. Come armed with all possible solutions. Look ahead to the future.
+
+Use a **PowerPhrase for Breaking Bad News to the Boss,** such as:
+
+- **I made a mistake. I did not realize...**(that Jenkins needed more consistent updates than most of our clients require, and I updated him as I do our other clients.) **He...**(became nervous and withdrew his account before our approach had a chance to pay off.) **Some measures I have taken are...**
+
+- **I have some bad news. There have been...**(major delays) **and...**(we are unable to meet the quality requirements within the given deadline.) **Here are three recommendations of how we can address the client’s concerns. Number 1....**
+
+- **To do the best job possible, I need one more week.**
+- **Next time I will ...**
 
 
 
