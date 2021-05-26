@@ -441,6 +441,30 @@ Use a **PowerPhrase for Breaking Bad News to the Boss,** such as:
 - **To do the best job possible, I need one more week.**
 - **Next time I will ...**
 
+### Speaking With the Boss’s Authority
+
+Often support personnel downplay their role with words like:
+
+*— I was wondering if maybe you could...*
+
+*— Here’s what I want you to do...*
+
+Instead, use a **PowerPhrase for Communicating With Your Boss’s Authority,** such as:
+
+- **Ms. Big has sent me to get the following files...**
+- **I know Mr. Big’s expectations. This is what must be done...**
+- **Joe Important did not suggest that there would be any problem in obtaining your support on his behalf.**
+
+These phrases carry more impact when the boss has credentialed you his or herself. Some supervisors use **PowerPhrases to Credential Their Staff,** such as:
+
+- **When xxxx opens her mouth my voice comes out.**
+- **While I am away I expect you to regard what xxx says as if you heard it from me.**
+- **She’s the boss when I’m gone.**
+
+
+
+
+
 
 
 
