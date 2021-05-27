@@ -463,6 +463,43 @@ These phrases carry more impact when the boss has credentialed you his or hersel
 
 
 
+## Communicating With Coworkers
+
+Offer help and ask for help when you need it. For exam- ple, if you are making labels, ask yourself who else can use labels. Then offer:
+
+- **Joan, I’m making labels, do you want some too?**
+
+Ask:
+
+- **What can I do for you?**
+
+Say:
+
+- **I need your help.**
+
+These are all PowerPhrases.
+
+Take an interest in your peers. Listen, listen, and listen.
+
+Here is what you don’t want to say:
+
+*— I’d like to get to know you. Let me tell you all about myself.*
+
+*— Let me tell you about the week I had. It all started with...*
+
+Instead use a **PowerPhrase for Expressing Interest**, such as:
+
+- **There is so much I want to learn from you.**
+- **Tell me what it’s like for you around here.**
+- **I’d like a chance to speak with you. When can we arrange that?**
+- **Do you mind if I pick your brain?**
+- **Can I take you to lunch?**
+
+Be sure to solicit support for your ideas from your col- leagues to encourage buy-in. Rather than simply asking for support, GIVE them something. Use a **PowerPhrase for Soliciting Support for an Idea,** such as:
+
+- **Joan, I want to give you the first chance to review the XYZ proposal before the meeting. Your recom- mendations and support will help it in the approval process.**
+- **I invite your involvement in the spring-loaded widget project in its early development when you can still help shape things. Your expertise can make a huge difference here.**
+
 
 
 
