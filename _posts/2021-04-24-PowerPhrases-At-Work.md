@@ -502,6 +502,46 @@ Be sure to solicit support for your ideas from your col- leagues to encourage bu
 
 
 
+### Giving Feedback to Coworkers
+
+When someone suggests an idea and requests your feedback, avoid being a wet blan- ket and saying things like:
+
+*— What’s wrong with the way things are now?*
+
+*— You’re kidding, right?*
+
+If that is your first impulse, reply with a **PowerPhrase to Buy Time to Consider an Idea,** such as:
+
+- **That’s an interesting idea.**
+- **I never thought of that.**
+
+When you do give feedback, consider the following.
+
+#### 1. Feedback Needs to Be Specific.
+
+They need to be able to apply the ideas. Don’t use vague words like:
+
+*— Great job!*
+
+*— You could have done a better job.*
+
+Instead use a **PowerPhrase for Specific Feedback,** such as:
+
+- **I particularly like the way you did A. What I like most about how you did it is...**
+- **A, B and C work well. Some suggestions I have for D, E and F are...**
+
+#### 2. Feedback Needs to Be Solution Oriented.
+
+If there are problems, focus on how they can be fixed. Instead of saying:
+
+*— This is wrong and that is wrong and everything else is awful too.*
+
+Use a **PowerPhrase for Offering Solutions in Feedback,** such as:
+
+**• One way to strengthen A is... Have you considered ... for B? C could be improved by...**
+
+
+
 
 
 
