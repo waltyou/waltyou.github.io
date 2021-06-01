@@ -540,6 +540,34 @@ Use a **PowerPhrase for Offering Solutions in Feedback,** such as:
 
 **• One way to strengthen A is... Have you considered ... for B? C could be improved by...**
 
+#### 3. Feedback Needs to Express Facts as Facts and Opinions as Opinions. 
+
+Rather than passing a judgment like:
+
+*— The exercises were useless.*
+
+Communicate an experience like:
+
+- **I did not see the value in the exercises.**
+
+#### 4. Feedback Needs to Be Consistent.
+
+Be sure to tell people how much you appreciate positive things they do even if they are just “doing their job.”
+
+Use a **PowerPhrase for Consistent Feedback.**
+
+- **I want to let you know how much I appreciate your xxxxx every day.**
+
+- **Thanks for making my job easier by...**
+
+- **I always appreciate the way you...**
+
+- **Thank you for ___.**
+
+
+
+
+
 
 
 
