@@ -564,9 +564,47 @@ Use a **PowerPhrase for Consistent Feedback.**
 
 - **Thank you for ___.**
 
+### Handling Interruptions
 
+>  When interrupted, ask yourself: what is the priority? Their request or what I am working on?
 
+**Handling Interruptions Using the Three-Step Process for Saying No**
 
+| **Acknowledge** | **Circumstance**  | **Transform**|
+| ----------------------------------------- | -------------------------------------- | ------------------------------------------------------------ |
+| **Yes, I see what you are asking.**       | **I have a 2:00 deadline.**            | **I can talk with you after that.**                          |
+| **I’d like to help.**                     | **5 minutes is all I have.**           | **Will that help?**                                          |
+| **This would require my full attention.** | **I don’t have it to give right now.** | **I believe you can handle it yourself.**                    |
+| **I understand what you need.**           | **Now is not a good time.**            | **If you still need help tomorrow I might be able to fit it in.** |
+
+### PowerPhrases for Meetings
+
+For example, what do you do when someone expresses your idea and takes credit for it? Speak up. Don’t let it pass, and don’t say:
+
+*— Hey, that was my idea! You stole it!*
+
+Instead, use a **PowerPhrase for Taking Credit for Your Ideas,** such as:
+
+- **I believe that idea started with a comment I made earlier. I want to elaborate on my thinking.**
+- **That is what I was referring to when I said... I am glad you like my idea, and I like the way you elaborated on it.**
+
+If it often happens that other people take credit for your ideas, ask someone:
+
+- **Is there something about the way I present my ideas that makes it hard to take them seriously?**
+
+When you have the floor and someone interrupts, ask yourself if you are being wordy and trying his or her patience. If not, use a **PowerPhrase to Handle Inter- rupters,** such as:
+
+- **Excuse me. I wasn’t finished yet.**
+- **I want to hear what you have to say as soon as I am done.**
+
+If someone is dominating the discussion, say:
+
+- **You have great ideas on the subject. Let’s open the floor up for input from others.**
+- **Since the agenda allows us only another ten minutes on this topic, we need to keep this moving. Please give us the condensed version and allow time for other comments before ending this discussion.**
+
+Sometimes you can simply say:
+
+- **There is only time for the short version, please.**
 
 
 
