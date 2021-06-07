@@ -606,6 +606,33 @@ Sometimes you can simply say:
 
 - **There is only time for the short version, please.**
 
+### Encouraging Participation
+
+If you are leading the meeting, one of your responsibilities is to encourage input from members who may not speak without encouragement. Simply say:
+
+- **xxx, what is your opinion on the subject?**
+
+If they do not offer an opinion, it is appropriate to ask again, by saying:
+
+- **Your ideas do not need to be polished. We need to know what direction your thinking is taking.**
+
+When there is a side conversation going on, it needs to be addressed. Use a **PowerPhrase for Addressing a Side Conversation,** such as:
+
+- **Please give Bill your full attention.**
+- **When Bill finishes, I invite your comments.**
+- **We all want to end this meeting on time, and that requires speaking one at a time.**
+- **We have a lot of material to cover, and I'd rather not get off track. At the break let’s get together, and this way I'll be able to give your concerns more individual attention.**
+
+If someone is late, rather than reviewing what he or she missed, tell the offender:
+
+- **Be sure to ask someone to catch you up on what was missed later.**
+
+use a **PowerPhrase for Maintaining the Agenda**:
+
+- **That’s an important topic. Please make sure that it gets on the agenda for a future meeting.**
+
+
+
 
 
 
