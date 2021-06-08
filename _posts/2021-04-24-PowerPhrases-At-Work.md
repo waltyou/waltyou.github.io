@@ -631,7 +631,23 @@ use a **PowerPhrase for Maintaining the Agenda**:
 
 - **That’s an important topic. Please make sure that it gets on the agenda for a future meeting.**
 
+### Handling Backstabbing Coworkers
 
+**Clarify** what you have heard, and **assert** yourself. You can then **seek** solutions and **evaluate** them.
+
+Use the Four Step Process to Assert Yourself with Backstabbers While Making Your Case:
+
+| **Problem**| **Impact: Thoughts/ Feelings/Effect** | **Request** |**Consequence** |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------ |
+| When I heard that you complained to others about the quality of my work... | I was devastated. I questioned our working relationship and began to wonder how safe it is to be open with you. | In the future, come to me directly if there is an issue. | I will do the same for you.                  |
+| I confided in you, and I have reason to believe that you shared my secrets with others. | This can destroy our working relationship.               | What can I do to ensure that my confidences are honored? | I will only confide in you if I feel secure. |
+
+### Dealing With Unsolicited Advice
+
+| **Problem**| **Impact: Thoughts/ Feelings/Effect** | **Solution/ Request** | **Consequence** |
+| -------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | --------------- |
+| When you offer advice, | I get confused.          | Please refrain from advising me unless I request it. | I will do the same for you. |
+| When you tell me how to do my job, | I think you do not trust me. |                                                              |                 |
 
 
 
