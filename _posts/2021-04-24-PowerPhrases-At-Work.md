@@ -651,7 +651,63 @@ Use the Four Step Process to Assert Yourself with Backstabbers While Making Your
 
 
 
+## Effective Email
 
+### Effective Emails are Brief
+
+Stick to simple words, short phrases and paragraphs consisting of 1-3 short sentences. Don’t require your recipi- ent to think much, interpret long sentences or read big sections of text. 
+
+Ensure your message is received by making your emails as succinct as possible. Avoid wordiness such as:
+
+*— I don’t know if you heard about the details of the meeting that was held last Thursday. We raised a lot of important issues that concerned many of us. I wish you could have been there, but I under- stand you were busy. In case you do not have a copy of the minutes I am sending you one so you can offer your input. I know you’re busy, but if you could...*
+
+Instead, use a **PowerPhrase for Email Brevity** such as:
+
+- **We missed you at the meeting. I am enclosing a copy of the minutes for your comment. Please review and forward your comments regarding item three by Friday.**
+
+Take notice that although the above message is brief and focused, it does include a relationship remark—a single phrase whose purpose is to reinforce the relationship.
+
+### The Value of an Email Relationship Remark
+
+Some **PowerPhrases to Reinforce the Relationship in Emails** are:
+
+- **We missed you at the meeting.**
+- **I was glad to hear from you.**
+- **I hope you enjoyed your trip.**
+- **Thanks for your input.**
+
+### Effective Emails Are Specific: Choose Your Words with Precision
+
+The more specific your email, the more effective it will be. Include who, what, when, where and why, avoiding all vague words. You may choose to organize your email that way.
+
+- **Who: All senior managers**
+- **What: Mandatory Compliance Update**
+- **When: Thursday June 30th, 10:00–10:15**
+- **Where: Boardroom**
+- **Why: To ensure all new regulations are understood prior to inspections**
+
+Before you hit send, ask yourself the following two questions:
+
+1. **Is there any information I left out?**
+2. **Are any of the words subject to an inaccurate interpretation?**
+
+In the example, does everyone know who is regarded as a senior manager? Are other members of their team invited or expected to attend? Be particularly aware of vague words such as:
+
+*—Soon*
+*— Quick*
+*— Good*
+* — Bad*
+
+Words like:
+
+- **By Thursday noon**
+- **Under five minutes **
+- **Profitable**
+- **Inaccurate**
+
+are less open to interpretation.
+
+Avoid hints or any assumptions of understanding. When you choose the most precise word you save time and confusion.
 
 
 
