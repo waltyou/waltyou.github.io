@@ -696,7 +696,7 @@ In the example, does everyone know who is regarded as a senior manager? Are othe
 *—Soon*
 *— Quick*
 *— Good*
-* — Bad*
+*— Bad*
 
 Words like:
 
@@ -708,6 +708,65 @@ Words like:
 are less open to interpretation.
 
 Avoid hints or any assumptions of understanding. When you choose the most precise word you save time and confusion.
+
+### Use Specific Headers to Increase Clarity
+
+Be specific right from the beginning. Make the subject header so specific that even if the recipient never opens the email, they still get information. 
+
+For example, instead of a subject line that says
+
+*— Company picnic*
+
+Say:
+
+- **Company picnic June 22, respond by June 13th.**
+
+
+
+### Effective Emails Are Results Oriented
+
+#### 1. Create Focus by Limiting Content of Your Emails
+
+If you limit your email to one topic, it will add to the topic’s impact. 
+
+#### 2. Increase Clarity by Formatting
+
+If you must include multiple topics in a single email, or if you have several points regarding a single topic, limit each paragraph to one topic and:
+
+1. Give each a separate header and/or 
+2. Number or bullet each separate item.
+
+
+
+### PowerPhrases Are Focused
+
+Your recipient wants to know immediately,
+
+1. Who you are
+
+2. What do you want them to do? 
+
+3. What’s in it for them.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
