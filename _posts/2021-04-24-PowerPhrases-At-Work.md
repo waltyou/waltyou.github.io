@@ -12,10 +12,14 @@ tags: [PowerPhrases, English]
 Let's start learning the PowerPhrases at Work. There has three parts:
 
 1. Managing Your Boss
+
 2. Communicating With Coworker
+
 3. Magic Phrases for Managers
 
-   
+4. Effective Email
+
+    
 
 <!-- more -->
 
@@ -750,24 +754,37 @@ Your recipient wants to know immediately,
 
 
 
+### Handling Emotions on Emails
+
+Emotional topics and emails do not mix well. Meanings can be quickly misinterpreted.
+
+>  When emails get emotional, arrange to speak face-to-face.
+
+When emotions get triggered, it is the time to leave your desk and speak to the person personally. At the very least, pick up the phone to speak directly. The reasons for this are:
+
+1. If there are tensions, emails create a record that you might prefer they did not have. (If you in fact do want a record and you choose to discuss a sen- sitive issue via email despite the pitfalls, run your emails past a neutral party before you hit send.) 
+2. There is a greater chance of misunderstanding over email since there is not the face-to-face interaction to discern their response.
+
+If someone brings up an issue that is sensitive via email, use a **PowerPhrase to Invite Direct Communication** such as:
+
+- **This issue is too important to discuss over email. When can we meet?**
+- **I want to be certain we understand each other. Let’s continue this discussion face-to-face.**
+- **My policy is to refrain from discussing sensitive issues by email. That’s why I’m here. Is this a good time?**
+
+
+
+### A Few Words about Spelling and Grammar
+
+Take the time to correct spelling and grammar. Avoid all caps, and avoid all lower case. Do not allow errors to weaken the impact of your words.
+
+### If in Doubt, Ask. Powerful Clarification Through Email
+
+Use **PowerPhrases for Email Clarification** such as: 
+
+- **This is what I understand from your email. Is my understanding correct?**
+
+- **Based on your previous email I intend to xxxxxxx. Is that what you want me to do?**
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-to be continue....
