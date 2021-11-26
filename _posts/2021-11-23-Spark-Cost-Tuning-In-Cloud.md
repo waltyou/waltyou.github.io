@@ -154,11 +154,8 @@ memory 不像 CPU 存在 time-slicing 策略，所以两个executor 使用的内
 #### 注意事项
 
 1. 保持使用的资源一致。改变 executor core count的同时也要改 executor count ，这样子对比效率才有意义。比如：
-
-  - Old configuration (100 Spark cores): num-executor=50  * executor-cores=2
-
-  - New configuration (100 Spark cores): num-executor=20 *  executor-cores=5
-
+   - Old configuration (100 Spark cores): num-executor=50  * executor-cores=2
+   - New configuration (100 Spark cores): num-executor=20 *  executor-cores=5
 2. 在对转换的job进行测试时，禁用dynamic allocation。
 3. 当发觉 job 有很多 CPU wait 时间的话，就是有大量的IO操作时，可以考虑让 node 处于 over-utilization 的状态，这样子效率可能会更高 （类比多线程读取数据库）：
    - 增加 executor core count
@@ -173,7 +170,7 @@ memory 不像 CPU 存在 time-slicing 策略，所以两个executor 使用的内
 
 运行时间可能会变慢，但不要担心，新配置运行成本会更低。
 
-###3.  解决常见的错误
+### 3.  解决常见的错误
 
 有时，当切换到高效的执行程序配置时，执行程序会出现内存问题。 如果/当发生这种情况时，说明执行程序没有有效地处理数据，需要进一步调整。 您可以通过检查在 Spark 运行期间是否有任何失败的任务来查看您的执行程序是否没有有效工作。
 
@@ -214,7 +211,7 @@ ExecutorLostFailure (executor X exited caused by one of the running tasks) Reaso
 
 #### 当其他一切都失败时……
 
-将executor的core 数量减少 1。这将增加executor的内存与核心比率。 这种特殊的更改应该作为最后的手段进行，因为它会减少节点上运行的 Spark 内核的数量，从而降低节点效率。
+将executor的core 数量减少 1。这将增加executor的内存与核心比率。 这种特殊的更改应该作为最后的手段进行，因为它会减少节点上Spark 运行的内核数量，从而降低节点效率。
 
 
 ## 总结
