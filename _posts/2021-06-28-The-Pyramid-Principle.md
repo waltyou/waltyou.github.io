@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 《xxxx》读书笔记
+title: 《金字塔原理》读书笔记
 date: 2021-06-28 18:11:04
 author: admin
 comments: true
