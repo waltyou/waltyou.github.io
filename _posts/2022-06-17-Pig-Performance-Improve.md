@@ -7,13 +7,14 @@ comments: true
 categories: [Pig]
 tags: [Big Data, Pig]
 ---
+
+
 <!-- more -->
 
 ---
 
 * 目录
-  {:toc}
-
+{:toc}
 ---
 
 ## 背景
@@ -253,7 +254,8 @@ a_1_join = join a_1_snap by name, b by name;
 a_2 = filter a by ts > $YesterDay_ts;
 -- a_2 only have one day data so it is small and easy to join
 a_2_join = join a_2 by name, b by name;
-a_2_group = group a_2_join by id;
+a_2_filter = fitler a_2_join by update_ts <= ts;
+a_2_group = group a_2_filter by id;
 a_2_snap = foreach a_2_group generate flatten(getLatestRecord(a_2_join));
 
 ---- Union T-1 & T and get final result
