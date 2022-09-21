@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 在 IntelliJ IDEA 中运行、调试 PySpark Source Code
+title: 在 IntelliJ IDEA 中调试 PySpark Source Code
 date: 2022-09-20 13:39:04
 author: admin
 comments: true
@@ -11,23 +11,20 @@ tags: [Big Data, Spark, PySpark]
 之前写过一篇文章来介绍如何构建 Spark 源码本地的 Debug 环境 （详情看[这里](https://waltyou.github.io/Spark-Source-Code-Build-And-Run-In-Idea-Intellij/)），但是对于 PySpark 的调试环境略有不同，再来一篇文章介绍一下。
 
 <!-- more -->
----
 
+---
 
 * 目录
 {:toc}
 ---
 
-## 提交 Python SDK
+## 添加 Python SDK
 
 下载源代码，用 IDEA 打开，首先添加 Python SDK:
 
-
 ![picture 1](../images/80eaa5525aee1eb0ed7af856ac13b43c95dbd3282b63e3c119e5a3d6aa4765a5.png)  
 
-
 ![picture 2](../images/6985394a3c9401d15189b686d9f9af6441fd25126c77b1b06d373a661207bd99.png)  
-
 
 ```shell
 source venv/bin/activate
