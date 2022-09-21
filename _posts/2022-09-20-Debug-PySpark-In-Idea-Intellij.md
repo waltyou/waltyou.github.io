@@ -22,7 +22,9 @@ tags: [Big Data, Spark, PySpark]
 
 下载源代码，用 IDEA 打开，首先添加 Python SDK:
 
-![picture 1](../images/80eaa5525aee1eb0ed7af856ac13b43c95dbd3282b63e3c119e5a3d6aa4765a5.png)  
+
+![picture 1](../images/452074f7360d50d1aa613b06b1e27336821881058c44df4a923d89aab76620b5.png)  
+
 
 ![picture 2](../images/6985394a3c9401d15189b686d9f9af6441fd25126c77b1b06d373a661207bd99.png)  
 
@@ -38,7 +40,8 @@ cd python; python setup.py sdist
 
 Run `pi.py`
 
-![picture 3](../images/33649a50141e35be1aeae812ea778e241c78a24442cba9c316da4a2482c57743.png)  
+![picture 3](../images/a3a5c8e6dbb2eec967b5ac5b17e769faa4ea7d75e66944cfe8c489b79b98a674.png)  
+
 
 ![picture 4](../images/c5e2afde7eb98d5cf337742551486b4f14e2feb35482eb662025093ae5eae842.png)  
 
