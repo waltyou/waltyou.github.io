@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 一个类似Continue.dev的简单代码助手工具
-date: 2024-06-29 13:39:04
+date: 2025-05-10 13:39:04
 author: admin
 comments: true
 categories: [GenAI]
@@ -388,3 +388,7 @@ IntelliJ扩展的工作方式：
 ## 项目地址
 
 [https://github.com/waltyou/cat](https://github.com/waltyou/cat)
+
+## 写在最后
+
+项目中95%代码几乎都是 [Augment code](https://www.augmentcode.com/)生成的。
