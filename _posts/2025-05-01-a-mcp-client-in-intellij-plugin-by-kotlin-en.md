@@ -1,6 +1,6 @@
 ---
 layout: post
-title: 用kotlin在一个intellij 插件中实现一个MCP client 
+title: Implementing an MCP Client in an IntelliJ Plugin using Kotlin
 date: 2024-06-29 13:39:04
 author: admin
 comments: true
@@ -8,31 +8,31 @@ categories: [GenAI]
 tags: [MCP, MCP Client, Intellij Plugin, OpenAI, Kotlin]
 ---
 
-MCP 最近很火，自己也为公司内部的Code Assistant Tool 实现了一个MCP Client。因为网上几乎全是教大家怎么写MCP Server的，很少有关于MCP Client，kotlin 实现的就更少了。所以我觉得有必要记录一下过程，以及遇到的问题，希望可以帮助大家。
+MCP has been gaining popularity recently, and I've implemented an MCP Client for our company's internal Code Assistant Tool. Since there are plenty of tutorials about writing MCP Servers but very few about MCP Clients, especially implementations in Kotlin, I feel it's necessary to document the process and the challenges I encountered, hoping it will help others.
 
 
 <!-- more -->
 
 ---
 
-* 目录
+* Content
 {:toc}
 ---
 
-## 背景
+## Background
 
-因为我需要给一个kotlin写的Intellij plugin添加MCP client功能，所以需要参考官方代码库 [Kotlin-sdk](https://github.com/modelcontextprotocol/kotlin-sdk)。但是官方代码中[kotlin-mcp-client](https://github.com/modelcontextprotocol/kotlin-sdk/blob/main/samples/kotlin-mcp-client/src/main/kotlin/io/modelcontextprotocol/sample/client/MCPClient.kt)有几个问题不符合我的需求：
+I needed to add MCP client functionality to an IntelliJ plugin written in Kotlin, so I referenced the official codebase [Kotlin-sdk](https://github.com/modelcontextprotocol/kotlin-sdk). However, the official [kotlin-mcp-client](https://github.com/modelcontextprotocol/kotlin-sdk/blob/main/samples/kotlin-mcp-client/src/main/kotlin/io/modelcontextprotocol/sample/client/MCPClient.kt) had several issues that didn't meet my requirements:
 
-1. LLM 调用的是 Anthropic 的API，但是我希望是OpenAI compatible API
-2. 只支持 stdio 的MCP server，没有sse 的例子
-3. 初始化 stdio的代码在intellij plugin中运行时，无法正确获取完整的 PATH 环境变量，导致cmd找不到
-4. 没有从MCP Server 配置文件中获取server配置、初始化server、管理server的代码
+1. The LLM calls Anthropic's API, but I wanted to use an OpenAI compatible API
+2. It only supports stdio MCP servers, with no examples for SSE
+3. When running in an IntelliJ plugin, the stdio initialization code couldn't correctly get the complete PATH environment variable, causing cmd not to be found
+4. There was no code for getting server configurations from MCP Server config files, initializing servers, or managing servers
 
-## 问题及解决方案
+## Problems and Solutions
 
 ### 1. MCP Client + OpenAI compatible API + Kotlin
 
-网上大多数 MCP Client + OpenAI compatible API 的组合，大都是Python or Typescript 写的，kotlin的很少，几乎没有找到，而且可能因为MCP的概念也很新，主流llm训练数据里可能都没有相关代码，所以生成的效果很差，几番尝试后，只能自己动手、丰衣足食了。
+Most MCP Client + OpenAI compatible API combinations found online are written in Python or TypeScript, with very few in Kotlin. Since MCP is also a relatively new concept, mainstream LLM training data probably doesn't include related code, resulting in poor generation quality. After several attempts, I had to implement it myself.
 
 #### #1. define needed types
 
@@ -107,7 +107,7 @@ data class OpenAIRequestBody(
 
 #### #2. code to call OpenAI Compatible API
 
-这里主要是要按规范解析出response中 `tool_calls` 字段，剩下的就是常规操作。
+The main focus here is properly parsing the `tool_calls` field in the response according to the specification. The rest is standard operation.
 
 ```kotlin
 suspend fun sendSuspendToOpenAI(
@@ -156,7 +156,7 @@ suspend fun sendSuspendToOpenAI(
 
 #### #3. MCP Client call LLM with Tools
 
-这一步的重点在于 func `newFun`, 它把 mcp 规范中定义的 tool 类型转换成 OpenaiTool 类型。
+The key point in this step is the `newFun` function, which converts MCP-spec tool types to OpenaiTool types.
 
 ```kotlin
 // hold all mcp server's connnection
@@ -306,7 +306,7 @@ suspend fun executeFunc(funcStr: String): Pair<String, Boolean> {
 }
 ```
 
-这里需要着重说一下func `jsonObjectToMap`, 它用来把JsonObject 转换成 Map<String, Any> 类型，麻烦的地方就是 `Any` 这里，code在转换的时候还是要判断一下类型的，这一点不如python 和 ts的方便简单。
+The tricky part here is the `jsonObjectToMap` function that converts JsonObject to Map<String, Any> type. The `Any` type makes this more complicated than in Python or TypeScript, as the code needs to check types during conversion.
 
 ```kotlin
 private fun jsonObjectToMap(jsonObject: com.google.gson.JsonObject): Map<String, Any> {
@@ -338,9 +338,9 @@ private fun convertJsonElement(element: JsonElement): Any =
 
 ```
 
-### 2. 初始化 sse 类型的 MCP Server 
+### 2. Initializing SSE type MCP Server
 
-代码不是很符合直觉，它并不是通过初始化一个类来获取，而是调用一个给 ktor HttpClient 配置的静态函数 mcpSseTransport。
+The code isn't very intuitive - instead of initializing a class to get an instance, it calls a static function `mcpSseTransport` that configures a ktor HttpClient.
 
 https://github.com/modelcontextprotocol/kotlin-sdk/blob/main/src/commonMain/kotlin/io/modelcontextprotocol/kotlin/sdk/client/KtorClient.kt#L18
 
@@ -360,7 +360,7 @@ public fun HttpClient.mcpSseTransport(
 ): SseClientTransport = SseClientTransport(this, urlString, reconnectionTime, requestBuilder)
 ```
 
-实际我的代码片段如下:
+Here's my actual code snippet:
 
 ```kotlin
 private fun createSseTransport(c: SseConfig, name: String, source: McpServerSource): Transport {
@@ -391,31 +391,31 @@ private fun createSseTransport(c: SseConfig, name: String, source: McpServerSour
 }
 ```
 
-这里有个坑，kotlin sdk会默认给sse server的 url 的结尾加上 `sse`，代码看[这里](https://github.com/modelcontextprotocol/kotlin-sdk/blob/main/src/commonMain/kotlin/io/modelcontextprotocol/kotlin/sdk/client/SSEClientTransport.kt#L56), 但是python sdk 、ts sdk的就不会。需要自己额外处理一下，我通过 `c.url.removeSuffix("/sse")` 移除了url末尾的`sse`。
+There's a catch here - the Kotlin SDK will automatically append "sse" to the end of the SSE server's URL (see code [here](https://github.com/modelcontextprotocol/kotlin-sdk/blob/main/src/commonMain/kotlin/io/modelcontextprotocol/kotlin/sdk/client/SSEClientTransport.kt#L56)), but Python and TypeScript SDKs don't. I handled this by removing the "sse" suffix with `c.url.removeSuffix("/sse")`.
 
-### 3. 在intellij plugin，使用 GeneralCommandLine 初始化 stdio mcp server
+### 3. Using GeneralCommandLine to initialize stdio mcp server in IntelliJ plugin
 
-官方例子中，初始化 stdio server的时候，用的是`ProcessBuilder`，但是在intellij plugin中，使用它的时候，总是无法正确获取完整 PATH 环境变量，导致无法正确启动stdio mcp server，经过各种调试和查询，发现应该使用`GeneralCommandLine` 替代它。原因如下(deepseek 的回答)：
+In the official example, `ProcessBuilder` is used to initialize stdio servers. However, when using it in an IntelliJ plugin, it couldn't correctly get the complete PATH environment variable, preventing stdio MCP servers from starting properly. After debugging and research, I found that `GeneralCommandLine` should be used instead. Here's why (according to DeepSeek):
 
 ```text
-在Java中执行外部命令或启动进程时，`GeneralCommandLine`和`ProcessBuilder`是两种不同的工具，它们的主要区别和适用场景如下：
+When executing external commands or starting processes in Java, GeneralCommandLine and ProcessBuilder are two different tools with distinct differences and use cases:
 
-1. **来源与依赖**
+1. **Origin and Dependencies**
    - **ProcessBuilder**  
-     属于Java标准库（`java.lang.ProcessBuilder`），自Java 1.5引入，无需额外依赖。
+     Part of Java standard library (java.lang.ProcessBuilder), introduced in Java 1.5, no extra dependencies needed.
    - **GeneralCommandLine**  
-     是JetBrains开发的第三方类（如IntelliJ IDEA插件开发中的`com.intellij.execution.configurations.GeneralCommandLine`），需引入JetBrains相关库。
+     Developed by JetBrains (com.intellij.execution.configurations.GeneralCommandLine), requires JetBrains libraries.
 
-2. **API设计**
+2. **API Design**
    - **ProcessBuilder**  
-     提供基础的链式配置，但参数需通过列表或数组设置，不够直观：
+     Provides basic chained configuration, but parameters must be set via lists or arrays:
      ```java
      ProcessBuilder pb = new ProcessBuilder("cmd", "/c", "echo", "Hello");
      pb.directory(new File("C:/"));
      Process p = pb.start();
      ```
    - **GeneralCommandLine**  
-     支持更流畅的链式调用，参数处理更直观：
+     Supports more fluid chaining, more intuitive parameter handling:
      ```java
      GeneralCommandLine cmd = new GeneralCommandLine()
          .withExePath("cmd")
@@ -424,52 +424,38 @@ private fun createSseTransport(c: SseConfig, name: String, source: McpServerSour
      Process process = cmd.createProcess();
      ```
 
-3. **功能与安全性**
-   - **参数安全性**  
-     `ProcessBuilder`需手动处理参数分隔（如空格、特殊字符），而`GeneralCommandLine`可能自动处理转义，避免注入风险。
-   - **环境变量与路径**  
-     `ProcessBuilder`通过`environment()`返回`Map`供修改，`GeneralCommandLine`提供`addEnvironmentVariable(key, value)`等更直观的方法。
-   - **输出处理**  
-     `ProcessBuilder`需手动重定向流（如`redirectOutput`），而`GeneralCommandLine`可能封装了流捕获或回调机制。
+3. **Features and Security**
+   - **Parameter Safety**  
+     ProcessBuilder requires manual parameter separation (spaces, special chars), GeneralCommandLine may handle escaping automatically, preventing injection risks.
+   - **Environment Variables and Paths**  
+     ProcessBuilder exposes environment() returning a Map for modification, GeneralCommandLine provides more intuitive methods like addEnvironmentVariable(key, value).
+   - **Output Handling**  
+     ProcessBuilder requires manual stream redirection (redirectOutput), while GeneralCommandLine may encapsulate stream capture or callbacks.
 
-4. **跨平台支持**
+4. **Cross-platform Support**
    - **ProcessBuilder**  
-     需开发者自行处理平台差异（如Windows用`cmd /c`，Linux用`/bin/sh`）。
+     Developers must handle platform differences (Windows cmd /c vs Linux /bin/sh).
    - **GeneralCommandLine**  
-     可能内置跨平台逻辑（如自动选择Shell），但具体实现取决于库版本。
+     May include built-in cross-platform logic (e.g., automatic shell selection), depending on library version.
 
-5. **异常处理**
+5. **Exception Handling**
    - **ProcessBuilder**  
-     抛出`IOException`，需手动处理低级异常。
+     Throws IOException, requiring manual low-level exception handling.
    - **GeneralCommandLine**  
-     可能封装异常为更友好的类型，并提供详细错误信息。
+     May wrap exceptions in friendlier types with more detailed error information.
 
-6. **适用场景**
-   - **选择ProcessBuilder**  
-     - 项目需避免第三方依赖。
-     - 需要底层控制（如自定义流重定向）。
-     - 已熟悉Java标准API。
-   - **选择GeneralCommandLine**  
-     - 开发IntelliJ插件或使用JetBrains库。
-     - 需要简洁、安全的API减少样板代码。
-     - 优先考虑开发效率和代码可读性。
-
-7. 总结对比表
-
-| 特性                | ProcessBuilder                          | GeneralCommandLine                     |
-|---------------------|-----------------------------------------|----------------------------------------|
-| **来源**            | Java标准库                              | JetBrains第三方库                      |
-| **依赖**            | 无需                                    | 需引入JetBrains库                      |
-| **API易用性**       | 基础，需手动处理参数                    | 链式调用，参数处理更安全               |
-| **跨平台支持**      | 需手动处理                              | 可能内置逻辑                           |
-| **输出处理**        | 需手动重定向                            | 可能封装高级功能                       |
-| **异常处理**        | 抛出IOException                         | 可能更友好的异常封装                   |
-| **适用场景**        | 无依赖需求或底层控制                    | 快速开发、代码简洁性优先               |
-
-根据项目需求选择：优先标准化和轻量级使用`ProcessBuilder`；追求开发效率和安全性且可接受依赖时，选择`GeneralCommandLine`。
+6. **Use Cases**
+   - **Choose ProcessBuilder when:**  
+     - Project must avoid third-party dependencies
+     - Need low-level control (e.g., custom stream redirection)
+     - Familiar with Java standard APIs
+   - **Choose GeneralCommandLine when:**  
+     - Developing IntelliJ plugins or using JetBrains libraries
+     - Need concise, safe APIs to reduce boilerplate
+     - Prioritize development efficiency and code readability
 ```
 
-所以我初始化stdio的code如下：
+So here's my code for initializing stdio:
 
 ```kotlin
 fun createProcess(c: StdioConfig): Process {
@@ -518,24 +504,24 @@ private fun createStdioTransport(
 }
 ```
 
-### 4. MCP server 配置文件的管理功能
+### 4. MCP server configuration file management
 
-这个主要是是参考了roo code的实现 [McpHub.ts](https://github.com/RooVetGit/Roo-Code/blob/main/src/services/mcp/McpHub.ts)，它是ts版本的，我把它转成了kotlin版本，这个代码有点长，只列出一些核心流程吧。
+This mainly references Roo's implementation in [McpHub.ts](https://github.com/RooVetGit/Roo-Code/blob/main/src/services/mcp/McpHub.ts). I converted it from TypeScript to Kotlin. The code is quite long, so I'll just list the core workflow:
 
-1. 在intellij plugin 插件初始化的时候，获取 project level和global level的 mcp setting 文件的内容
-2. 根据配置文件内容，初始化mcp server connection，获取server的name、tool list、status 等其他需要的信息
-3. 通过 val connections 持有所有的server connection
-4. 用户可以通过intellij plugin 的UI 查看所有server 的name、tool list、status 等信息
-5. 用户通过intellij plugin 的UI 对mcp server setting 文件进行增删改后，需要同步更新 val connections 以及 setting 文件内容
-6. 用户如果直接用file editor对setting 文件进行了修改，需要同步修改到 val connections 以及 intellij plugin 的UI
-7. 用户通过MCP client发送消息之前，获取所有的tool list，然后call llm，获取llm 建议调用的tool name以及具体参数，接着执行 mcp server tool 获取结果，最后在把tool 的结果，传回llm，获取最终答案。当然这些步骤是可以循环的，因为有可能需要循环多个不同的tool。
+1. When initializing the IntelliJ plugin, get the contents of MCP setting files at both project and global levels
+2. Based on config file contents, initialize MCP server connections, getting server names, tool lists, status, and other needed information
+3. Hold all server connections in the `connections` variable
+4. Users can view all servers' names, tool lists, status, etc. through the IntelliJ plugin UI
+5. When users add/delete/modify MCP server settings through the plugin UI, need to sync updates to both `connections` and settings files
+6. When users directly modify setting files with file editor, need to sync changes to `connections` and plugin UI
+7. Before sending messages via MCP client, get all tool lists, then call LLM, get suggested tool name and parameters from LLM, execute MCP server tool to get results, then pass tool results back to LLM for final answer. These steps can be cycled as multiple different tools may be needed.
 
 
-## 写在最后
+## Final Thoughts
 
-整个mcp client的实现过程，大概用了3周的时间，比我预期的慢了好多，因为现如今在LLM的加持下，开发的效率已经大大的提升。然而 LLM 在这个feature上的帮助其实并不大，要么是生成的代码几乎不可用，或者就是兜兜转转、各种尝试却无法解决问题。最后不得不手写代码，预计80%代码都是手写（从工业文明倒退回了农耕文明，非常难受，如果是python或者ts， 估计95%的都是LLM写的）。究其原因，可能是因为在 LLM 的训练数据中，intellij plugin 开发的代码太少了，LLM 不是很擅长。
+The whole MCP client implementation process took about 3 weeks, much slower than expected, as development efficiency has greatly improved with LLM support nowadays. However, LLM wasn't very helpful for this feature - either generating almost unusable code or going in circles with various attempts that couldn't solve the problem. In the end, I had to write the code manually, estimating 80% was hand-written (feeling like regressing from industrial to agricultural civilization - very uncomfortable. If using Python or TypeScript, probably 95% would be LLM-written). The reason might be that there's too little IntelliJ plugin development code in LLM training data, making it less proficient.
 
-最后总结一下经验就是：
+Final lessons learned:
 
-1. 尽量使用流行的语言去开发项目，比如python 或者 ts，LLM 会更擅长，这样子开发效率也会事半功倍
-2. 现阶段的LLM 可能还是很难根据**旧**的知识或者代码，产生**新**的知识或者代码
+1. Try to use popular languages like Python or TypeScript for projects - LLMs are more proficient with them, making development much more efficient
+2. Current LLMs may still struggle to generate **new** knowledge or code based on **old** knowledge or code
