@@ -181,8 +181,35 @@ This structure progresses from foundational concepts to advanced optimizations, 
 
 开始学习吧，把这些问题搞明白！
 
-
-
-## 附上几个LLM的回答
+### 附上几个LLM的回答
 
 直接放到Github Gist上了：https://gist.github.com/waltyou/575021afe2e8d2be0b59656e0e0f7a8d
+
+## 配置本地运行环境
+
+### 1. 下载源代码和checkout 版本
+
+```shell
+git clone https://github.com/apache/spark.git
+git checkout tags/v3.5.5 
+```
+
+因为 Spark 发展的很快，为了保持一致，这个系列都基于当前（2025-05-15）的最新版本3.5.5. 
+
+## 2. build
+
+follow this: docs/building-spark.md 或者参考我之前写的一篇[文章](../Spark-Source-Code-Build-And-Run-In-Idea-Intellij/)。
+
+### the issues i met and solutions
+
+我本地环境是 JDK 17， Windows 11.
+
+1. 运行`./build/mvn`： 用git bash运行，powershell无法运行这个命令
+2. package sun.misc does not exist： just disable `Use '--release' option for cross-compilation` in Java Compiler settings. [More details in stackoverflow](https://stackoverflow.com/questions/40448203/intellij-says-the-package-does-not-exist-but-i-can-access-the-package)
+3. class org.apache.spark.storage.storageutils$ cannot access class sun.nio.ch.directbuffer： Add the JVM option "--add-exports java.base/sun.nio.ch=ALL-UNNAMED" in Run Configuration. [More details in stackoverflow](https://stackoverflow.com/questions/73465937/apache-spark-3-3-0-breaks-on-java-17-with-cannot-access-class-sun-nio-ch-direct)
+
+
+## 3. Run SparkPi in example module
+
+[![](/images/posts/sparkpi-run-configuration.png)](/images/posts/sparkpi-run-configuration.png) 
+[![](/images/posts/sparkpi-run-result.png)](/images/posts/sparkpi-run-result.png) 
