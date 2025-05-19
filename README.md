@@ -12,3 +12,11 @@ The site is published at [site_url](https://waltyou.github.io/).
 - 机器学习：自己整理的一些入门知识、图片相似搜索Faiss框架
 
 详情查看[这里](https://waltyou.github.io/categories/)
+
+
+## run in local
+
+1. install jekyll: https://jekyllrb.com/docs/installation/#requirements
+2. gem install bundler
+3. bundle install
+4. jekyll serve

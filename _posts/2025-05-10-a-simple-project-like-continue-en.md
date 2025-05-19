@@ -6,6 +6,7 @@ author: admin
 comments: true
 categories: [GenAI]
 tags: [Tool]
+mermaid: true
 ---
 
 I created a simple project called CAT (Code Assistant Tool) to learn how Continue.dev works.
@@ -47,7 +48,7 @@ Continue.dev's architecture consists of three main components:
 
 ### Architecture
 
-```mermaid
+<div class="mermaid">
 graph TD
     subgraph "User Interface"
         UI[WebView UI]
@@ -82,11 +83,11 @@ graph TD
 
     %% User interaction
     User -->|Interacts| UI
-```
+</div>
 
 ### llm/streamChat Message Passing Process
 
-```mermaid
+<div class="mermaid">
 sequenceDiagram
     participant User
     participant WebUI as WebView UI
@@ -124,7 +125,7 @@ sequenceDiagram
         IdeM-->>WebUI: Update UI with chunk
         WebUI-->>User: Display response
     end
-```
+</div>
 
 
 ## Implementation Process of Cat
