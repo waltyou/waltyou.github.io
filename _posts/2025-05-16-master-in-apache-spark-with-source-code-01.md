@@ -166,6 +166,16 @@ class SparkContext(config: SparkConf) {
 
 #### 3.1 SchedulerBackend & TaskScheduler
 
+TaskScheduler 和 SchedulerBackend 这两个类在 Spark 的调度体系中各自负责不同的部分：
+
+* TaskScheduler 负责任务的调度与管理。它决定哪些任务（Task）应该被提交、重试、取消，以及如何分配任务到不同的资源（如 Executor）。它是调度的核心，直接与 DAGScheduler 交互，管理 TaskSet 的生命周期。
+* SchedulerBackend 负责与底层集群资源管理系统的交互。它负责启动、停止、杀死 Executor，向 TaskScheduler 提供资源（如 Worker/Executor 的可用性），并将任务实际发送到集群上运行。它是 TaskScheduler 和具体集群实现（如本地、Yarn、Mesos、K8s）之间的适配层。
+
+简言之：
+
+* TaskScheduler：管“任务”怎么调度、分配、重试、取消。
+* SchedulerBackend：管“资源”怎么申请、释放、与集群通信。
+
 这两个组件都是通过函数 createTaskScheduler 创建的，它根据给定的 master URL 创建任务调度器 TaskScheduler。
 
 核心功能：
@@ -227,7 +237,7 @@ scheduler.initialize(backend)
 
 > TaskSetManager 是单个 Stage 内任务生命周期的管理者和调度者。
 
-submitTasks 会构建一个 taskSetManager，然后调用 schedulableBuilder.addTaskSetManager(manager, manager.taskSet.properties)，schedulableBuilder里面有个 rootPool 变量，它会存有所有的tasks。
+submitTasks 会构建一个 taskSetManager，然后调用 schedulableBuilder.addTaskSetManager(manager, manager.taskSet.properties)，schedulableBuilder里面有个 rootPool 变量，它会存有所有的tasks，最后调用 backend.reviveOffers() 去launch task。
 
 接着当 resourceOffers 接收集群管理器（如 YARN、K8s）提供的资源 offer后，它会做如下事情：先过滤、整理资源，获取具体任务（val sortedTaskSets = rootPool.getSortedTaskSetQueue），再按调度策略和本地性分配任务，每个任务分配前会检查资源是否满足需求，支持 barrier、推测执行、健康检查等高级调度特性，任务分配后会更新内部状态，确保资源和任务的正确映射。
 
@@ -267,25 +277,56 @@ SchedulerBackend（trait）
 
 CoarseGrainedSchedulerBackend
 
-* Spark调度器后端，负责管理Executor的注册、移除、资源请求、任务分发等。
-* 维护Executor的状态、资源信息、注册情况等。
-* 通过DriverEndpoint与Executor通信，处理各种调度和资源管理消息。
-* 支持Executor的动态申请、移除、去除、Decommission等操作。
-* 提供与集群管理器（如Standalone、Yarn等）的抽象接口。
+* Executor 的注册与移除。Executor 启动后会向 Driver 注册，Driver 通过 DriverEndpoint.receiveAndReply 处理 RegisterExecutor 消息，校验、记录信息并回复。移除时，Driver 通过 RemoveExecutor 消息和 removeExecutor 方法清理状态、通知相关组件。
+* 资源调度与任务分发。Driver 端周期性触发 ReviveOffers，调用 makeOffers，遍历所有活跃的 executor，生成资源报价（WorkerOffer），交给 TaskSchedulerImpl 进行任务分配。分配后通过 launchTasks 发送任务到对应 executor。
+
+```scala
+private def makeOffers(): Unit = {
+  val taskDescs = withLock {
+    val activeExecutors = executorDataMap.filterKeys(isExecutorActive)
+    val workOffers = activeExecutors.map {
+      case (id, executorData) => buildWorkerOffer(id, executorData)
+    }.toIndexedSeq
+    scheduler.resourceOffers(workOffers, true)
+  }
+  if (taskDescs.nonEmpty) {
+    launchTasks(taskDescs)
+  }
+}
+```
+
+* 动态调整 Executor 数量。支持动态请求/释放 executor。requestExecutors 方法向集群管理器请求增加 executor，killExecutors 请求移除指定 executor。内部会维护期望的 executor 数量，并与集群管理器同步。
+* 任务状态更新与资源回收。Executor 执行任务后会向 Driver 上报任务状态（StatusUpdate），Driver 更新任务调度器状态，并回收资源（如释放 CPU、资源 slot），然后尝试再次调度任务。
+* 两个抽象方法 doRequestTotalExecutors 和 doKillExecutors 是 CoarseGrainedSchedulerBackend 及其子类（如 YarnSchedulerBackend）与集群管理器（如 YARN、Standalone、K8s）通信的关键抽象点。它们的作用分别是：
+  * doRequestTotalExecutors：请求集群管理器分配指定数量的 Executor（包括已存在和正在分配的）。该方法在 requestExecutors 和 requestTotalExecutors 这两个公开方法中被调用。这两个方法会根据当前需要的 Executor 数量，构造参数后调用 doRequestTotalExecutors，由子类实现具体的资源申请逻辑。例如，YARN 后端会重写该方法，通过 RPC 向 ApplicationMaster 发送请求。
+  * doKillExecutors：请求集群管理器杀死指定的 Executor。该方法在 killExecutors 这个公开方法中被调用。当需要杀死某些 Executor 时，killExecutors 会整理要杀死的 Executor 列表，然后调用 doKillExecutors，由子类实现具体的杀死逻辑。例如，YARN 后端会重写该方法，通过 RPC 通知 ApplicationMaster 杀死指定的 Executor。
+
 
 StandaloneSchedulerBackend
 
 * 继承自CoarseGrainedSchedulerBackend，实现Spark Standalone模式下的调度后端。
-* 负责与Standalone Master/Worker通信，管理Executor的生命周期。
+* 使用StandaloneAppClient 与Standalone Master/Worker通信，管理Executor的生命周期。
 * 实现Executor的注册、移除、去除、Decommission等具体逻辑。
 * 处理Standalone集群特有的资源管理和Executor丢失检测（快慢路径）。
 
 YarnSchedulerBackend
 
 * 继承自CoarseGrainedSchedulerBackend，实现YARN模式下的调度后端。
-* 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。
+* 通过 yarnSchedulerEndpointRef 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。
+
+```scala
+protected class YarnSchedulerEndpoint(override val rpcEnv: RpcEnv)
+  extends ThreadSafeRpcEndpoint with Logging {
+  ...
+  override def receive: PartialFunction[Any, Unit] = { ... }
+  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = { ... }
+  override def onDisconnected(remoteAddress: RpcAddress): Unit = { ... }
+}
+```
+
 * 处理YARN特有的资源请求、Executor丢失原因查询、AM注册等。
 * 支持YARN的多次尝试（ApplicationAttemptId）、WebUI代理等功能。
+
 
 YarnClientSchedulerBackend
 
