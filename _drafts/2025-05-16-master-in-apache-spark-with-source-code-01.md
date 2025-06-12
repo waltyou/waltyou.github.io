@@ -262,11 +262,15 @@ def reviveOffers(): Unit = {
 }
 ```
 
-再来看看 master=yarn时， YarnClusterManager 有client， cluster 两种模式。
+再来看看 master=yarn/k8s时， YarnClusterManager 有client， cluster 两种模式。
 
 taskScheduler 在client模式下是 YarnScheduler，它直接继承了 TaskSchedulerImpl，只是重写了func getRacksForHosts，通过hadoopConfiguration获取对应主机的机架信息。SchedulerBackend 是 YarnClientSchedulerBackend。在cluster模式下是 YarnClusterScheduler，继承了 YarnScheduler，重写了方法postStartHook，在里面调用了 `ApplicationMaster.sparkContextInitialized(sc)`.
 
-schedulerBackend 最好是整体角度学习，因为它复用了很多CoarseGrainedSchedulerBackend（通用实现）的方法。整体依赖关系如下：SchedulerBackend（接口）→ CoarseGrainedSchedulerBackend（通用实现）→ StandaloneSchedulerBackend/YarnSchedulerBackend（具体集群实现）→ YarnClientSchedulerBackend（YARN client模式实现）/ YarnClusterSchedulerBackend（YARN cluster模式实现）。
+schedulerBackend 最好是整体角度学习，因为它复用了很多CoarseGrainedSchedulerBackend（通用实现）的方法。整体依赖关系如下：
+  SchedulerBackend（接口）→ CoarseGrainedSchedulerBackend（通用实现）
+    → StandaloneSchedulerBackend
+    → YarnSchedulerBackend（具体集群实现）→ YarnClientSchedulerBackend（YARN client模式实现）/ YarnClusterSchedulerBackend（YARN cluster模式实现）
+    → KubernetesClusterSchedulerBackend
 
 依次介绍一下各个的主要功能。
 
@@ -314,15 +318,30 @@ YarnSchedulerBackend
 * 继承自CoarseGrainedSchedulerBackend，实现YARN模式下的调度后端。
 * 通过 yarnSchedulerEndpointRef 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。
 
-```scala
-protected class YarnSchedulerEndpoint(override val rpcEnv: RpcEnv)
-  extends ThreadSafeRpcEndpoint with Logging {
-  ...
-  override def receive: PartialFunction[Any, Unit] = { ... }
-  override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = { ... }
-  override def onDisconnected(remoteAddress: RpcAddress): Unit = { ... }
-}
-```
+  ```scala
+  protected class YarnSchedulerEndpoint(override val rpcEnv: RpcEnv)
+    extends ThreadSafeRpcEndpoint with Logging {
+    ...
+    override def receive: PartialFunction[Any, Unit] = { ... }
+    override def receiveAndReply(context: RpcCallContext): PartialFunction[Any, Unit] = { ... }
+    override def onDisconnected(remoteAddress: RpcAddress): Unit = { ... }
+  }
+  ```
+  YarnSchedulerBackend 和 ApplicationMaster 之间的通信主要通过 Spark 的 RPC 框架实现，具体流程如下：
+
+  1. 初始化通信
+  YarnSchedulerBackend 在 Driver 端运行，负责与 ApplicationMaster 通信。
+  在 YarnSchedulerBackend 的初始化过程中，会通过 RpcEndpointRef 获取到 ApplicationMaster 的引用。
+  2. 请求资源
+  YarnSchedulerBackend 调用 ApplicationMaster 的 RPC 接口（如 RequestExecutors），向 YARN 申请资源（Executor 数量）。
+  这些请求会被 ApplicationMaster 的 YarnAllocator 处理，向 YARN ResourceManager 申请 Container。
+  3. 资源分配反馈
+  ApplicationMaster 收到 ResourceManager 分配的 Container 后，通过 RPC 通知 YarnSchedulerBackend，包括分配的 Executor 信息（如主机名、资源等）。
+  4. Executor 启动
+  ApplicationMaster 使用 ExecutorRunnable 在分配的 Container 中启动 Executor 进程。
+  启动后，Executor 会向 Driver 注册，YarnSchedulerBackend 记录这些注册信息。
+  5. 动态调整资源
+  如果需要增加或减少 Executor，YarnSchedulerBackend 会再次通过 RPC 通知 ApplicationMaster，由 YarnAllocator 调整资源分配。
 
 * 处理YARN特有的资源请求、Executor丢失原因查询、AM注册等。
 * 支持YARN的多次尝试（ApplicationAttemptId）、WebUI代理等功能。
@@ -353,6 +372,15 @@ YarnClientSchedulerBackend
    - `YarnClusterSchedulerBackend` 重写了 `getDriverLogUrls` 和 `getDriverAttributes`，通过 YARN 容器信息获取 driver 日志和属性。
    - `YarnClientSchedulerBackend` 没有重写这些方法。
 
+
+KubernetesClusterSchedulerBackend
+
+* 启动和停止时，管理 Kubernetes 相关资源（如 ConfigMap、Service、PVC、Pod 等），确保 Spark 任务生命周期内资源的正确创建与回收。
+* 通过 podAllocator 控制期望的 executor 数量，动态调整 Pod 数量。
+* 下线 executor 时，先给 Pod 打上 decommission 标签，再尝试优雅下线，最后定时强制删除未能正常下线的 Pod。
+* 通过 KubernetesDriverEndpoint，在 executor 注册前生成唯一 ID，并为 Pod 打上对应标签。
+* 判断 executor 是否已被删除，避免重复注册。
+* 针对 Hadoop delegation token，结合 Spark 配置和 Kubernetes 环境初始化。
 
 
 #### 3.2 DAGScheduler
