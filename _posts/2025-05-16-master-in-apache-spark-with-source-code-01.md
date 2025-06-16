@@ -14,7 +14,8 @@ mermaid: true
 ---
 
 * 目录
-{:toc}
+  {:toc}
+
 ---
 
 ## 前言
@@ -26,7 +27,7 @@ mermaid: true
    *Key files:* `SparkContext.scala`, `SparkSession.scala`
 ```
 
-## 解答
+## 学习过程
 
 ### 1. 入口 SparkSession.scala
 
@@ -65,7 +66,7 @@ catalog              // 管理数据库、表、函数等
 table()              // 访问表/视图
 ```
 
-#### 1.2 Object SparkSession 
+#### 1.2 Object SparkSession
 
 主要是builder class以及一些操作session的静态方法，如：
 
@@ -77,7 +78,7 @@ setDefaultSession         // 设置默认会话
 ...
 ```
 
-#### 1.3 Class Builder 
+#### 1.3 Class Builder
 
 用于构建 SparkSession 的构建器，主要配置方法:
 
@@ -97,7 +98,6 @@ setDefaultSession         // 设置默认会话
 * 维护全局默认会话
 * 支持每个线程独立的活跃会话
 
-
 扩展机制
 
 * 支持通过 SparkSessionExtensions 进行扩展
@@ -107,9 +107,7 @@ setDefaultSession         // 设置默认会话
   * 规划策略
   * 自定义解析器
 
-
 这个拓展机制还挺有意思，之前都是通过其它方式注入这些规则的，并没有一个统一的入口。
-
 
 ### 2. 仔细看看 builder.getOrCreate() 方法
 
@@ -119,13 +117,13 @@ SparkSession 的实例是方法 builder.getOrCreate() 创建的，简约的过�
 def getOrCreate(): SparkSession = synchronized {
   // 1. 创建 SparkConf
   val sparkConf = new SparkConf()
-  
+
   // 2. 创建或获取 SparkContext
   val sparkContext = userSuppliedContext.getOrElse {
     // 创建新的 SparkContext
     SparkContext.getOrCreate(sparkConf)
   }
-  
+
   // 3. 创建 SparkSession
   session = new SparkSession(sparkContext, ...)
 }
@@ -140,7 +138,7 @@ def getOrCreate(): SparkSession = synchronized {
 class SparkContext(config: SparkConf) {
   // 2. 记录创建现场
   private val creationSite = Utils.getCallSite()
-  
+
   // 3. 标记正在构造
   SparkContext.markPartiallyConstructed(this)
 
@@ -150,13 +148,13 @@ class SparkContext(config: SparkConf) {
   _statusTracker = new SparkStatusTracker(this) // 状态跟踪
   _progressBar = new ConsoleProgressBar() // 进度条
   _ui = new SparkUI() // UI界面
-  
+
   // 5. 创建和启动调度系统
   val (sched, ts) = SparkContext.createTaskScheduler(this, master)
   _schedulerBackend = sched
   _taskScheduler = ts
   _dagScheduler = new DAGScheduler(this)
-  
+
   // 6. 最后标记为激活状态
   SparkContext.setActiveContext(this)
 }
@@ -241,7 +239,6 @@ submitTasks 会构建一个 taskSetManager，然后调用 schedulableBuilder.add
 
 接着当 resourceOffers 接收集群管理器（如 YARN、K8s）提供的资源 offer后，它会做如下事情：先过滤、整理资源，获取具体任务（val sortedTaskSets = rootPool.getSortedTaskSetQueue），再按调度策略和本地性分配任务，每个任务分配前会检查资源是否满足需求，支持 barrier、推测执行、健康检查等高级调度特性，任务分配后会更新内部状态，确保资源和任务的正确映射。
 
-
 `LocalSchedulerBackend` 类比较简单，它用于在单 JVM 内调度和管理任务，实现了 SchedulerBackend 和 ExecutorBackend 接口，主要功能有这些：
 
 1. 启动本地调度后端：初始化本地端点、连接 Launcher、注册 Executor，并设置应用状态为 RUNNING
@@ -305,7 +302,6 @@ private def makeOffers(): Unit = {
   * doRequestTotalExecutors：请求集群管理器分配指定数量的 Executor（包括已存在和正在分配的）。该方法在 requestExecutors 和 requestTotalExecutors 这两个公开方法中被调用。这两个方法会根据当前需要的 Executor 数量，构造参数后调用 doRequestTotalExecutors，由子类实现具体的资源申请逻辑。例如，YARN 后端会重写该方法，通过 RPC 向 ApplicationMaster 发送请求。
   * doKillExecutors：请求集群管理器杀死指定的 Executor。该方法在 killExecutors 这个公开方法中被调用。当需要杀死某些 Executor 时，killExecutors 会整理要杀死的 Executor 列表，然后调用 doKillExecutors，由子类实现具体的杀死逻辑。例如，YARN 后端会重写该方法，通过 RPC 通知 ApplicationMaster 杀死指定的 Executor。
 
-
 StandaloneSchedulerBackend
 
 * 继承自CoarseGrainedSchedulerBackend，实现Spark Standalone模式下的调度后端。
@@ -316,8 +312,9 @@ StandaloneSchedulerBackend
 YarnSchedulerBackend
 
 * 继承自CoarseGrainedSchedulerBackend，实现YARN模式下的调度后端。
-* 通过 yarnSchedulerEndpointRef 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。
 
+* 通过 yarnSchedulerEndpointRef 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。
+  
   ```scala
   protected class YarnSchedulerEndpoint(override val rpcEnv: RpcEnv)
     extends ThreadSafeRpcEndpoint with Logging {
@@ -327,25 +324,26 @@ YarnSchedulerBackend
     override def onDisconnected(remoteAddress: RpcAddress): Unit = { ... }
   }
   ```
+  
   YarnSchedulerBackend 和 ApplicationMaster 之间的通信主要通过 Spark 的 RPC 框架实现，具体流程如下：
-
+  
   1. 初始化通信
-  YarnSchedulerBackend 在 Driver 端运行，负责与 ApplicationMaster 通信。
-  在 YarnSchedulerBackend 的初始化过程中，会通过 RpcEndpointRef 获取到 ApplicationMaster 的引用。
+     YarnSchedulerBackend 在 Driver 端运行，负责与 ApplicationMaster 通信。
+     在 YarnSchedulerBackend 的初始化过程中，会通过 RpcEndpointRef 获取到 ApplicationMaster 的引用。
   2. 请求资源
-  YarnSchedulerBackend 调用 ApplicationMaster 的 RPC 接口（如 RequestExecutors），向 YARN 申请资源（Executor 数量）。
-  这些请求会被 ApplicationMaster 的 YarnAllocator 处理，向 YARN ResourceManager 申请 Container。
+     YarnSchedulerBackend 调用 ApplicationMaster 的 RPC 接口（如 RequestExecutors），向 YARN 申请资源（Executor 数量）。
+     这些请求会被 ApplicationMaster 的 YarnAllocator 处理，向 YARN ResourceManager 申请 Container。
   3. 资源分配反馈
-  ApplicationMaster 收到 ResourceManager 分配的 Container 后，通过 RPC 通知 YarnSchedulerBackend，包括分配的 Executor 信息（如主机名、资源等）。
+     ApplicationMaster 收到 ResourceManager 分配的 Container 后，通过 RPC 通知 YarnSchedulerBackend，包括分配的 Executor 信息（如主机名、资源等）。
   4. Executor 启动
-  ApplicationMaster 使用 ExecutorRunnable 在分配的 Container 中启动 Executor 进程。
-  启动后，Executor 会向 Driver 注册，YarnSchedulerBackend 记录这些注册信息。
+     ApplicationMaster 使用 ExecutorRunnable 在分配的 Container 中启动 Executor 进程。
+     启动后，Executor 会向 Driver 注册，YarnSchedulerBackend 记录这些注册信息。
   5. 动态调整资源
-  如果需要增加或减少 Executor，YarnSchedulerBackend 会再次通过 RPC 通知 ApplicationMaster，由 YarnAllocator 调整资源分配。
+     如果需要增加或减少 Executor，YarnSchedulerBackend 会再次通过 RPC 通知 ApplicationMaster，由 YarnAllocator 调整资源分配。
 
 * 处理YARN特有的资源请求、Executor丢失原因查询、AM注册等。
-* 支持YARN的多次尝试（ApplicationAttemptId）、WebUI代理等功能。
 
+* 支持YARN的多次尝试（ApplicationAttemptId）、WebUI代理等功能。
 
 YarnClientSchedulerBackend
 
@@ -353,25 +351,27 @@ YarnClientSchedulerBackend
 * 负责通过YARN Client提交应用，监控应用状态，处理异常终止等。
 * 维护与YARN ResourceManager的连接，处理应用的启动、监控和关闭。
 
-
 `YarnClientSchedulerBackend` 和 `YarnClusterSchedulerBackend` 都继承自 `YarnSchedulerBackend`，但它们分别用于 YARN 的 client 模式和 cluster 模式。源码层面的主要区别如下：
 
 1. **应用提交方式不同**  
+   
    - `YarnClientSchedulerBackend` 负责在 client 模式下通过 `Client` 类主动向 YARN ResourceManager 提交应用（`client.submitApplication()`），并在本地 driver 进程中运行 driver 逻辑。
    - `YarnClusterSchedulerBackend` 用于 cluster 模式，driver 运行在 YARN ApplicationMaster 容器中，通过 `ApplicationMaster.getAttemptId` 获取应用信息并绑定。
 
 2. **启动流程不同**  
+   
    - `YarnClientSchedulerBackend.start()`：先调用 `super.start()`，然后创建 `Client`，提交应用，等待应用运行，并启动监控线程监控应用状态。
    - `YarnClusterSchedulerBackend.start()`：获取 ApplicationMaster 的 attemptId，绑定到 YARN，调用 `super.start()`，不需要本地提交应用。
 
 3. **监控与退出机制不同**  
+   
    - `YarnClientSchedulerBackend` 有专门的 `MonitorThread`，监控 YARN 应用状态，发现异常时会主动调用 `sc.stop()` 并可能退出 JVM。
    - `YarnClusterSchedulerBackend` 没有类似的本地监控线程，driver 生命周期由 YARN ApplicationMaster 管理。
 
 4. **日志和属性获取方式不同**  
+   
    - `YarnClusterSchedulerBackend` 重写了 `getDriverLogUrls` 和 `getDriverAttributes`，通过 YARN 容器信息获取 driver 日志和属性。
    - `YarnClientSchedulerBackend` 没有重写这些方法。
-
 
 KubernetesClusterSchedulerBackend
 
@@ -382,7 +382,175 @@ KubernetesClusterSchedulerBackend
 * 判断 executor 是否已被删除，避免重复注册。
 * 针对 Hadoop delegation token，结合 Spark 配置和 Kubernetes 环境初始化。
 
-
 #### 3.2 DAGScheduler
 
-To be continue....
+`DAGScheduler` 是 Spark 的高层调度器，负责将用户提交的作业（Job）划分为多个阶段（Stage），并调度这些阶段在集群上执行。其主要结构和职责如下：
+
+1. 主要职责：
+   * 解析 RDD 依赖关系，构建作业的有向无环图（DAG）。
+   * 根据 shuffle 依赖将作业划分为多个 Stage。
+   * 跟踪 Stage 和 RDD 的缓存状态，避免重复计算。
+   * 计算每个任务的最佳调度位置（数据本地性）。
+   * 处理 Stage/Task 的失败与重试。
+   * 维护作业、阶段、任务的生命周期和状态。
+
+2. 关键成员变量：
+   * `nextJobId`、`nextStageId`：生成作业和阶段的唯一 ID。
+   * `jobIdToStageIds`、`stageIdToStage`、`shuffleIdToMapStage`：作业、阶段、shuffle 的映射关系。
+   * `waitingStages`、`runningStages`、`failedStages`：跟踪不同状态的阶段集合。
+   * `activeJobs`、`jobIdToActiveJob`：当前活跃的作业。
+   * `cacheLocs`：RDD 分区的缓存位置。
+   * `eventProcessLoop`：事件循环，异步处理调度事件。
+
+3. 主要方法：
+   * `submitJob`/`runJob`：提交作业，触发调度。
+   * `createShuffleMapStage`/`createResultStage`：创建阶段。
+   * `submitStage`/`submitMissingTasks`：递归提交阶段及其依赖。
+   * `handleTaskCompletion`/`handleStageFailed`：处理任务/阶段完成或失败。
+   * `cancelJob`/`cancelStage`/`cancelAllJobs`：取消作业或阶段。
+   * `getPreferredLocs`：获取分区的最佳调度位置。
+
+4. 事件驱动：
+   * 通过 `DAGSchedulerEventProcessLoop` 事件循环，异步处理任务开始、结束、失败、资源丢失等事件，保证调度的线程安全和高效。
+
+5. 生命周期管理：
+   * 作业和阶段完成后，及时清理相关状态，防止内存泄漏。
+
+主要工作流程是：
+
+1. 作业提交：用户触发 RDD 的 action 类算子（如 count()），SparkContext 会调用 DAGScheduler.submitJob 或者 runJob，会将job提交到调度器。submitJob 在做了必要的检查后，会构造一个JobWaiter，然后构造 JobSubmitted 事件，投递到 eventProcessLoop（事件循环），由调度线程异步处理作业调度。eventProcessLoop 的守护进程获取的消息，调用 DAGSchedulerEventProcessLoop 实现的 onReceive 方法，其实就是调用 doOnReceive方法，doOnReceive 会根据event 的类型调用相关的处理函数。if is handleJobSubmitted， call handleJobSubmitted。
+2. 作业分解: handleJobSubmitted 函数中调用 createResultStage， createResultStage 调用 getOrCreateParentStages，递归查找所有上游的 shuffle 依赖，当遇到 ShuffleDependency（宽依赖）时就会切分 Stage，并生成一个 ShuffleMapStage， 它负责生成 shuffle 数据，最终返回一个 ResultStage 来保留最终输出结果。
+3. 阶段调度：拆分后的 Stage 通过 submitStage 递归提交，确保所有依赖的父 Stage 已经完成。
+4. 任务提交：当某个 Stage 的所有依赖都满足后，submitMissingTasks 会为该 Stage 创建 TaskSet，并交给底层的 TaskScheduler 执行。
+5. 任务执行与事件处理：任务开始、结束、失败等事件通过 eventProcessLoop 事件循环异步处理，分别调用如 taskStarted、taskEnded、handleTaskCompletion 等方法。
+6. 失败处理与重试: 如果任务或 Stage 失败，handleStageFailed、resubmitFailedStages 等方法会负责重试或终止作业。
+7. 作业/阶段完成与清理: 当所有任务完成后，markStageAsFinished、cleanupStateForJobAndIndependentStages 等方法会清理状态，释放资源。
+
+## 总结
+
+SparkContext 中初始化了 DAGScheduler， TaskScheduler 和 SchedulerBackend 等关键组件。其中	DAGScheduler 负责将提交的job分割为多个stage，然后为stage生成taskSet，并提交到taskScheudler里面执行；TaskScheduler 负责taskSet 的管理，以及如何分配到tasks到不同的资源；SchedulerBackend 负责与集群底层资源交互，管理executor，并向 TaskScheduler 提供资源，并将task 发送到集群上运行。
+
+SchedulerBackend 有多种实现，具体以来关系如下：
+
+<div class="mermaid">
+classDiagram
+    class SchedulerBackend {
+    }
+    class CoarseGrainedSchedulerBackend {
+    }
+    class StandaloneSchedulerBackend {
+    }
+    class YarnSchedulerBackend {
+    }
+    class YarnClientSchedulerBackend {
+    }
+    class YarnClusterSchedulerBackend {
+    }
+    class KubernetesClusterSchedulerBackend {
+    }
+    
+    SchedulerBackend <|-- CoarseGrainedSchedulerBackend : 实现
+    CoarseGrainedSchedulerBackend <|-- StandaloneSchedulerBackend : 继承
+    CoarseGrainedSchedulerBackend <|-- YarnSchedulerBackend : 继承
+    YarnSchedulerBackend <|-- YarnClientSchedulerBackend : 继承
+    YarnSchedulerBackend <|-- YarnClusterSchedulerBackend : 继承
+    CoarseGrainedSchedulerBackend <|-- KubernetesClusterSchedulerBackend : 继承    
+</div>
+
+其中 CoarseGrainedSchedulerBackend 会管理 executor、资源调度、任务分发、任务状态更新与资源回收，同时它也创建了两个protected 函数 `doRequestTotalExecutors` 和 `doKillExecutors` 用来作为与集群管理器（YARN、Standalone、K8s）通信的关键抽象点。
+
+CoarseGrainedSchedulerBackend 内部的 reviveThread 会定时调用 DriverEndpoint 的 ReviveOffers，触发资源调度。然后DriverEndpoint 收到 ReviveOffers 后，会收集当前可用的 executor 资源，并调用 TaskSchedulerImpl.resourceOffers。TaskSchedulerImpl.resourceOffers 根据资源和待调度任务，生成一批 TaskDescription（即 taskDescs）。DriverEndpoint.launchTasks 将这些 TaskDescription 通过 RPC 发送到对应的 executor 上，由 executor 执行任务。
+
+StandaloneSchedulerBackend 会通过 StandaloneAppClient 与Standalone Master/Worker通信，管理Executor的生命周期。
+
+<div class="mermaid">
+sequenceDiagram
+    participant User
+    participant StandaloneSchedulerBackend
+    participant StandaloneAppClient
+    participant Master
+    participant Worker
+    participant Executor
+    participant LauncherBackend
+
+    User->>StandaloneSchedulerBackend: start()
+    StandaloneSchedulerBackend->>LauncherBackend: connect() (client模式)
+    StandaloneSchedulerBackend->>StandaloneAppClient: new/start()
+    StandaloneAppClient->>Master: 注册 Application
+    Master->>Worker: 分配资源，启动 Executor
+    Worker->>Executor: 启动进程
+    Executor->>StandaloneSchedulerBackend: 注册/心跳
+    StandaloneSchedulerBackend->>Executor: 分配任务
+    Executor->>StandaloneSchedulerBackend: 状态/心跳/退出
+    StandaloneSchedulerBackend->>StandaloneAppClient: 请求/杀死 Executor
+    StandaloneSchedulerBackend->>LauncherBackend: setState(状态变更)
+    StandaloneSchedulerBackend->>User: 任务完成/失败回调
+</div>
+
+
+YarnSchedulerBackend 会通过 yarnSchedulerEndpointRef 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。YarnClientSchedulerBackend 和 YarnClusterSchedulerBackend 分别用于 YARN 的 client 模式和 cluster 模式，区别就是driver 在本地，还是cluster上某个地方。
+
+YarnSchedulerBackend 和 Yarn 资源管理交互过程如下图：
+
+<div class="mermaid">
+sequenceDiagram
+    participant YarnSchedulerBackend as YarnSchedulerBackend (Driver)
+    participant ApplicationMaster as ApplicationMaster
+    participant ResourceManager as YARN ResourceManager
+    participant Executor as Executor
+    
+    Note over YarnSchedulerBackend: 初始化阶段
+    YarnSchedulerBackend->>ApplicationMaster: 通过RpcEndpointRef获取引用
+    
+    Note over YarnSchedulerBackend: 请求资源阶段
+    YarnSchedulerBackend->>ApplicationMaster: 调用RequestExecutors RPC接口
+    ApplicationMaster->>ResourceManager: 申请Container资源
+    
+    Note over ApplicationMaster: 资源分配阶段
+    ResourceManager-->>ApplicationMaster: 返回分配的Container
+    ApplicationMaster-->>YarnSchedulerBackend: 通过RPC通知Executor信息
+    
+    Note over ApplicationMaster: Executor启动阶段
+    ApplicationMaster->>Executor: 使用ExecutorRunnable启动进程
+    Executor->>YarnSchedulerBackend: 向Driver注册
+    
+    Note over YarnSchedulerBackend: 动态调整阶段
+    YarnSchedulerBackend->>ApplicationMaster: RPC通知增减Executor
+    ApplicationMaster->>ResourceManager: 调整资源分配    
+</div>
+
+
+KubernetesClusterSchedulerBackend 通过 KubernetesClient 与 Kubernetes API 服务器通信，负责创建、删除、查询和管理 Pod、Service、ConfigMap、PVC 等 Kubernetes 资源。另外通过podAllocator（通常是 AbstractPodsAllocator 的实现类）负责根据 Spark 的资源需求，动态分配和回收 Executor Pod，决定何时创建或删除 Executor Pod，并与 kubernetesClient 协作完成具体的资源操作。
+
+<div class="mermaid">
+sequenceDiagram
+    participant Scheduler as TaskSchedulerImpl
+    participant Backend as KubernetesClusterSchedulerBackend
+    participant Allocator as AbstractPodsAllocator
+    participant K8sClient as KubernetesClient
+    participant Lifecycle as ExecutorPodsLifecycleManager
+    participant Watch as ExecutorPodsWatchSnapshotSource
+    participant Poll as ExecutorPodsPollingSnapshotSource
+
+    Scheduler->>Backend: start()
+    Backend->>Allocator: podAllocator.start()
+    Backend->>Allocator: setTotalExpectedExecutors()
+    Backend->>Lifecycle: lifecycleEventHandler.start()
+    Backend->>Watch: watchEvents.start()
+    Backend->>Poll: pollEvents.start()
+    Backend->>K8sClient: (可选) 创建ConfigMap
+
+    Scheduler->>Backend: doRequestTotalExecutors()
+    Backend->>Allocator: setTotalExpectedExecutors()
+
+    Scheduler->>Backend: doKillExecutors()
+    Backend->>K8sClient: 标记Pod为decommissioning
+    Backend->>K8sClient: 删除Pod
+
+    Scheduler->>Backend: stop()
+    Backend->>Allocator: podAllocator.stop()
+    Backend->>Lifecycle: lifecycleEventHandler.stop()
+    Backend->>Watch: watchEvents.stop()
+    Backend->>Poll: pollEvents.stop()
+    Backend->>K8sClient: 删除Service/PVC/ConfigMap/关闭连接
+</div>

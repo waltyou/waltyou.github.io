@@ -213,3 +213,11 @@ follow this: docs/building-spark.md 或者参考我之前写的一篇[文章](..
 
 [![](/images/posts/sparkpi-run-configuration.png)](/images/posts/sparkpi-run-configuration.png) 
 [![](/images/posts/sparkpi-run-result.png)](/images/posts/sparkpi-run-result.png) 
+
+
+## 问题的答案链接
+
+### 核心架构与初始化  
+
+1. [问题 01・一、核心架构 | SparkContext 初始化链路（DAGScheduler/TaskScheduler 与集群管理器交互）](../master-in-apache-spark-with-source-code-01) 
+2. stay tuned...
