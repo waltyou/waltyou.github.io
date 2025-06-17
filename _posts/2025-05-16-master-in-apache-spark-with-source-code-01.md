@@ -14,8 +14,7 @@ mermaid: true
 ---
 
 * 目录
-  {:toc}
-
+{:toc}
 ---
 
 ## 前言
