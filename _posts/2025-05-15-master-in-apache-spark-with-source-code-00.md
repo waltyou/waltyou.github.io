@@ -220,4 +220,6 @@ follow this: docs/building-spark.md 或者参考我之前写的一篇[文章](..
 ### 核心架构与初始化  
 
 1. [问题 01・一、核心架构 ・ SparkContext 初始化链路（DAGScheduler/TaskScheduler 与集群管理器交互）](../master-in-apache-spark-with-source-code-01)  
-2. stay tuned...
+2. [问题 02・一、核心架构 ・ DAG 调度器作业划分逻辑（Stage 边界与 Shuffle 依赖解析）](../master-in-apache-spark-with-source-code-02)  
+
+stay tuned...
