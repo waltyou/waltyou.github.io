@@ -90,7 +90,7 @@ ShuffleQueryStage 1
             +- Exchange hashpartitioning(cust_id#199, devc_name_norm#203, prmry_reside_cntry_code#200, 200), ENSURE_REQUIREMENTS, [id=#621]
                +- *(1) HashAggregate(keys=[cust_id#199, devc_name_norm#203, prmry_reside_cntry_code#200], functions=[], output=[cust_id#199, devc_name_norm#203, prmry_reside_cntry_code#200])
                   +- *(1) Project [cust_id#199, prmry_reside_cntry_code#200 AS devc_name_norm#203, prmry_reside_cntry_code#200]
-                     +- FileScan csv [cust_id#199,prmry_reside_cntry_code#200] Batched: false, DataFilters: [], Format: CSV, Location: InMemoryFileIndex[gs://pypl-bkt-rsh-row-std-gds-art/tmp/yonyou_test.csv], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<cust_id:string,prmry_reside_cntry_code:string>
+                     +- FileScan csv [cust_id#199,prmry_reside_cntry_code#200] Batched: false, DataFilters: [], Format: CSV, Location: InMemoryFileIndex[gs://xxxx/test.csv], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<cust_id:string,prmry_reside_cntry_code:string>
 
   at org.apache.spark.sql.catalyst.errors.package$.attachTree(package.scala:56)
   at org.apache.spark.sql.execution.adaptive.ShuffleQueryStageExec.doMaterialize(QueryStageExec.scala:162)
