@@ -431,7 +431,7 @@ SparkContext 中初始化了 DAGScheduler， TaskScheduler 和 SchedulerBackend 
 
 SchedulerBackend 有多种实现，具体以来关系如下：
 
-<div class="mermaid">
+```mermaid
 classDiagram
     class SchedulerBackend {
     }
@@ -453,8 +453,8 @@ classDiagram
     CoarseGrainedSchedulerBackend <|-- YarnSchedulerBackend : 继承
     YarnSchedulerBackend <|-- YarnClientSchedulerBackend : 继承
     YarnSchedulerBackend <|-- YarnClusterSchedulerBackend : 继承
-    CoarseGrainedSchedulerBackend <|-- KubernetesClusterSchedulerBackend : 继承    
-</div>
+    CoarseGrainedSchedulerBackend <|-- KubernetesClusterSchedulerBackend : 继承
+```
 
 其中 CoarseGrainedSchedulerBackend 会管理 executor、资源调度、任务分发、任务状态更新与资源回收，同时它也创建了两个protected 函数 `doRequestTotalExecutors` 和 `doKillExecutors` 用来作为与集群管理器（YARN、Standalone、K8s）通信的关键抽象点。
 
@@ -462,7 +462,7 @@ CoarseGrainedSchedulerBackend 内部的 reviveThread 会定时调用 DriverEndpo
 
 StandaloneSchedulerBackend 会通过 StandaloneAppClient 与Standalone Master/Worker通信，管理Executor的生命周期。
 
-<div class="mermaid">
+```mermaid
 sequenceDiagram
     participant User
     participant StandaloneSchedulerBackend
@@ -484,14 +484,14 @@ sequenceDiagram
     StandaloneSchedulerBackend->>StandaloneAppClient: 请求/杀死 Executor
     StandaloneSchedulerBackend->>LauncherBackend: setState(状态变更)
     StandaloneSchedulerBackend->>User: 任务完成/失败回调
-</div>
+```
 
 
 YarnSchedulerBackend 会通过 yarnSchedulerEndpointRef 负责与YARN ApplicationMaster通信，管理Executor的分配和回收。YarnClientSchedulerBackend 和 YarnClusterSchedulerBackend 分别用于 YARN 的 client 模式和 cluster 模式，区别就是driver 在本地，还是cluster上某个地方。
 
 YarnSchedulerBackend 和 Yarn 资源管理交互过程如下图：
 
-<div class="mermaid">
+```mermaid
 sequenceDiagram
     participant YarnSchedulerBackend as YarnSchedulerBackend (Driver)
     participant ApplicationMaster as ApplicationMaster
@@ -515,13 +515,13 @@ sequenceDiagram
     
     Note over YarnSchedulerBackend: 动态调整阶段
     YarnSchedulerBackend->>ApplicationMaster: RPC通知增减Executor
-    ApplicationMaster->>ResourceManager: 调整资源分配    
-</div>
+    ApplicationMaster->>ResourceManager: 调整资源分配
+```
 
 
 KubernetesClusterSchedulerBackend 通过 KubernetesClient 与 Kubernetes API 服务器通信，负责创建、删除、查询和管理 Pod、Service、ConfigMap、PVC 等 Kubernetes 资源。另外通过podAllocator（通常是 AbstractPodsAllocator 的实现类）负责根据 Spark 的资源需求，动态分配和回收 Executor Pod，决定何时创建或删除 Executor Pod，并与 kubernetesClient 协作完成具体的资源操作。
 
-<div class="mermaid">
+```mermaid
 sequenceDiagram
     participant Scheduler as TaskSchedulerImpl
     participant Backend as KubernetesClusterSchedulerBackend
@@ -552,4 +552,4 @@ sequenceDiagram
     Backend->>Watch: watchEvents.stop()
     Backend->>Poll: pollEvents.stop()
     Backend->>K8sClient: 删除Service/PVC/ConfigMap/关闭连接
-</div>
+```

@@ -48,7 +48,7 @@ Continue.dev's architecture consists of three main components:
 
 ### Architecture
 
-<div class="mermaid">
+```mermaid
 graph TD
     subgraph "User Interface"
         UI[WebView UI]
@@ -83,11 +83,11 @@ graph TD
 
     %% User interaction
     User -->|Interacts| UI
-</div>
+```
 
 ### llm/streamChat Message Passing Process
 
-<div class="mermaid">
+```mermaid
 sequenceDiagram
     participant User
     participant WebUI as WebView UI
@@ -125,7 +125,7 @@ sequenceDiagram
         IdeM-->>WebUI: Update UI with chunk
         WebUI-->>User: Display response
     end
-</div>
+```
 
 
 ## Implementation Process of Cat

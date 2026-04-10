@@ -1,8 +1,26 @@
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script type="text/javascript" src="/js/mermaid.min.js">
-</script>
+<script type="text/javascript" src="/js/mermaid.min.js"></script>
 <script>
-    $(document).ready(function () {
-        mermaid.initialize({});
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'default'
+    });
+    
+    function decodeHtml(html) {
+        var txt = document.createElement("textarea");
+        txt.innerHTML = html;
+        return txt.value;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        var codeBlocks = document.querySelectorAll('pre code.language-mermaid');
+        codeBlocks.forEach(function(block) {
+            var pre = block.parentElement;
+            var code = decodeHtml(block.innerHTML);
+            var div = document.createElement('div');
+            div.className = 'mermaid';
+            div.textContent = code;
+            pre.parentNode.replaceChild(div, pre);
+        });
+        mermaid.init(undefined, '.mermaid');
     });
 </script>

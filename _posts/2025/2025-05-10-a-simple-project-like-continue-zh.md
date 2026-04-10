@@ -48,47 +48,47 @@ Continue.dev的架构由三个主要组件组成：
 
 ### 架构
 
-<div class="mermaid">
-    graph TD
-        subgraph "User Interface"
-            UI[WebView UI]
-        end
+```mermaid
+graph TD
+    subgraph "User Interface"
+        UI[WebView UI]
+    end
 
-        subgraph "IDE Integration"
-            IDE[VS Code/JetBrains Extensions]
-        end
+    subgraph "IDE Integration"
+        IDE[VS Code/JetBrains Extensions]
+    end
 
-        subgraph "Core System"
-            CORE[Core Engine]
-            CONFIG[Configuration]
-            INDEX[Codebase Indexer]
-            CONTEXT[Context Providers]
-            LLM[LLM Integration]
-        end
+    subgraph "Core System"
+        CORE[Core Engine]
+        CONFIG[Configuration]
+        INDEX[Codebase Indexer]
+        CONTEXT[Context Providers]
+        LLM[LLM Integration]
+    end
 
-        subgraph "External"
-            MODELS[AI Models]
-            HUB[Continue Hub]
-        end
+    subgraph "External"
+        MODELS[AI Models]
+        HUB[Continue Hub]
+    end
 
-        %% Main flows
-        UI <-->|Messages| IDE
-        IDE <-->|Protocol| CORE
-        CORE -->|Uses| CONFIG
-        CORE -->|Uses| INDEX
-        CORE -->|Gathers| CONTEXT
-        CORE <-->|Requests| LLM
-        LLM <-->|API Calls| MODELS
-        CORE <-->|Components| HUB
+    %% Main flows
+    UI <-->|Messages| IDE
+    IDE <-->|Protocol| CORE
+    CORE -->|Uses| CONFIG
+    CORE -->|Uses| INDEX
+    CORE -->|Gathers| CONTEXT
+    CORE <-->|Requests| LLM
+    LLM <-->|API Calls| MODELS
+    CORE <-->|Components| HUB
 
-        %% User interaction
-        User -->|Interacts| UI
-</div>
+    %% User interaction
+    User -->|Interacts| UI
+```
 
 
 ### llm/streamChat 消息传递的过程
 
-<div class="mermaid">
+```mermaid
 sequenceDiagram
     participant User
     participant WebUI as WebView UI
@@ -126,7 +126,7 @@ sequenceDiagram
         IdeM-->>WebUI: Update UI with chunk
         WebUI-->>User: Display response
     end
-</div>
+```
 
 
 ## Cat 的实现过程
