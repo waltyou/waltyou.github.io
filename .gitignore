@@ -5,3 +5,4 @@ _site
 .idea
 .DS_Store
 .jekyll-cache
+.trae/skills/humanizer/SKILL.md
